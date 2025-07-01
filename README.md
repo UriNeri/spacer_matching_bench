@@ -1,11 +1,6 @@
 # THIS IS THE GitHub repository for continued devlopment, for the original repository see: [https://code.jgi.doe.gov/spacersdb/spacer_matching_bench](https://code.jgi.doe.gov/spacersdb/spacer_matching_bench)
 
 
-
-
-
-
-
 # Benchmarking protospacer identification tools
 Scripts, code, and data for the manuscript: "Tool Choice drastically Impacts CRISPR Spacer-Protospacer Detection"   
 Raw data files available in zenodo: [https://zenodo.org/doi/10.5281/zenodo.15171878](https://zenodo.org/doi/10.5281/zenodo.15171878).  
