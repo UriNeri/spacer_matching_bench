@@ -47,6 +47,7 @@ format:
     fig-pos: 'H'
     number-sections: true
     cite-method: biblatex
+    bibliography: ../main/references.bib
     pdf-engine: xelatex
     css: pdf_styles.css
   odt: default
@@ -65,11 +66,11 @@ In Quarto, cross-references between files require using the `@` symbol with labe
 
 ### Supplementary Table S1: Tool Configuration Details {#tbl-supp-tool-config}
 
-For full version and build information see the git repo at [code.jgi.doe.gov/spacersdb/spacer_matching_bench](https://code.jgi.doe.gov/spacersdb/spacer_matching_bench)
+For full version and build information see the git repo at [github.com/UriNeri/spacer_matching_bench](https://github.com/UriNeri/spacer_matching_bench).
 
 **Note on tool versions:** Following reviewer suggestions, we added three tools to the benchmark compared to the initial version: Sassy (exhaustive edit distance search), X-mapper (dynamic gapped x-mer approach), and indelfree.sh (BBTools suite, both bruteforce exhaustive mode and indexed heuristic mode). We also updated versions of existing tools where newer releases were available.
 
-**Note on BLASTn parameters:** The parameters for BLASTn were specifically chosen to enable the highest possible recall for short spacers. We used `blastn-short` (sets word-size at 7, compared to 11 with default blastn and 28 in megablastn), a very high number of max target sequences (`-max_target_seqs 1000000`, allowing up to 1M reported alignments per query compared to default value of 500), the `--ungapped` flag (used by CRISPRTarget, aligns with our hamming distance focus), and `perc_identity=84` and `qcov_hsp_perc=80`. The ungapped flag considerably reduced total CPU time. The perc_identity and qcov_hsp_perc arguments control output size - we cannot restrict blastn to a specific "n" distance, so these values allow a range of distances to be reported. For example, 85% identity over at least 80% of the spacer allows for 3 mismatches for a 20bp spacer (20 \* 0.15 = 3), but allows more for a 30bp spacer (30 \* 0.15 = 4.5). This range exceeds our desired threshold to capture all valid matches.
+**Note on BLASTn parameters:** The parameters for BLASTn were specifically chosen to enable the highest possible recall for short spacers. We used `blastn-short` (sets word-size at 7, compared to 11 with default blastn and 28 in megablastn), a very high number of max target sequences (`-max_target_seqs 1000000`, allowing up to 1M reported alignments per query compared to default value of 500), the `--ungapped` flag (used by CRISPRTarget, aligns with our hamming distance focus), and `perc_identity=84` and `qcov_hsp_perc=80`. The ungapped flag considerably reduced total CPU time. The `perc_identity` and `qcov_hsp_perc` arguments control output size - we cannot restrict blastn to a specific "n" distance, so these values allow a range of distances to be reported. For example, 85% identity over at least 80% of the spacer allows for 3 mismatches for a 20bp spacer (20 \* 0.15 = 3), but allows more for a 30bp spacer (30 \* 0.15 = 4.5). This range exceeds our desired thresholds to capture all valid matches.
 
 | Tool | Version | Command |
 |:-----|:--------|:--------|
@@ -114,7 +115,6 @@ Comprehensive table of all synthetic dataset generation parameters and resulting
 - GC content (spacers and contigs)
 - Insertion/injection range (occurrences per spacer)
 - Mismatch range (substitution mutations)
-- Indel parameters (if used - note: not used in current project)
 - Reverse complement proportion (typically 50%)
 - Contig utilization percentage (<2% for most)
 - Total spacer bp, total contig bp
@@ -150,11 +150,11 @@ The fraction is tool_matches divided by total_possible.
 
 ### Supplementary Figure S1: Benchmarking framework pipeline overview {#fig-supp-workflow}
 
-![](figures/supp/workflow.svg)
+![](figures/supp/workflow.svg) !!! THIS NEEDS TO BE UPDATED !!!
 
 ### Supplementary Figure S2: IMG/VR4 tool-vs-tool comparison matrices {#fig-supp-real-matrix}
 
-IMG/VR v4 based results in a tool vs tool comparison. Unlike the similar matrix in the main text (figure 1) which showcases the values for up to 1 and 3 mismatches, here the matrixes are separated for each mismatch threshold at an **exact** mismatch value. From top left to bottom right, the mismatch threshold is 0, 1, 2, 3. Like the main text figure, the value of a cell(i,j) is the fraction of spacer-contig pairs identified by the tool listed in row i, which were not identified by the tool listed in the j column.
+IMG/VR v4 based results in a tool vs tool comparison. Unlike the similar matrix in the main text (figure 1) which showcases the values for up to 1 and 3 mismatches, here the matrices are separated for each mismatch threshold at an **exact** mismatch value. From top left to bottom right, the mismatch threshold is 0, 1, 2, 3. Like the main text figure, the value of a cell(i,j) is the fraction of spacer-contig pairs identified by the tool listed in row i, which were not identified by the tool listed in the j column.
 
 ![](figures/supp/real_data_matrix_combined.svg)
 
@@ -174,7 +174,7 @@ Note: Because of the various prefiltering steps, the number of False Negatives a
 
 #### A. For exact mismatches, in a contig dependent manner
 
-Per contigs manner means the that the recall measure is the fraction of occurences each tool identified out of the total number of spacer-contig pairs, identified by all tools.\
+Per contigs manner means the that the recall measure is the fraction of occurrences each tool identified out of the total number of spacer-contig pairs, identified by all tools.\
 1. 0 mismatches
 
 ![](figures/supp/simulated_recall_vs_occurrences_with_contig_id_exact_nm_0.svg)
@@ -193,7 +193,7 @@ Per contigs manner means the that the recall measure is the fraction of occurenc
 
 #### B. Up to 1 and 3 mismatches, in a contig independent manner
 
-Per contig independent manner means that the recall measure is the fraction of occurences each tool identified out of the total number of times the spacer occurs in the reference file (regardless of in which contig).\
+Per contig independent manner means that the recall measure is the fraction of occurrences each tool identified out of the total number of times the spacer occurs in the reference file (regardless of in which contig).\
 1. up to 1 mismatches
 
 ![](figures/supp/simulated_recall_vs_occurrences_max_nm_1.svg)
@@ -225,19 +225,17 @@ Similar to main text figure, except for exact values for different mismatch thre
 
 ### Supplementary Figure S6: Comparison of simulated vs real spacer characteristics {#fig-supp-spacer-comparison}
 
-Distributions of spacer sequence features comparing simulated and real datasets to validate that synthetic sequences mimic real data characteristics. Features analyzed include k-mer repeatability, Shannon entropy, base frequencies, GC content, and linguistic complexity (LCC). Most features show similar distributions between simulated and real sequences, with some complexity measures (k-mer repeatability and LCC) showing real spacers have slightly wider range of values, suggesting a minor fraction of real spacers have more extreme complexity values.
+Distributions of spacer sequence features comparing simulated and real datasets (1.) to D that synthetic sequences mimic real data characteristics. Features analyzed include k-mer repeatability, Shannon entropy, base frequencies, GC content, and linguistic complexity (LCC). Most features show similar distributions between simulated and real sequences, with some complexity measures (k-mer repeatability and LCC) showing real spacers have slightly wider range of values, suggesting a minor fraction of real spacers have more extreme complexity values.
 
-<PLACE_HOLDER> <!-- Should show side-by-side comparisons of:
-- k-mer repeatability distributions
-- Shannon entropy distributions  
-- Base frequency patterns (A, T, C, G)
-- GC content distributions
-- Linguistic complexity (LCC) measures
-- Any other relevant sequence features
+1.  Filtered iPhoP set:
 
-Referenced in main text for validation that simulated sequences match real data characteristics
-See notebooks: spacer_inspection.ipynb for generation code
--->
+![](figures/supp/filtered_iphop_spacers_attribute_distributions_multiplot.png)
+
+2.  Fully simulated spacer set (specifically: ns_100000_nc_20000)
+
+![](figures/supp/simulated_spacer_distributions.svg)
+
+###  {#fig-supp-upset}
 
 ### Supplementary Figure S7: Spacer characteristic distributions by dataset {#fig-supp-spacer-distributions}
 
@@ -248,15 +246,11 @@ Distributions of spacers characteristics for both real (IMG/VR4) and simulated d
 
 #### 1. IMG/VR4 dataset
 
-**Note:** the horizontal axis is logarithmic.
+Contigs:
 
 ![](figures/supp/real_data_spacer_distributions.svg)
 
-#### 2. Synthetic dataset
-
-![](figures/supp/simulated_spacer_distributions.svg)
-
-### Supplementary Figure S8: Upset plots showing tool result overlaps {#fig-supp-upset}
+### Supplementary Figure S8: Upset plots showing tool result overlaps
 
 Upset plot of tool performance for IMG/VR4 dataset. The panels (from top to bottom) are sorted by number of mismatches. The sets in each panel are sorted from left to right by the set size. Each row in each panel represents a tool, and the vertical lines connecting the dots indicate the intersection of the connected tool results'.
 
@@ -319,29 +313,14 @@ Referenced in main text introduction regarding phage mutation patterns
 
 ### Supplementary Note 3: Non-planned Match Rate Analysis {#note-supp-nonplanned}
 
-Detailed analysis of non-planned match rates across distance thresholds using exhaustive search tools on synthetic and semi-synthetic datasets.
-
-**Methodology:** Using synthetic datasets with known ground truth, we quantified non-planned matches (validated alignments occurring outside planned insertion regions) as a function of distance metric, threshold, and search space size. For hamming distance, we used indelfree.sh (bruteforce mode); for edit distance, we used Sassy. Non-planned matches represent chance similarities arising from sequence composition rather than true biological relationships.
-
-**Key Findings:**
-
-**Semi-synthetic dataset (3,826,979 real iPHoP spacers × 400,000 simulated contigs, \~xxx Gbp):** - Hamming distance ≤3: 54,388 non-planned matches (\~0.36 per million spacer-bp × million contig-bp) - Hamming distance ≤2: 2,217 non-planned matches - Hamming distance ≤1: 47 non-planned matches\
-- Hamming distance = 0: 1 exact non-planned match
-
-These rates demonstrate dramatic increase in background matches with allowed distance threshold. At hamming ≤3, approximately 1 in \~2.8 million spacer-contig position comparisons yields a non-planned match.
-
-**Edit distance analysis:** Due to computational requirements of exhaustive tools (Sassy), edit distance non-planned match rates could only be evaluated on smaller synthetic datasets. Results show substantially higher non-planned match rates when allowing indels compared to substitutions-only (hamming distance), validating our recommendation to use hamming distance for natural CRISPR spacer-protospacer matching.
-
-**Validation approach:** All non-planned matches were independently verified using parasail Needleman-Wunsch alignment to ensure they represent true sequence similarity within the specified distance threshold, not tool artifacts.
-
-**Implications:** As CRISPR spacer databases continue growing (366,799 in 2017 → 3,826,979 in 2023) and viral contig databases expand through metagenomic sequencing, researchers must account for these increasing background match rates when interpreting results. The choice of distance threshold directly impacts false discovery rates.
+\<place holder for the edit + hamming distance figures and tables\>
 
 **Complete analysis available in:** `distance_metric_analysis.ipynb` notebook in project repository, including per-distance breakdowns, tool-specific validation analyses, and detailed comparison tables.
 
 ## References and Data Availability
 
-All analysis notebooks, source code, and generated data are available in the project repository at [code.jgi.doe.gov/spacersdb/spacer_matching_bench](https://code.jgi.doe.gov/spacersdb/spacer_matching_bench).
+All analysis notebooks, source code, and generated data are available in the project repository at: [github.com/UriNeri/spacer_matching_bench](https://github.com/UriNeri/spacer_matching_bench).
 
 Key analysis notebooks referenced in supplementary materials: - `spacer_inspection.ipynb`: Complexity filtering, spacer feature analysis, simulated vs real comparison - `distance_metric_analysis.ipynb`: Non-planned match rate analysis, coordinate tolerance examples, hamming vs edit distance comparison - `Prepare_all_jobs.ipynb`: Simulation parameter definitions, dataset generation commands - `Performance_simulated_v2.ipynb`: Per-tool performance metrics on simulated datasets - `Performance_imgvr4_v2.ipynb`: Per-tool performance metrics on real IMG/VR4 datasets
 
-Dataset availability: - Filtered IMG/VR4 HQ contig subset (421,431 contigs, \~18.9 Gbp): \[Zenodo DOI\] - Filtered iPHoP spacer dataset (3,826,979 spacers, 132 Mbp): \[Zenodo DOI\] - All synthetic datasets and ground truth files: \[Zenodo DOI\]
+Dataset availability: - Filtered IMG/VR4 HQ contig subset (421,431 contigs, \~18.9 Gbp): \[Zenodo DOI\] - Filtered iPHoP spacer dataset (3,826,979 spacers, 132 Mbp): \[Zenodo DOI\] - All synthetic datasets and ground truth files: [@zenodo_doi]
