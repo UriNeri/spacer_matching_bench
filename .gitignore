@@ -226,3 +226,6 @@ sassy_parsed_*.parquet
 draft/reviewers_comments.txt
 .github/copilot-instructions.md
 .github/zotero-research-workflow.md
+temp.py
+temp.sh
+notebooks/obsolete
