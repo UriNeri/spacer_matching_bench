@@ -3,6 +3,7 @@ Sequence simulation command. mostly a wrapper for the rust simulator.
 """
 
 import os
+import shutil
 import logging
 
 from bench.utils.functions import *
@@ -97,7 +98,17 @@ def run_simulate(
 
     # Create directory structure
     os.makedirs(output_dir, exist_ok=True)
-    os.makedirs(f"{output_dir}/simulated_data", exist_ok=True)
+    
+    # Remove existing simulated_data directory if it exists (to avoid stale index files)
+    simulated_data_path = f"{output_dir}/simulated_data"
+    if os.path.exists(simulated_data_path):
+        logger.warning(
+            f"Removing existing simulated_data directory at {simulated_data_path} "
+            "(to avoid stale .fai/.fxi index files)"
+        )
+        shutil.rmtree(simulated_data_path)
+    
+    os.makedirs(simulated_data_path, exist_ok=True)
     logger.debug("Created directory structure")
 
     logger.debug("Running Rust simulator...")
