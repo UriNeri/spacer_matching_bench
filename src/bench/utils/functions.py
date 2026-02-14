@@ -157,27 +157,27 @@ def count_kmers_df(
     )
 
 
-def filter_repetitive_kmers(
-    df: pl.DataFrame,
-    seq_col: str = "seq",
-    id_col: str = "seqid",
-    k: int = 6,
-    max_count: int = 4,
-) -> pl.DataFrame:
-    """Filter sequences that have any k-mer appearing more than max_count times.
-    Note, this is not used currently in the package but an almost identical process is done in the spacer_inspection.ipynb notebook.
-    """
-    # First get k-mer counts
-    df_with_kmers = count_kmers_df(df, seq_col, id_col, k, relative=False)
+# def filter_repetitive_kmers(
+#     df: pl.DataFrame,
+#     seq_col: str = "seq",
+#     id_col: str = "seqid",
+#     k: int = 6,
+#     max_count: int = 4,
+# ) -> pl.DataFrame:
+#     """Filter sequences that have any k-mer appearing more than max_count times.
+#     Note, this is not used currently in the package but an almost identical process is done in the spacer_inspection.ipynb notebook.
+#     """
+#     # First get k-mer counts
+#     df_with_kmers = count_kmers_df(df, seq_col, id_col, k, relative=False)
 
-    # Filter for sequences without highly repetitive k-mers
-    filter_repetitive_expr = (
-        ~pl.col("kmer_counts")
-        .list.eval(pl.element().struct.field("count") > max_count)
-        .list.any()
-    )
+#     # Filter for sequences without highly repetitive k-mers
+#     filter_repetitive_expr = (
+#         ~pl.col("kmer_counts")
+#         .list.eval(pl.element().struct.field("count") > max_count)
+#         .list.any()
+#     )
 
-    return df_with_kmers.filter(filter_repetitive_expr)
+#     return df_with_kmers.filter(filter_repetitive_expr)
 
 
 # lcc_mult and lcc_simp are sourced from the biopython library - we don't need to depend on it here just for these two functions.
@@ -1000,22 +1000,6 @@ def clean_before_rerun(tool_name: str, results_dir: str) -> None:
     os.system(f"rm -rf {results_dir}/raw_outputs/tmp*")
 
 
-def get_aln_len_from_cigar(cigar: str) -> int:
-    """Calculate reference span from CIGAR string.
-    Only M, D, N, =, X consume reference positions.
-    I, S, H do not consume reference positions.
-
-    Args:
-        cigar(str): CIGAR string
-
-    Returns:
-        int: Length of alignment on reference
-    """
-    # Match operations that consume reference: M, D, N, =, X
-    ref_consuming = re.findall(r"(\d+)[MDN=X]", cigar)
-    return sum(int(num) for num in ref_consuming)
-
-
 def fix_cigar_for_pysamtools(cigar: str) -> str:
     """Fix CIGAR string to ensure all operations have numeric lengths for pysamtools.
 
@@ -1033,20 +1017,6 @@ def fix_cigar_for_pysamtools(cigar: str) -> str:
     else:
         return t
 
-
-def get_mismatches_from_cigar(cigar: str) -> int:
-    """Extract the number of mismatches from CIGAR string (X operations).
-
-    Args:
-        cigar(str): CIGAR string
-
-    Returns:
-        int: Number of mismatches
-
-    Note:
-        Cigar string should be in extended format (version 1.4 cigar) with X for mismatches
-    """
-    return sum(int(num[:-1]) for num in re.findall(r"\d+X", cigar) or [0])
 
 
 def order_columns_to_match(
@@ -1830,72 +1800,6 @@ def plot_matrix(
     return final_chart if return_chart else None
 
 
-def parse_tab(
-    output_file: str,
-    max_mismatches: int = 5,
-    spacer_lendf: Optional[pl.DataFrame] = None,
-    **kwargs,
-) -> pl.DataFrame:
-    """expecting tab file with columns: spacer_id, contig_id, start, end, strand - because Antonio insists.
-
-    Args:
-        output_file (str): Input path.
-        max_mismatches (int): Ignored here as mismatches are set to 0.
-        spacer_lendf (pl.DataFrame): Length info.
-
-    Returns:
-        pl.DataFrame: Cleaned results.
-    """
-    try:
-        results = pl.read_csv(
-            output_file,
-            separator="\t",
-            has_header=False,
-            new_columns=["contig_id", "spacer_id", "start", "end", "strand"],
-            infer_schema_length=100000,
-        )
-    except Exception as e:
-        logger.warning(
-            f"Failed to read TAB file {output_file}: {e}, returning empty dataframe"
-        )
-        return pl.DataFrame(
-            schema={
-                "spacer_id": pl.Utf8,
-                "contig_id": pl.Utf8,
-                "spacer_length": pl.UInt32,
-                "strand": pl.Utf8,
-                "start": pl.UInt32,
-                "end": pl.UInt32,
-                "mismatches": pl.UInt32,
-            },
-            orient="row",
-        )
-
-    results = results.with_columns(
-        pl.lit(0).alias(
-            "mismatches"
-        )  # we assume this function is only used for spacer_containment, so we don't have mismatches
-    )
-    results = results.with_columns(pl.col("spacer_id").cast(pl.Utf8))
-    results = spacer_lendf.join(results, on="spacer_id", how="inner")
-    results = results.rename({"length": "spacer_length"})
-    results = results.with_columns(
-        pl.when(pl.col("strand") == "-")
-        .then(pl.lit(True))
-        .otherwise(pl.lit(False))
-        .alias("strand")  # Convert string strand to boolean
-    )
-    return results.select(
-        "spacer_id",
-        "contig_id",
-        "spacer_length",
-        "strand",
-        "start",
-        "end",
-        "mismatches",
-    ).unique()
-
-
 def parse_hyperfine_output(json_file: str) -> Optional[pl.DataFrame]:
     """Parse hyperfine JSON output into a Polars DataFrame.
 
@@ -2292,6 +2196,53 @@ def populate_pldf_withseqs(
         )
 
     return pldf
+
+def get_seq_stats_pl(seq_file: str) -> pl.DataFrame:
+    """
+    Get sequence statistics using Polars.
+    
+    Args:
+        seq_file: Path to spacers FASTA file
+    
+    Returns:
+        Dictionary with:
+        - n_seqs: Total number of seqs
+        - avg_length: mean seq length
+        - meadian_length: median seq length
+        - sum_length: total length of all seqs
+        - min_length: minimum seq length
+        - max_length: maximum seq length
+        - gc_frac_mean: mean GC fraction across all seqs
+        - file: filename (for reference)
+    """
+    # Read FASTA file into Polars DataFrame
+    seq_df = pl.DataFrame(read_fasta_needletail(seq_file), schema={'seqid': pl.Utf8, 'seq': pl.Utf8},)
+    seq_df = seq_df.with_columns(
+        pl.col("seq").str.len_chars().alias("length")
+    )
+    median = seq_df.select(pl.col("length")).median().item()
+    mean = seq_df.select(pl.col("length").mean()).item()
+    sum_length = seq_df.select(pl.col("length").sum()).item()
+    min_length = seq_df.select(pl.col("length").min()).item()
+    max_length = seq_df.select(pl.col("length").max()).item()
+
+    gc_frac_mean = seq_df.select(
+        (pl.col("seq").str.count_matches("G|C|g|c")/pl.col("length")).alias("gc_frac")
+    ).mean().item()
+    
+
+
+    seq_df = pl.DataFrame().with_columns(
+        pl.lit(str(seq_file)).alias("file"),
+        pl.lit(seq_df.height).alias("n_seqs"),
+        pl.lit(median).alias("median_length"),
+        pl.lit(mean).alias("avg_length"),
+        pl.lit(sum_length).alias("sum_length"),
+        pl.lit(min_length).alias("min_length"),
+        pl.lit(max_length).alias("max_length"),
+        pl.lit(gc_frac_mean).alias("gc_frac_mean")
+    )
+    return seq_df
 
 
 def populate_pldf_withseqs_needletail(
@@ -2727,9 +2678,10 @@ def calculate_hamming_distance(
     silent: bool = True,
 ):
     """
-    Calculate Hamming distance (substitutions only, no indels) using ungapped alignment.
+    Calculate Hamming distance (substitutions only, no indels) using ungapped alignment from start.
 
-    If sequences differ in length, slides the shorter over the longer and returns the minimum.
+    Aligns sequences from position 0 and counts mismatches in overlapping region plus
+    terminal gaps.
 
     Args:
         spacer_seq(str): Query sequence
@@ -2739,7 +2691,7 @@ def calculate_hamming_distance(
         end(int): Optional end coordinate for slicing contig_seq
 
     Returns:
-        Minimum Hamming distance (int)
+        Hamming distance including terminal gaps as mismatches (int)
     """
     if start is not None and end is not None:
         expected_length = end - start
@@ -2756,26 +2708,29 @@ def calculate_hamming_distance(
     len_s = len(spacer_seq)
     len_c = len(aligned_region)
 
-    # If lengths match, simple Hamming distance
+    # If lengths match, simple hamming distance
     if len_s == len_c:
         return sum(a != b for a, b in zip(spacer_seq, aligned_region))
-
-    # Otherwise, slide the shorter against the longer
+    
+    # If lengths differ, try padding from both sides and return minimum
+    # This handles cases where we don't know if terminal gaps are at start or end
     if len_s < len_c:
-        short_seq, long_seq = spacer_seq, aligned_region
+        # Pad spacer on right (left-aligned)
+        spacer_r = spacer_seq + "-" * (len_c - len_s)
+        ham_r = sum(a != b for a, b in zip(spacer_r, aligned_region))
+        # Pad spacer on left (right-aligned)
+        spacer_l = "-" * (len_c - len_s) + spacer_seq
+        ham_l = sum(a != b for a, b in zip(spacer_l, aligned_region))
     else:
-        short_seq, long_seq = aligned_region, spacer_seq
-
-    min_hamming = None
-    max_offset = len(long_seq) - len(short_seq)
-
-    for offset in range(max_offset + 1):
-        window = long_seq[offset:offset + len(short_seq)]
-        hamming = sum(a != b for a, b in zip(short_seq, window))
-        if min_hamming is None or hamming < min_hamming:
-            min_hamming = hamming
-
-    return min_hamming
+        # Pad contig on right (left-aligned)
+        contig_r = aligned_region + "-" * (len_s - len_c)
+        ham_r = sum(a != b for a, b in zip(spacer_seq, contig_r))
+        # Pad contig on left (right-aligned)
+        contig_l = "-" * (len_s - len_c) + aligned_region
+        ham_l = sum(a != b for a, b in zip(spacer_seq, contig_l))
+    
+    # Return minimum hamming distance
+    return min(ham_r, ham_l)
 
 
 def calculate_gap_affine_edit(
@@ -2916,7 +2871,10 @@ def prettify_alignment_hamming(
     return_comp_str: bool = False,
 ) -> str:
     """
-    Calculate hamming distance (substitutions only, no indels) using ungapped alignment.
+    Display hamming distance alignment (substitutions only, no indels) from start position.
+    
+    Aligns sequences from position 0 and pads shorter sequence with gaps to show
+    terminal differences.
 
     Args:
         spacer_seq(str): Query sequence
@@ -2927,15 +2885,9 @@ def prettify_alignment_hamming(
         return_ref_region: Return traceback ref.
         return_query_region: Return traceback query.
         return_comp_str: Return comparison string (| .).
-        gap_cost: Penalty.
-        extend_cost: Penalty.
-        cost_matrix: Scoring matrix.
 
     Returns:
         str: Alignment string representation.
-    Note:
-        If sequences are of different lengths, it will attempt to pad the shorter sequence with "@" characters on either side and compute two hamming distances, returning the minimum.
-
     """
     if start is not None and end is not None:
         aligned_region = contig_seq[start:end]
@@ -2945,52 +2897,48 @@ def prettify_alignment_hamming(
     if strand:  # True means reverse strand
         aligned_region = reverse_complement(aligned_region)
 
-    # If lengths don't match, can't do proper hamming distance, trying with padding (the shorter) from each side as "good enough effort"
-    if len(spacer_seq) != len(aligned_region):
-        if len(spacer_seq) < len(aligned_region):
-            # Pad spacer_seq (RIGHT)
-            spacer_seq_r = spacer_seq.ljust(len(aligned_region), "@")
-            ham_rght = sum(1 for a, b in zip(spacer_seq_r, aligned_region) if a != b)
-            # Pad spacer_seq (LEFT)
-            spacer_seq_l = spacer_seq.rjust(len(aligned_region), "@")
-            ham_lft = sum(1 for a, b in zip(spacer_seq_l, aligned_region) if a != b)
+    len_s = len(spacer_seq)
+    len_c = len(aligned_region)
 
-            # Get the minimum of the two padding attempts, and build alignment string accordingly ("|" for match, "." for mismatch)
-            if ham_rght < ham_lft:
-                ali_str = "".join(
-                    "|" if a == b else "." for a, b in zip(spacer_seq_r, aligned_region)
-                )
-                spacer_seq = spacer_seq_r
-            else:
-                ali_str = "".join(
-                    "|" if a == b else "." for a, b in zip(spacer_seq_l, aligned_region)
-                )
-                spacer_seq = spacer_seq_l
-        else:
-            # Pad aligned_region (RIGHT)
-            aligned_region_r = aligned_region.ljust(len(spacer_seq), "@")
-            ham_rght = sum(1 for a, b in zip(spacer_seq, aligned_region_r) if a != b)
-            # Pad aligned_region (LEFT)
-            aligned_region_l = aligned_region.rjust(len(spacer_seq), "@")
-            ham_lft = sum(1 for a, b in zip(spacer_seq, aligned_region_l) if a != b)
-
-            # Get the minimum of the two padding attempts, and build alignment string accordingly ("|" for match, "." for mismatch)
-            if ham_rght < ham_lft:
-                ali_str = "".join(
-                    "|" if a == b else "." for a, b in zip(spacer_seq, aligned_region_r)
-                )
-                aligned_region = aligned_region_r
-            else:
-                ali_str = "".join(
-                    "|" if a == b else "." for a, b in zip(spacer_seq, aligned_region_l)
-                )
-                aligned_region = aligned_region_l
-    # if they're the same length, proceed normally
-    # Simple character-by-character comparison (true hamming distance)
-    else:
+    # If lengths match, simple comparison
+    if len_s == len_c:
         ali_str = "".join(
             "|" if a == b else "." for a, b in zip(spacer_seq, aligned_region)
         )
+    elif len_s < len_c:
+        # Spacer is shorter - try padding from both sides and use best match
+        # Right-pad (left-aligned)
+        spacer_r = spacer_seq + "-" * (len_c - len_s)
+        ali_r = "".join("|" if a == b else "." for a, b in zip(spacer_r, aligned_region))
+        ham_r = ali_r.count(".")
+        # Left-pad (right-aligned)
+        spacer_l = "-" * (len_c - len_s) + spacer_seq
+        ali_l = "".join("|" if a == b else "." for a, b in zip(spacer_l, aligned_region))
+        ham_l = ali_l.count(".")
+        # Use the alignment with fewer mismatches
+        if ham_r <= ham_l:
+            ali_str = ali_r
+            spacer_seq = spacer_r
+        else:
+            ali_str = ali_l
+            spacer_seq = spacer_l
+    else:
+        # Contig is shorter - try padding from both sides and use best match
+        # Right-pad (left-aligned)
+        contig_r = aligned_region + "-" * (len_s - len_c)
+        ali_r = "".join("|" if a == b else "." for a, b in zip(spacer_seq, contig_r))
+        ham_r = ali_r.count(".")
+        # Left-pad (right-aligned)
+        contig_l = "-" * (len_s - len_c) + aligned_region
+        ali_l = "".join("|" if a == b else "." for a, b in zip(spacer_seq, contig_l))
+        ham_l = ali_l.count(".")
+        # Use the alignment with fewer mismatches
+        if ham_r <= ham_l:
+            ali_str = ali_r
+            aligned_region = contig_r
+        else:
+            ali_str = ali_l
+            aligned_region = contig_l
 
     if return_ref_region:
         return aligned_region
@@ -3053,7 +3001,16 @@ def read_results(
         output_parquet(str): If provided, save results to this Parquet file path instead of returning in-memory DF
 
     Returns:
-        Polars DataFrame with combined results from all tools (or None if output_parquet is specified)
+        Polars DataFrame with combined results from all tools (or None if output_parquet is specified).  
+        Output Schema:
+            "spacer_id": pl.Utf8,
+            "contig_id": pl.Utf8,
+            "spacer_length": pl.UInt32,
+            "strand": pl.Boolean,
+            "start": pl.UInt32,
+            "end": pl.UInt32,
+            "mismatches": pl.UInt32,
+            "tool": pl.Utf8
     """
 
     if use_duckdb:
@@ -3504,55 +3461,6 @@ def verify_sam_file(sam_file: str, ref_file: Optional[str] = None):
     return sam_file
 
 
-def create_comparison_matrix(tools_results: pl.DataFrame, n_mismatches: int = 3):
-    # Filter for specific number of mismatches
-    tmp = tools_results.filter(pl.col("mismatches") == n_mismatches)
-
-    # Get unique tools
-    tools = tmp.select("tool").unique()
-    tools_list = tools.get_column("tool").to_list()
-
-    # Create empty matrix dataframe
-    matrix_data = []
-
-    for tool1 in tools_list:
-        row_data = []
-        # Get unique pairs for tool1
-        tool1_pairs = (
-            tmp.filter(pl.col("tool") == tool1)
-            .select(["contig_id", "spacer_id"])
-            .unique()
-        )
-
-        for tool2 in tools_list:
-            if tool1 == tool2:
-                # Diagonal will show total number of pairs for the tool
-                row_data.append(tool1_pairs.height)
-            else:
-                # Get unique pairs for tool2
-                tool2_pairs = (
-                    tmp.filter(pl.col("tool") == tool2)
-                    .select(["contig_id", "spacer_id"])
-                    .unique()
-                )
-
-                # Count pairs in tool1 that are not in tool2
-                diff_count = tool1_pairs.join(
-                    tool2_pairs, on=["contig_id", "spacer_id"], how="anti"
-                ).height
-                row_data.append(diff_count)
-
-        matrix_data.append(row_data)
-
-    # Create matrix dataframe
-    matrix_df = pl.DataFrame(
-        matrix_data,
-        schema=tools_list,
-    ).with_columns(pl.Series(name="tool", values=tools_list))
-
-    return matrix_df
-
-
 def get_parse_function(func_name: str):
     return globals()[func_name]
 
@@ -3686,339 +3594,6 @@ def get_overlap_type_polarsbio(
     ).collect()
 
     return validation_results
-
-
-def load_multiple_fractions_duckdb(
-    fraction_parquet_files, threads=4, memory_limit="50GB"
-):
-    """
-    Load and combine results from multiple fraction parquet files using DuckDB.
-    This enables analysis of stratified subsamples without loading all data into memory.
-
-    Args:
-        fraction_parquet_files(dict): Dictionary mapping fraction values to parquet file paths
-            e.g., {0.001: 'path/to/alignments_fraction_0.001.parquet', ...}
-        threads(int): Number of threads for DuckDB to use
-        memory_limit(str): Memory limit for DuckDB operations (e.g., "50GB")
-
-    Returns
-    duckdb.DuckDBPyConnection
-        A DuckDB connection with a registered view "fractions" containing all loaded data
-    """
-    # STRICT thread enforcement via environment variables
-    os.environ["OMP_NUM_THREADS"] = str(threads)
-    os.environ["OPENBLAS_NUM_THREADS"] = str(threads)
-    os.environ["MKL_NUM_THREADS"] = str(threads)
-    os.environ["VECLIB_MAXIMUM_THREADS"] = str(threads)
-    os.environ["NUMEXPR_NUM_THREADS"] = str(threads)
-
-    logger.info(
-        f"\n[DuckDB] Loading {len(fraction_parquet_files)} fractions with {threads} threads"
-    )
-
-    con = duckdb.connect(database=":memory:")
-    con.execute(f"SET threads TO {threads};")
-    con.execute("SET preserve_insertion_order = false;")
-    con.execute(f"SET memory_limit = '{memory_limit}';")
-
-    # Build union query for all fractions
-    union_queries = []
-    for frac, pf in sorted(fraction_parquet_files.items()):
-        if os.path.exists(pf) and os.path.getsize(pf) > 0:
-            union_queries.append(
-                f"SELECT *, {frac} as fraction FROM read_parquet('{pf}')"
-            )
-            logger.info(
-                f"  Fraction {frac}: {os.path.getsize(pf) / 1024 / 1024:.1f} MB"
-            )
-        else:
-            logger.info(f"  Fraction {frac}: NOT FOUND or empty, skipping")
-
-    if not union_queries:
-        raise ValueError("No valid parquet files found")
-
-    # Create view for all fractions
-    union_query = " UNION ALL ".join(union_queries)
-    con.execute(f"CREATE VIEW fractions AS {union_query}")
-    logger.info(
-        f"[DuckDB] Created view 'fractions' with {len(union_queries)} fractions"
-    )
-
-    return con
-
-
-def query_fractions_duckdb(con, query_template, output_parquet=None):
-    """
-    Execute a query on the DuckDB fractions view and optionally save to parquet.
-
-    Args:
-        con(duckdb.DuckDBPyConnection): DuckDB connection from load_multiple_fractions_duckdb()
-        query_template(str): SQL query, use 'fractions' as the table name.
-            e.g., "SELECT tool, COUNT(*) as count FROM fractions GROUP BY tool"
-        output_parquet(str): Path to save results as parquet. If None, returns Polars DataFrame.
-
-    Returns
-    polars.DataFrame or None
-        If output_parquet is None, returns results as Polars DataFrame.
-        If output_parquet is specified, saves to disk and returns None.
-    """
-    logger.info("\n[DuckDB] Executing query...")
-
-    if output_parquet:
-        copy_query = f"""
-            COPY (
-                {query_template}
-            ) TO '{output_parquet}' (FORMAT 'PARQUET', COMPRESSION 'SNAPPY', ROW_GROUP_SIZE 100000)
-        """
-        con.execute(copy_query)
-        logger.info(f"[DuckDB] Results saved to {output_parquet}")
-        return None
-    else:
-        result = con.execute(query_template).pl()
-        return result
-
-
-def create_spacer_counts_with_tools_duckdb(
-    parquet_path: str,
-    tools_list: list,
-    mismatches: int = 3,
-    exact_or_max: str = "exact",
-    output_parquet: str = None,
-    threads: int = 12,
-    memory_limit: str = "100GB",
-):
-    """
-    DuckDB version of create_spacer_counts_with_tools.
-    Calculates occurrence counts and tool detection fractions without loading full dataset.
-
-    Args:
-        parquet_path: Path to parquet file with recalculated mismatches
-        tools_list: List of tool names
-        mismatches: Number of mismatches (exact or max depending on exact_or_max)
-        exact_or_max: "exact" for == mismatches, "max" for <= mismatches
-        output_parquet: Optional path to save results
-        threads: Number of threads for DuckDB
-        memory_limit: Memory limit for DuckDB
-
-    Returns:
-        Polars DataFrame or None (if output_parquet specified)
-    """
-    con = duckdb.connect(database=":memory:")
-    con.execute(f"SET threads TO {threads};")
-    con.execute(f"SET memory_limit = '{memory_limit}';")
-
-    # Build mismatch filter
-    if exact_or_max == "max":
-        mismatch_filter = f"alignment_test <= {mismatches}"
-    else:
-        mismatch_filter = f"alignment_test = {mismatches}"
-
-    # Create tools list SQL
-    tools_sql = ", ".join([f"'{tool}'" for tool in tools_list])
-
-    query = f"""
-        WITH spacer_counts AS (
-            -- Get total occurrences per spacer
-            SELECT 
-                spacer_id,
-                COUNT(DISTINCT contig_id) as n_occurrences
-            FROM read_parquet('{parquet_path}')
-            WHERE {mismatch_filter}
-            GROUP BY spacer_id
-        ),
-        tool_matches AS (
-            -- Get matches per tool and spacer
-            SELECT 
-                spacer_id,
-                tool,
-                COUNT(DISTINCT contig_id) as tool_matches
-            FROM read_parquet('{parquet_path}')
-            WHERE {mismatch_filter}
-            GROUP BY spacer_id, tool
-        ),
-        all_combinations AS (
-            -- Cross join spacers with all tools
-            SELECT 
-                sc.spacer_id,
-                sc.n_occurrences,
-                t.tool
-            FROM spacer_counts sc
-            CROSS JOIN (SELECT UNNEST([{tools_sql}]) as tool) t
-        )
-        SELECT 
-            ac.spacer_id,
-            ac.n_occurrences,
-            ac.tool,
-            COALESCE(tm.tool_matches, 0) as tool_matches,
-            COALESCE(tm.tool_matches, 0)::DOUBLE / ac.n_occurrences as fraction
-        FROM all_combinations ac
-        LEFT JOIN tool_matches tm
-            ON ac.spacer_id = tm.spacer_id 
-            AND ac.tool = tm.tool
-    """
-
-    # Pivot to get tools as columns
-    tool_columns = ", ".join(
-        [
-            f"MAX(CASE WHEN tool = '{tool}' THEN fraction ELSE 0 END) as \"{tool}\""
-            for tool in tools_list
-        ]
-    )
-    pivot_query = f"""
-        WITH base_data AS ({query})
-        SELECT 
-            spacer_id,
-            n_occurrences,
-            {tool_columns}
-        FROM base_data
-        GROUP BY spacer_id, n_occurrences
-    """
-
-    if output_parquet:
-        con.execute(f"""
-            COPY ({pivot_query}) 
-            TO '{output_parquet}' (FORMAT PARQUET, COMPRESSION SNAPPY)
-        """)
-        con.close()
-        return None
-    else:
-        result = con.execute(pivot_query).pl()
-        con.close()
-        return result
-
-
-def get_summary_stats_duckdb(
-    parquet_path: str,
-    threads: int = 12,
-    memory_limit: str = "100GB",
-):
-    """
-    Get summary statistics from parquet file using DuckDB.
-
-    Returns summary by tool without loading full dataset into memory.
-    """
-    con = duckdb.connect(database=":memory:")
-    con.execute(f"SET threads TO {threads};")
-    con.execute(f"SET memory_limit = '{memory_limit}';")
-
-    query = """
-        SELECT 
-            tool,
-            AVG(alignment_test) as mean_mismatches,
-            COUNT(DISTINCT spacer_id) as n_spacers,
-            COUNT(DISTINCT contig_id) as n_contigs,
-            COUNT(*) as total_alignments
-        FROM read_parquet(?)
-        GROUP BY tool
-        ORDER BY tool
-    """
-
-    result = con.execute(query, [parquet_path]).pl()
-    con.close()
-    return result
-
-
-def create_tool_comparison_matrix_duckdb(
-    parquet_path: str,
-    tools_list: list,
-    n_mismatches: int,
-    output_csv: str = None,
-    threads: int = 12,
-    memory_limit: str = "100GB",
-):
-    """
-    Create tool comparison matrix using DuckDB.
-    Cell(i,j) = number of unique pairs in tool i but not in tool j.
-
-    Returns Polars DataFrame with matrix.
-    """
-    import numpy as np
-
-    con = duckdb.connect(database=":memory:")
-    con.execute(f"SET threads TO {threads};")
-    con.execute(f"SET memory_limit = '{memory_limit}';")
-
-    # Create empty matrix
-    matrix_data = np.zeros((len(tools_list), len(tools_list)), dtype=int)
-
-    # Get unique pairs for each tool
-    for i, tool_x in enumerate(tools_list):
-        for j, tool_y in enumerate(tools_list):
-            if tool_x == tool_y:
-                continue
-
-            # Count pairs in x but not in y using DuckDB
-            query = f"""
-                WITH tool_x_pairs AS (
-                    SELECT DISTINCT contig_id, spacer_id, strand, "start", "end"
-                    FROM read_parquet('{parquet_path}')
-                    WHERE tool = '{tool_x}' AND alignment_test = {n_mismatches}
-                ),
-                tool_y_pairs AS (
-                    SELECT DISTINCT contig_id, spacer_id, strand, "start", "end"
-                    FROM read_parquet('{parquet_path}')
-                    WHERE tool = '{tool_y}' AND alignment_test = {n_mismatches}
-                )
-                SELECT COUNT(*) as count
-                FROM tool_x_pairs
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM tool_y_pairs
-                    WHERE tool_x_pairs.contig_id = tool_y_pairs.contig_id
-                        AND tool_x_pairs.spacer_id = tool_y_pairs.spacer_id
-                        AND tool_x_pairs.strand = tool_y_pairs.strand
-                        AND tool_x_pairs."start" = tool_y_pairs."start"
-                        AND tool_x_pairs."end" = tool_y_pairs."end"
-                )
-            """
-
-            count = con.execute(query).fetchone()[0]
-            matrix_data[i, j] = count
-
-    con.close()
-
-    # Convert to DataFrame
-    matrix = pl.DataFrame(matrix_data, schema=tools_list)
-    matrix = matrix.with_columns(
-        pl.Series(name="tool1", values=tools_list, dtype=pl.Utf8)
-    )
-
-    if output_csv:
-        matrix.write_csv(output_csv, separator="\t")
-
-    return matrix
-
-
-def load_fraction_results_lazy(fraction_parquet_files, add_fraction_col=True):
-    """
-    Load multiple fraction parquet files as lazy Polars frames for memory-efficient processing.
-
-    Args:
-        fraction_parquet_files(dict): Dictionary mapping fraction values to parquet file paths
-        add_fraction_col(bool): If True, add fraction column to each frame
-
-    Returns
-    polars.LazyFrame
-        Concatenated lazy frames from all fractions
-    """
-    lazy_frames = []
-
-    for frac, pf in sorted(fraction_parquet_files.items()):
-        if os.path.exists(pf) and os.path.getsize(pf) > 0:
-            lf = pl.scan_parquet(pf)
-            if add_fraction_col:
-                lf = lf.with_columns(pl.lit(frac).alias("fraction"))
-            lazy_frames.append(lf)
-            logger.info(f"  Fraction {frac}: loaded (lazy)")
-        else:
-            logger.info(f"  Fraction {frac}: NOT FOUND or empty, skipping")
-
-    if not lazy_frames:
-        raise ValueError("No valid parquet files found")
-
-    combined = pl.concat(lazy_frames)
-    logger.info(f"[Polars] Concatenated {len(lazy_frames)} fractions as lazy frame")
-
-    return combined
 
 
 def get_system_info(use_slurm: bool = True, also_out_to="system_info.json") -> dict:
