@@ -4,16 +4,15 @@ Results comparison and validation command (compares the tool outputs against the
 
 import os
 import logging
+from pathlib import Path
 from typing import Dict, Optional
 import polars as pl
-
 # import polars_bio as pb
 from rich.console import Console
 
 from bench.utils.functions import (
     read_fasta,
     read_results,
-    read_hyperfine_results,
     test_alignment,
     populate_pldf_withseqs_needletail,
     prettify_alignment_edit,
@@ -29,84 +28,63 @@ from bench.utils.functions import (
 )
 from bench.utils.tool_commands import load_tool_configs
 
-import warnings
-from pathlib import Path
-warnings.filterwarnings("ignore", category=FutureWarning)
-
-
 # Logger is configured by cli.py with RichHandler
 logger = logging.getLogger(__name__)
 console = Console(soft_wrap=False)
 
-# so printing to stdout doesn't break, line wrap, or truncate.
+# Polars display config (keep wide to avoid truncation in debug prints)
 pl.Config.set_tbl_rows(123123)
-pl.Config.set_tbl_cols(123123)  # should be large enough
+pl.Config.set_tbl_cols(123123)
 pl.Config.set_fmt_str_lengths(2100)
 pl.Config.set_tbl_width_chars(2100)
 
 
-def merge_overlapping_intervals(
-    df: pl.DataFrame, tolerance: int = 5
-) -> pl.DataFrame:
-    """
-    Merge overlapping or nearby intervals within tolerance.
-    
-    Groups by spacer_id, contig_id, strand and merges intervals that overlap
-    or are within tolerance bp of each other.
-    
-    Args:
-        df: DataFrame with columns [spacer_id, contig_id, start, end, strand]
-        tolerance: Maximum gap between intervals to merge (default: 5bp)
-        
-    Returns:
-        DataFrame with merged intervals
-    """
+def merge_overlapping_intervals(df: pl.DataFrame, tolerance: int = 0) -> pl.DataFrame:
+    """Merge overlapping intervals per spacer/contig/strand with an optional tolerance."""
+    required_cols = ["spacer_id", "contig_id", "start", "end", "strand"]
+    missing = [c for c in required_cols if c not in df.columns]
+    if missing:
+        raise ValueError(f"Missing required columns for interval merge: {missing}")
+
     if df.height == 0:
-        return df
-    
-    merged_intervals = []
-    
-    # Group by spacer_id, contig_id, strand
-    for group_key, group_df in df.group_by(["spacer_id", "contig_id", "strand"]):
-        spacer_id, contig_id, strand = group_key
-        
-        # Sort by start position
-        intervals = group_df.sort("start").select(["start", "end"]).to_numpy()
-        
-        if len(intervals) == 0:
-            continue
-            
-        # Merge overlapping/nearby intervals
-        current_start = intervals[0][0]
-        current_end = intervals[0][1]
-        
-        for start, end in intervals[1:]:
-            # Check if this interval overlaps or is within tolerance of current
-            if start <= current_end + tolerance:
-                # Merge: extend current interval
-                current_end = max(current_end, end)
+        return df.select(required_cols)
+
+    base = df.select(required_cols).sort(required_cols)
+
+    def _merge_list(intervals: list[dict]) -> list[dict]:
+        merged: list[dict] = []
+        current_start: Optional[int] = None
+        current_end: Optional[int] = None
+        for item in intervals:
+            s = int(item["start"])
+            e = int(item["end"])
+            if current_start is None:
+                current_start, current_end = s, e
+                continue
+            if s <= current_end + tolerance:
+                current_end = max(current_end, e)
             else:
-                # No overlap: save current and start new interval
-                merged_intervals.append({
-                    "spacer_id": spacer_id,
-                    "contig_id": contig_id,
-                    "start": current_start,
-                    "end": current_end,
-                    "strand": strand,
-                })
-                current_start = start
-                current_end = end
-        
-        # Don't forget the last interval
-        merged_intervals.append({
-            "spacer_id": spacer_id,
-            "contig_id": contig_id,
-            "start": current_start,
-            "end": current_end,
-            "strand": strand,
-        })
-    
-    return pl.DataFrame(merged_intervals)
+                merged.append({"start": current_start, "end": current_end})
+                current_start, current_end = s, e
+        if current_start is not None:
+            merged.append({"start": current_start, "end": current_end})
+        return merged
+
+    merged = (
+        base.group_by(["spacer_id", "contig_id", "strand"], maintain_order=True)
+        .agg(pl.struct(["start", "end"]).alias("intervals"))
+        .with_columns(
+            pl.col("intervals").map_elements(
+                _merge_list,
+                return_dtype=pl.List(pl.Struct({"start": pl.Int64, "end": pl.Int64})),
+            )
+        )
+        .explode("intervals")
+        .unnest("intervals")
+        .select(required_cols)
+    )
+
+    return merged
 
 
 def classify_unique_alignments_across_tools(
@@ -114,73 +92,114 @@ def classify_unique_alignments_across_tools(
     all_tool_results: pl.DataFrame,
     contigs_file: str,
     spacers_file: str,
-    max_distance: int = 5,
-    distance_metric: str = "hamming",
-    gap_open_penalty: int = 5,
-    gap_extend_penalty: int = 5,
-    coordinate_tolerance: int = 5,
+    max_distance: int,
+    distance_metric: str,
+    gap_open_penalty: int,
+    gap_extend_penalty: int,
+    coordinate_tolerance: int,
+    multi_metric: bool = False,
 ) -> pl.DataFrame:
-    """
-    Validate all unique alignments across all tools once.
-
-    This consolidates validation to avoid redundant checking of the same alignment
-    reported by multiple tools.
-
+    """Classify unique alignments across all tools with distance recalculation and GT matching.
+    
     Args:
-        ground_truth: Ground truth DataFrame with planned insertions
-        all_tool_results: Combined results from all tools
-        contigs_file: Path to contigs FASTA file
-        spacers_file: Path to spacers FASTA file
-        max_distance: Maximum distance (mismatches/edit distance) to consider valid
-        distance_metric: Distance metric for validation: 'hamming' (substitutions only) or 'edit' (substitutions + indels)
-        gap_open_penalty: Gap open penalty for alignment validation, will be used if distance_metric is 'edit' (default: 5)
-        gap_extend_penalty: Gap extension penalty for alignment validation, will be used if distance_metric is 'edit' (default: 5)
-        coordinate_tolerance: Maximum bases difference in coordinates to consider as same alignment (default: 5)
-
-    Returns:
-        dataframe with alignment classifications.
-
-    Note:
-        this doens't add the ground truth results that have no matches in any tool results (these should be considered false negatives, and counted somewhere).
+        multi_metric: If True, don't filter by distance here (let performance calc do it per metric)
     """
-    logger.debug("Validating unique alignments across all tools...")
 
-    # Get unique alignments across all tools (by coordinates)
-    unique_alignments = all_tool_results.select(
-        ["spacer_id", "contig_id", "start", "end", "strand"]
-    ).unique()
+    if all_tool_results.height == 0:
+        return pl.DataFrame(
+            {
+                "alignment_idx": [],
+                "region_idx": [],
+                "spacer_id": [],
+                "contig_id": [],
+                "start": [],
+                "end": [],
+                "strand": [],
+                "classification": [],
+                "start_gt": [],
+                "end_gt": [],
+                "mismatches_gt": [],
+                "planned_mismatches": [],
+                "distance_hamming": [],
+                "distance_edit": [],
+                "distance_gap_affine": [],
+                "recalculated_distance": [],
+            },
+            schema={
+                "alignment_idx": pl.Int64,
+                "region_idx": pl.Int64,
+                "spacer_id": pl.Utf8,
+                "contig_id": pl.Utf8,
+                "start": pl.Int64,
+                "end": pl.Int64,
+                "strand": pl.Boolean,
+                "classification": pl.Utf8,
+                "start_gt": pl.Int64,
+                "end_gt": pl.Int64,
+                "mismatches_gt": pl.Int64,
+                "planned_mismatches": pl.Int64,
+                "distance_hamming": pl.Int64,
+                "distance_edit": pl.Int64,
+                "distance_gap_affine": pl.Int64,
+                "recalculated_distance": pl.Int64,
+            },
+        )
 
-    logger.debug(f"Total unique alignments to validate: {unique_alignments.height}")
+    unique_alignments = (
+        all_tool_results.select(["spacer_id", "contig_id", "start", "end", "strand"])
+        .unique()
+        .with_row_index("alignment_idx")
+    )
 
-    # Add index for tracking
-    unique_alignments = unique_alignments.with_row_index("alignment_idx")
+    merged_regions = merge_overlapping_intervals(
+        unique_alignments, tolerance=coordinate_tolerance
+    ).with_row_index("region_idx")
 
-    # Match tool results to ground truth allowing coordinate tolerance
-    # This handles cases where tools report coordinates slightly differently
-    # (e.g., 0-based vs 1-based, or boundary variations due to indels)
-    matches_with_tolerance = match_intervals_with_tolerance(
+    unique_alignments = (
+        unique_alignments.join(
+            merged_regions,
+            on=["spacer_id", "contig_id", "strand"],
+            how="left",
+            suffix="_region",
+        )
+        .filter(
+            (pl.col("start") >= pl.col("start_region") - coordinate_tolerance)
+            & (pl.col("start") <= pl.col("end_region") + coordinate_tolerance)
+            & (pl.col("end") >= pl.col("start_region") - coordinate_tolerance)
+            & (pl.col("end") <= pl.col("end_region") + coordinate_tolerance)
+        )
+        .select(["spacer_id", "contig_id", "start", "end", "strand", "alignment_idx", "region_idx"])
+    )
+
+    matches = match_intervals_with_tolerance(
         ground_truth=ground_truth,
         tool_results=unique_alignments,
         tolerance=coordinate_tolerance,
     )
 
-    logger.debug(
-        f"Matches within tolerance ({coordinate_tolerance}bp): {matches_with_tolerance.height}"
+    alignments = unique_alignments.join(
+        matches,
+        on=["spacer_id", "contig_id", "start", "end", "strand"],
+        how="left",
+        suffix="_match",
     )
 
-    # Get alignments that didn't match ground truth within tolerance
-    need_verify_df = unique_alignments.join(
-        matches_with_tolerance.select(
-            ["spacer_id", "contig_id", "start", "end", "strand"]
+    alignments = alignments.join(
+        ground_truth.rename({"start": "start_gt", "end": "end_gt"}).select(
+            ["spacer_id", "contig_id", "start_gt", "end_gt", "strand", "mismatches"]
         ),
-        on=["spacer_id", "contig_id", "start", "end", "strand"],
-        how="anti",
+        on=["spacer_id", "contig_id", "start_gt", "end_gt", "strand"],
+        how="left",
+    ).rename({"mismatches": "mismatches_gt"})
+
+    alignments = alignments.with_columns(
+        pl.col("classification").fill_null("needs_verification"),
+        pl.col("start_gt").cast(pl.Int64),
+        pl.col("end_gt").cast(pl.Int64),
     )
-    # Categorize results not in ground truth
-    logger.debug("Loading sequences for FP verification...")
-    # Load spacer sequences
-    need_verify_df = populate_pldf_withseqs_needletail(
-        need_verify_df,
+
+    alignments = populate_pldf_withseqs_needletail(
+        alignments,
         seqfile=spacers_file,
         idcol="spacer_id",
         seqcol="spacer_seq",
@@ -188,9 +207,8 @@ def classify_unique_alignments_across_tools(
         reverse_by_strand_col=False,
     )
 
-    # Load contig sequences
-    need_verify_df = populate_pldf_withseqs_needletail(
-        need_verify_df,
+    alignments = populate_pldf_withseqs_needletail(
+        alignments,
         seqfile=contigs_file,
         idcol="contig_id",
         seqcol="contig_seq",
@@ -198,118 +216,511 @@ def classify_unique_alignments_across_tools(
         reverse_by_strand_col=True,
     )
 
-    logger.debug("Verifying false positive alignments...")
-    logger.debug("Algorithm: Needleman-Wunsch (parasail)")
-    logger.debug(f"Gap open penalty: {gap_open_penalty}")
-    logger.debug(f"Gap extend penalty: {gap_extend_penalty}")
-    logger.debug(f"Distance metric: {distance_metric})")
-    logger.debug(f"Max allowed distance: {max_distance}")
-    logger.debug(f"Alignments to verify: {need_verify_df.height}")
-
-    # Test each non-planned alignment
-    # contig_seq is already trimmed, so do not pass start/end
-    need_verify_df = need_verify_df.with_columns(
-        pl.struct(pl.col("spacer_seq"), pl.col("contig_seq"), pl.col("strand"))
-        .map_elements(
-            lambda x: test_alignment(
-                contig_seq=x["contig_seq"],
-                spacer_seq=x["spacer_seq"],
-                strand=x["strand"],
-                distance_metric=distance_metric,
-                gap_cost=gap_open_penalty,
-                extend_cost=gap_extend_penalty,
+    alignments = alignments.with_columns(
+        pl.struct([
+            pl.col("spacer_seq"),
+            pl.col("contig_seq"),
+            pl.col("strand"),
+        ]).map_elements(
+            lambda x: {
+                "distance_hamming": calculate_hamming_distance(
+                    spacer_seq=x["spacer_seq"],
+                    contig_seq=x["contig_seq"],
+                    strand=x["strand"],
+                ),
+                "distance_edit": calculate_edit_distance(
+                    spacer_seq=x["spacer_seq"],
+                    contig_seq=x["contig_seq"],
+                    strand=x["strand"],
+                ),
+                "distance_gap_affine": calculate_gap_affine_edit(
+                    spacer_seq=x["spacer_seq"],
+                    contig_seq=x["contig_seq"],
+                    strand=x["strand"],
+                    gap_open=gap_open_penalty,
+                    gap_extend=gap_extend_penalty,
+                ),
+            },
+            return_dtype=pl.Struct(
+                {
+                    "distance_hamming": pl.Int64,
+                    "distance_edit": pl.Int64,
+                    "distance_gap_affine": pl.Int64,
+                }
             ),
-            return_dtype=pl.Int64,
+        ).alias("distances")
+    ).unnest("distances")
+
+    distance_expr = {
+        "edit": pl.col("distance_edit"),
+        "gap_affine": pl.col("distance_gap_affine"),
+    }.get(distance_metric, pl.col("distance_hamming"))
+
+    # In multi-metric mode, mark as invalid only if ALL three metrics exceed threshold
+    if multi_metric:
+        alignments = alignments.with_columns(
+            distance_expr.alias("recalculated_distance"),
+            # For alignments not in ground truth, check if ALL metrics exceed threshold
+            pl.when(pl.col("classification") == "needs_verification")
+            .then(
+                pl.when(
+                    (pl.col("distance_hamming") > max_distance) &
+                    (pl.col("distance_edit") > max_distance) &
+                    (pl.col("distance_gap_affine") > max_distance)
+                )
+                .then(pl.lit("invalid_alignment"))
+                .otherwise(pl.lit("positive_not_in_plan"))
+            )
+            .otherwise(pl.col("classification"))
+            .alias("classification"),
+            pl.when(pl.col("mismatches_gt").is_not_null())
+            .then(pl.col("mismatches_gt"))
+            .otherwise(pl.col("distance_hamming"))
+            .alias("planned_mismatches"),
         )
-        .alias("recalculated_distnace")
-    )
-    # add classifications based on verification
-    need_verify_df = need_verify_df.with_columns(
-        pl.when(pl.col("recalculated_distnace") <= max_distance)
-        .then(pl.lit("positive_not_in_plan"))
-        .otherwise(pl.lit("invalid_alignment"))
-        .alias("classification")
-    )
-    logger.debug("verification completed:")
-    logger.debug(f"{need_verify_df['classification'].value_counts(sort=True)}")
-    logger.debug("Combining matches with tolerance and verified alignments")
+    else:
+        # Single-metric mode: filter by distance
+        alignments = alignments.with_columns(
+            distance_expr.alias("recalculated_distance"),
+            pl.when(pl.col("classification") == "positive_in_plan")
+            .then(
+                pl.when(distance_expr <= max_distance)
+                .then(pl.lit("positive_in_plan"))
+                .otherwise(pl.lit("invalid_alignment"))
+            )
+            .otherwise(
+                pl.when(distance_expr <= max_distance)
+                .then(pl.lit("positive_not_in_plan"))
+                .otherwise(pl.lit("invalid_alignment"))
+            )
+            .alias("classification"),
+            pl.when(pl.col("mismatches_gt").is_not_null())
+            .then(pl.col("mismatches_gt"))
+            .otherwise(pl.col("distance_hamming"))
+            .alias("planned_mismatches"),
+        )
 
-    # Prepare matched results - these already have classification from match_intervals_with_tolerance
-    # They also have start_gt and end_gt columns
-    matches_out = matches_with_tolerance.with_columns(
-        pl.col("mismatches").alias("recalculated_distnace")
-    ).select(
+    # Drop sequences before returning to keep outputs compact
+    return alignments.select(
         [
+            "alignment_idx",
+            "region_idx",
             "spacer_id",
             "contig_id",
             "start",
             "end",
             "strand",
+            "classification",
             "start_gt",
             "end_gt",
-            "classification",
-            "recalculated_distnace",
+            "mismatches_gt",
+            "planned_mismatches",
+            "distance_hamming",
+            "distance_edit",
+            "distance_gap_affine",
+            "recalculated_distance",
         ]
     )
 
-    # For non-matches, there are no ground truth coordinates (they don't match any GT entry)
-    need_verify_out = need_verify_df.with_columns(
-        [
-            pl.lit(None).cast(pl.Int64).alias("start_gt"),
-            pl.lit(None).cast(pl.Int64).alias("end_gt"),
-        ]
-    ).select(
-        [
-            "spacer_id",
-            "contig_id",
-            "start",
-            "end",
-            "strand",
-            "start_gt",
-            "end_gt",
-            "classification",
-            "recalculated_distnace",
-        ]
-    )
 
-    alignment_classifications = vstack_easy(matches_out, need_verify_out)
+def unified_multi_metric_pipeline(
+    tools_results: pl.DataFrame,
+    ground_truth: pl.DataFrame,
+    contigs_file: str,
+    spacers_file: str,
+    max_distance: int,
+    distance_metric: str,
+    coordinate_tolerance: int,
+    gap_open_penalty: int,
+    gap_extend_penalty: int,
+    multi_metric: bool = False,
+):
+    """End-to-end unified multi-metric processing and performance calculation.
+    
+    Args:
+        multi_metric: If True, calculate performance for both hamming and edit distance.
+                     In multi-metric mode, alignments are marked invalid only if ALL
+                     three metrics (hamming, edit, gap_affine) exceed max_distance.
+    
+    Returns:
+        Tuple of (tools_results_out, tools_results_with_gt_out, region_results, performance_results)
+        - region_results includes a 'tools' column (List[str]) with tool names that found each alignment
+        - tools column excludes 'ground_truth' but includes 'all_tools_combined'
+    """
 
-    alignment_classifications = (
-        all_tool_results.join(
-            alignment_classifications.select(
-                [
-                    "spacer_id",
-                    "contig_id",
-                    "start",
-                    "end",
-                    "strand",
-                    "start_gt",
-                    "end_gt",
-                    "classification",
-                    "recalculated_distnace",
-                ]
-            ),
-            on=["spacer_id", "contig_id", "start", "end", "strand"],
+    # Add ground truth as a "tool" for unified processing
+    if ground_truth.height > 0:
+        # Select only the common columns to avoid schema mismatch
+        common_cols = ["spacer_id", "contig_id", "start", "end", "strand"]
+        gt_as_tool = ground_truth.select(common_cols).with_columns(
+            pl.lit("ground_truth").alias("tool")
+        )
+        tools_results_with_gt = vstack_easy(
+            tools_results.select([*common_cols, "tool"]),
+            gt_as_tool
+        )
+        # Rejoin with the full tools_results to get all columns back
+        tools_results_with_gt = tools_results_with_gt.join(
+            tools_results,
+            on=["spacer_id", "contig_id", "start", "end", "strand", "tool"],
             how="left",
         )
-        .select(
-            [
-                "spacer_id",
-                "contig_id",
-                "start",
-                "end",
-                "strand",
-                "start_gt",
-                "end_gt",
-                "classification",
-                "recalculated_distnace",
-            ]
+    else:
+        tools_results_with_gt = tools_results
+
+    # Add "all_tools_combined" synthetic tool for tool-independent analysis
+    # This combines all unique alignments from all real tools (excludes ground_truth)
+    logger.debug("Creating 'all_tools_combined' synthetic tool...")
+    real_tools_only = tools_results_with_gt.filter(pl.col("tool") != "ground_truth")
+    
+    if real_tools_only.height > 0:
+        # Get unique alignments by coordinates (deduplicate across all tools)
+        all_tools_combined = (
+            real_tools_only
+            .select([col for col in real_tools_only.columns if col != "tool"])
+            .unique(subset=["spacer_id", "contig_id", "start", "end", "strand"])
+            .with_columns(pl.lit("all_tools_combined").alias("tool"))
         )
-        .unique()
+        
+        # Add to tools_results_with_gt for unified processing
+        tools_results_with_gt = vstack_easy(tools_results_with_gt, all_tools_combined)
+        logger.debug(f"Added 'all_tools_combined' with {all_tools_combined.height} unique alignments")
+    else:
+        logger.debug("No real tool results found - skipping 'all_tools_combined'")
+
+    alignment_classifications = classify_unique_alignments_across_tools(
+        ground_truth=ground_truth,
+        all_tool_results=tools_results_with_gt,
+        contigs_file=contigs_file,
+        spacers_file=spacers_file,
+        max_distance=max_distance,
+        distance_metric=distance_metric,
+        gap_open_penalty=gap_open_penalty,
+        gap_extend_penalty=gap_extend_penalty,
+        coordinate_tolerance=coordinate_tolerance,
+        multi_metric=multi_metric,
     )
 
-    logger.debug("Validation of unique alignments completed.")
-    return alignment_classifications
+    # Join classifications to tools_results (excluding ground_truth tool, but keeping all_tools_combined)
+    # Filter out ground_truth from tools_results_with_gt to get real tools + all_tools_combined
+    tools_results_excluding_gt = tools_results_with_gt.filter(pl.col("tool") != "ground_truth")
+    tools_results_out = tools_results_excluding_gt.join(
+        alignment_classifications,
+        on=["spacer_id", "contig_id", "start", "end", "strand"],
+        how="left",
+    )
+
+    # Also create version with ground_truth for display purposes
+    tools_results_with_gt_out = tools_results_with_gt.join(
+        alignment_classifications,
+        on=["spacer_id", "contig_id", "start", "end", "strand"],
+        how="left",
+    )
+
+    performance_results = calculate_all_tool_performance(
+        tools_results=tools_results_out,
+        alignment_classifications=alignment_classifications,
+        ground_truth=ground_truth,
+        max_distance=max_distance,
+        distance_metric=distance_metric,
+    )
+    
+    # If multi-metric mode, calculate performance for both hamming and edit
+    if multi_metric:
+        performance_hamming = calculate_all_tool_performance(
+            tools_results=tools_results_out,
+            alignment_classifications=alignment_classifications,
+            ground_truth=ground_truth,
+            max_distance=max_distance,
+            distance_metric="hamming",
+        )
+        performance_edit = calculate_all_tool_performance(
+            tools_results=tools_results_out,
+            alignment_classifications=alignment_classifications,
+            ground_truth=ground_truth,
+            max_distance=max_distance,
+            distance_metric="edit",
+        )
+        
+        # Rename columns to add metric suffixes (except 'tool' and 'ground_truth_planned')
+        rename_hamming = {col: f"{col}_hamming" for col in performance_hamming.columns if col not in ["tool", "ground_truth_planned"]}
+        rename_edit = {col: f"{col}_edit" for col in performance_edit.columns if col not in ["tool", "ground_truth_planned"]}
+        
+        performance_hamming = performance_hamming.rename(rename_hamming)
+        performance_edit = performance_edit.rename(rename_edit)
+        
+        # Join on tool  (also join on ground_truth_planned since it's the same)
+        performance_results = performance_hamming.join(
+            performance_edit,
+            on=["tool", "ground_truth_planned"],
+            how="outer",
+        )
+
+    # Add tools column to region_results for notebook compatibility
+    # Group tools by alignment coordinates (exclude ground_truth, include all_tools_combined)
+    tool_assignments = (
+        tools_results_with_gt
+        .filter(pl.col("tool") != "ground_truth")  # Exclude ground_truth from tools list
+        .group_by(["spacer_id", "contig_id", "start", "end", "strand"])
+        .agg(pl.col("tool").unique().sort().alias("tools"))
+    )
+    
+    # Join tools to alignment classifications
+    region_results = alignment_classifications.join(
+        tool_assignments,
+        on=["spacer_id", "contig_id", "start", "end", "strand"],
+        how="left",
+    )
+    
+    # For alignments from ground_truth only (not found by any real tool),
+    # set tools to empty list
+    region_results = region_results.with_columns(
+        pl.col("tools").fill_null([])
+    )
+
+    return tools_results_out, tools_results_with_gt_out, region_results, performance_results
+
+def run_compare_results(
+    input_dir,
+    max_mismatches=5,
+    output_file=None,
+    threads=4,
+    skip_tools="",
+    only_tools=None,
+    contigs=None,
+    spacers=None,
+    distance_metric="hamming",
+    gap_open_penalty=5,
+    gap_extend_penalty=5,
+    logfile=None,
+    skip_hyperfine=False,
+    tools_results_out_file=None,
+    coordinate_tolerance: int = 5,
+    multimetric_output: Optional[str] = None,
+    ground_truth_file: Optional[str] = None,
+    verbose=False,
+    multi_metric=False,
+):
+    """
+    Unified multi-metric compare-results entrypoint. Works for simulated and real datasets.
+    Always runs the unified pipeline: region grouping with tolerance, per-alignment distances,
+    region-level classifications, and per-tool performance summary.
+    
+    The performance results will include an 'all_tools_combined' synthetic tool entry that
+    represents the union of all real tool results (deduplicated by coordinates). This is
+    useful for tool-independent analysis in notebooks.
+    
+    Example CLI usage:
+        # Single metric (hamming distance)
+        pixi run spacer_bencher compare-results -i results/simulated/run1 -mm 5 --distance hamming
+        
+        # Multi-metric mode (both hamming and edit distance)
+        pixi run spacer_bencher compare-results -i results/simulated/run1 -mm 5 --multi-metric
+        
+        # Real data with custom files
+        pixi run spacer_bencher compare-results -i results/real_data/subsamples/fraction_0.001 \\
+            --contigs results/real_data/subsamples/fraction_0.001/subsampled_data/subsampled_contigs.fa \\
+            --spacers ./imgvr4_data/spacers/iphop_filtered_spacers.fna \\
+            -mm 5 --distance edit --skip-hyperfine --multi-metric
+    
+    # Example commented-out code block for notebooks:
+    # from bench.commands.compare_results import run_compare_results
+    # tools_results, region_results, performance = run_compare_results(
+    #     input_dir="results/simulated/run1",
+    #     max_mismatches=5,
+    #     multi_metric=True,  # Calculate both hamming and edit metrics
+    #     distance_metric="hamming",  # Default metric for single-metric mode
+    # )
+    # # Filter for all_tools_combined synthetic tool
+    # combined_perf = performance.filter(pl.col("tool") == "all_tools_combined")
+    """
+
+    logger.debug(f"Processing tool results from {input_dir}")
+
+    if not os.path.exists(input_dir):
+        logger.error(f"Input directory {input_dir} does not exist")
+        raise FileNotFoundError(f"Input directory {input_dir} does not exist")
+
+    contigs_path = contigs if contigs else f"{input_dir}/simulated_data/simulated_contigs.fa"
+    spacers_path = spacers if spacers else f"{input_dir}/simulated_data/simulated_spacers.fa"
+
+    tools_results_output = tools_results_out_file or f"{input_dir}/tools_results.tsv"
+    region_output_path = multimetric_output or f"{input_dir}/multi_metric_distances.parquet"
+    perf_output = output_file or f"{input_dir}/performance_results_{distance_metric}_mm{max_mismatches}.tsv"
+
+    logger.debug(f"Contigs: {contigs_path}")
+    logger.debug(f"Spacers: {spacers_path}")
+
+    logger.debug("Loading tool configurations...")
+    tools = load_tool_configs(
+        results_dir=input_dir,
+        threads=threads,
+        contigs_file=contigs,
+        spacers_file=spacers,
+    )
+    logger.debug(f"Loaded {len(tools)} tool configurations")
+
+    if skip_tools:
+        skip_list = skip_tools.split(",")
+        tools = {k: v for k, v in tools.items() if k not in skip_list}
+        logger.debug(f"Remaining tools after skip: {len(tools)}")
+
+    if only_tools:
+        only_list = only_tools.split(",")
+        tools = {k: v for k, v in tools.items() if k in only_list}
+        logger.debug(f"Tools to process: {len(tools)}")
+
+    logger.debug("Reading spacer sequences...")
+    spacers_dict = read_fasta(spacers_path)
+    spacer_lendf = pl.DataFrame(
+        {
+            "spacer_id": spacers_dict.keys(),
+            "length": [len(seq) for seq in spacers_dict.values()],
+        }
+    )
+
+    logger.debug("Reading tool alignment results...")
+    tools_results = read_results(
+        tools,
+        max_mismatches=max_mismatches,
+        spacer_lendf=spacer_lendf,
+        ref_file=contigs_path,
+    )
+    logger.info(f"Read {tools_results.height} total alignment results")
+
+    # Ground truth (optional). Empty for real datasets.
+    if ground_truth_file is None:
+        default_gt = f"{input_dir}/simulated_data/planned_ground_truth.tsv"
+        alt_gt = f"{input_dir}/simulated_data/ground_truth.tsv"
+        ground_truth_path = default_gt if os.path.exists(default_gt) else alt_gt
+    else:
+        ground_truth_path = ground_truth_file
+
+    if os.path.exists(ground_truth_path):
+        logger.debug(f"Reading ground truth from {ground_truth_path}")
+        ground_truth = pl.read_csv(ground_truth_path, separator="\t")
+        if ground_truth.height > 0:
+            ground_truth = ground_truth.filter(pl.col("mismatches") <= max_mismatches)
+            logger.info(
+                f"{ground_truth.height} ground truth annotations within max mismatches of {max_mismatches}"
+            )
+        else:
+            ground_truth = pl.DataFrame(
+                {
+                    "spacer_id": pl.Series(dtype=pl.Utf8),
+                    "contig_id": pl.Series(dtype=pl.Utf8),
+                    "start": pl.Series(dtype=pl.Int64),
+                    "end": pl.Series(dtype=pl.Int64),
+                    "strand": pl.Series(dtype=pl.Boolean),
+                    "mismatches": pl.Series(dtype=pl.Int64),
+                }
+            )
+            logger.info("Ground truth file empty; proceeding with empty GT")
+    else:
+        ground_truth = pl.DataFrame(
+            {
+                "spacer_id": pl.Series(dtype=pl.Utf8),
+                "contig_id": pl.Series(dtype=pl.Utf8),
+                "start": pl.Series(dtype=pl.Int64),
+                "end": pl.Series(dtype=pl.Int64),
+                "strand": pl.Series(dtype=pl.Boolean),
+                "mismatches": pl.Series(dtype=pl.Int64),
+            }
+        )
+        logger.info("No ground truth provided; proceeding with empty GT")
+
+    tools_results_out, tools_results_with_gt_out, region_results, performance_results = unified_multi_metric_pipeline(
+        tools_results=tools_results,
+        ground_truth=ground_truth,
+        contigs_file=contigs_path,
+        spacers_file=spacers_path,
+        max_distance=max_mismatches,
+        distance_metric=distance_metric,
+        coordinate_tolerance=coordinate_tolerance,
+        gap_open_penalty=gap_open_penalty,
+        gap_extend_penalty=gap_extend_penalty,
+        multi_metric=multi_metric,
+    )
+
+    if logger.isEnabledFor(logging.DEBUG):
+        try:
+            display_example_alignments(
+                alignment_classifications=region_results,
+                tools_results=tools_results_with_gt_out,
+                contigs_file=contigs_path,
+                spacers_file=spacers_path,
+                max_distance=max_mismatches,
+                num_examples=3,
+                distance_metric=distance_metric,
+                gap_open_penalty=gap_open_penalty,
+                gap_extend_penalty=gap_extend_penalty,
+            )
+        except Exception as e:
+            logger.debug(f"Skipping example alignments display: {e}")
+
+    tools_results_out.write_csv(tools_results_output, separator="\t")
+    logger.info(f"Wrote tool results to {tools_results_output}")
+
+    region_results.write_parquet(region_output_path)
+    logger.info(f"Wrote region-level results to {region_output_path}")
+
+    performance_results.write_csv(perf_output, separator="\t")
+    logger.info(f"Wrote performance results to {perf_output}")
+
+    # Optional stdout summary
+    if performance_results.height > 0:
+        if multi_metric:
+            # In multi-metric mode, display all metrics for both hamming and edit
+            summary_cols = [
+                "tool",
+                "ground_truth_planned",
+                "ground_truth_augmented_hamming",
+                "recall_planned_hamming",
+                "recall_augmented_hamming",
+                "all_true_positives_hamming",
+                "planned_true_positives_hamming",
+                "positives_not_in_plan_hamming",
+                "invalid_alignments_hamming",
+                "false_negatives_planned_hamming",
+                "false_negatives_augmented_hamming",
+                "ground_truth_augmented_edit",
+                "recall_planned_edit",
+                "recall_augmented_edit",
+                "all_true_positives_edit",
+                "planned_true_positives_edit",
+                "positives_not_in_plan_edit",
+                "invalid_alignments_edit",
+                "false_negatives_planned_edit",
+                "false_negatives_augmented_edit",
+            ]
+            sort_col = "recall_planned_hamming"
+        else:
+            summary_cols = [
+                "tool",
+                "ground_truth_planned",
+                "ground_truth_augmented",
+                "recall_planned",
+                "recall_augmented",
+                "all_true_positives",
+                "planned_true_positives",
+                "positives_not_in_plan",
+                "invalid_alignments",
+                "false_negatives_planned",
+                "false_negatives_augmented",
+            ]
+            sort_col = "recall_planned"
+        
+        summary_table = performance_results.select([c for c in summary_cols if c in performance_results.columns]).sort(
+            sort_col, descending=True
+        )
+        pl.Config.set_tbl_cols(-1)
+        pl.Config.set_tbl_rows(15)
+        # logger.info("")
+        print(summary_table)
+    else:
+        logger.warning("No performance results to display")
+
+    return tools_results_out, region_results, performance_results
 
 
 def display_example_alignments(
@@ -333,7 +744,7 @@ def display_example_alignments(
         spacers_file: Path to spacers FASTA file
         max_mismatches: Maximum allowed mismatches
         num_examples: Number of examples to show per classification
-        distance_metric: Distance metric for validation: 'hamming' (substitutions only) or 'edit' (substitutions + indels)
+        distance_metric: Distance metric for the performance evaluation: 'hamming' (substitutions only) or 'edit' (substitutions + indels) note that debug prints tracebacks for all.
         gap_open_penalty: Gap open penalty for alignment
         gap_extend_penalty: Gap extend penalty for alignment
     Note:
@@ -342,12 +753,13 @@ def display_example_alignments(
     logger.debug("[bold cyan]EXAMPLE ALIGNMENTS BY CLASSIFICATION[/bold cyan]")
 
     # Get examples for each classification type
-    classifications_to_show = [
-        "positive_not_in_plan",
-        "invalid_alignment",
-        "positive_in_plan",
-    ]
+    classifications_to_show = (
+        alignment_classifications["classification"].unique().to_list()
+    )
 
+    all_run_tools = set(tools_results["tool"].unique().to_list()) if "tool" in tools_results.columns else set()
+
+    # first display examples of each classification type
     for classification in classifications_to_show:
         examples = alignment_classifications.filter(
             pl.col("classification") == classification
@@ -358,7 +770,6 @@ def display_example_alignments(
         ).height
 
         if examples.height == 0:
-            # Still log that this classification exists but has no examples
             classification_name = classification.upper().replace("_", " ")
             logger.debug(f"\n[dim]{classification_name} (0 found)[/dim]")
             continue
@@ -374,7 +785,6 @@ def display_example_alignments(
             end = row["end"]
             strand = row["strand"]
 
-            # Get sequences (only fetch what we need!)
             try:
                 spacer_df = get_seq_from_fastx(
                     spacers_file,
@@ -403,17 +813,31 @@ def display_example_alignments(
                 logger.error(f"Error fetching sequences: {e}")
                 continue
 
-            # Find which tools reported this alignment
-            tools_with_this = tools_results.filter(
+            # Find which tools reported this exact alignment (alignment_idx)
+            alignment_idx = row.get("alignment_idx")
+            region_idx = row.get("region_idx")
+            
+            tools_with_this_alignment = tools_results.filter(
                 (pl.col("spacer_id") == spacer_id)
                 & (pl.col("contig_id") == contig_id)
                 & (pl.col("start") == start)
                 & (pl.col("end") == end)
                 & (pl.col("strand") == strand)
             )
-            tool_names = (
-                tools_with_this["tool"].unique().sort().to_list()
-                if "tool" in tools_with_this.columns
+            tool_names_this_alignment = (
+                tools_with_this_alignment["tool"].unique().sort().to_list()
+                if "tool" in tools_with_this_alignment.columns
+                else []
+            )
+            
+            # Find which tools reported this region (region_idx)
+            tools_with_this_region = tools_results.filter(
+                (pl.col("region_idx") == region_idx)
+            ) if region_idx is not None and "region_idx" in tools_results.columns else pl.DataFrame()
+            
+            tool_names_this_region = (
+                tools_with_this_region["tool"].unique().sort().to_list()
+                if tools_with_this_region.height > 0 and "tool" in tools_with_this_region.columns
                 else []
             )
 
@@ -426,9 +850,9 @@ def display_example_alignments(
                 end=end,
                 distance_metric="edit",
                 gap_cost=gap_open_penalty,
-                extend_cost=gap_extend_penalty,
+                gap_extend=gap_extend_penalty,
             )
-            # Calculate hamming distance (substitutions only, no indels)
+            # Hamming distance already includes length penalty in calculate_hamming_distance()
             hamming_distance = test_alignment(
                 spacer_seq,
                 contig_seq,
@@ -437,261 +861,181 @@ def display_example_alignments(
                 end=end,
                 distance_metric="hamming",
                 gap_cost=gap_open_penalty,
+                gap_extend=gap_extend_penalty,
+            )
+
+            gap_affine_distance: Optional[int] = None
+            if distance_metric == "gap_affine":
+                gap_affine_distance = test_alignment(
+                    spacer_seq,
+                    contig_seq,
+                    strand=strand,
+                    start=start,
+                    end=end,
+                    distance_metric="gap_affine",
+                    gap_cost=gap_open_penalty,
+                    gap_extend=gap_extend_penalty,
+                )
+
+            alignment_hamming = prettify_alignment_hamming(
+                spacer_seq,
+                contig_seq,
+                strand=strand,
+                start=start,
+                end=end,
+            )
+            alignment_edit = prettify_alignment_edit(
+                spacer_seq,
+                contig_seq,
+                strand=strand,
+                start=start,
+                end=end,
+            )
+            alignment_gap_affine = prettify_alignment_gap_affine(
+                spacer_seq,
+                contig_seq,
+                strand=strand,
+                start=start,
+                end=end,
+                gap_cost=gap_open_penalty,
                 extend_cost=gap_extend_penalty,
             )
-            # gap_affine_distance = test_alignment(
-            #     spacer_seq,
-            #     contig_seq,
-            #     strand=strand,
-            #     start=start,
-            #     end=end,
-            #     distance_metric="gap_affine",
-            #     gap_cost=gap_open_penalty,
-            #     extend_cost=gap_extend_penalty,
-            # ) # added this for past reference, this is what was actually used in the past, now moved to minimal edit distance (via edlib)
 
-            # Determine if there are indels (gaps)
-            has_indels = edit_distance != hamming_distance
-
-            # Generate alignment visualization
-            # Use hamming (ungapped) for hamming distance metric, NW (gapped) for edit distance
-            if distance_metric == "hamming":
-                alignment_str = prettify_alignment_hamming(
-                    spacer_seq,
-                    contig_seq,
-                    strand=strand,
-                    start=start,
-                    end=end,
-                )
-            elif distance_metric == "edit":
-                # alignment_str = prettify_alignment_gap_affine(
-                alignment_str = prettify_alignment_edit(
-                    spacer_seq,
-                    contig_seq,
-                    strand=strand,
-                    start=start,
-                    end=end,
-                )
-            elif distance_metric == "gap_affine":
-                alignment_str = prettify_alignment_gap_affine(
-                # alignment_str = prettify_alignment_edit(
-                    spacer_seq,
-                    contig_seq,
-                    strand=strand,
-                    start=start,
-                    end=end,
-                    gap_cost=gap_open_penalty,
-                    extend_cost=gap_extend_penalty,
-                )
-            # Add labels to the alignment
             strand_str = "(-)" if strand else "(+)"
             location_str = f"{contig_id}:{start}-{end} {strand_str}"
-
-            lines = alignment_str.split("\n")
-            if len(lines) >= 3:
+            
+            logger.debug(f"[bold]Example {idx}:[/bold]")
+            for metric_name, metric_value in [
+                ("hamming", hamming_distance),
+                ("edit", edit_distance),
+                ("gap_affine", gap_affine_distance if gap_affine_distance is not None else edit_distance),
+            ]:
+                # Select alignment based on which metric we're displaying (not the global distance_metric)
+                if metric_name == "gap_affine":
+                    alignment_str = alignment_gap_affine
+                elif metric_name == "edit":
+                    alignment_str = alignment_edit
+                elif metric_name == "hamming":
+                    alignment_str = alignment_hamming
+                lines = alignment_str.split("\n")
                 # Add sequence IDs on the right side
                 max_len = max(len(line) for line in lines)
+                if distance_metric == metric_name:
+                    logger.debug(f"[bold] USED {metric_name.capitalize()} :[/bold]")
+                else:
+                    logger.debug(f"[bold] (NOT USED) {metric_name.capitalize()}:[/bold]")
 
-                logger.debug(f"[bold]Example {idx}:[/bold]")
                 logger.debug(f"  {lines[0]:<{max_len}}  [cyan]{spacer_id}[/cyan]")
                 logger.debug(f"  {lines[1]:<{max_len}}  [dim](alignment)[/dim]")
                 logger.debug(f"  {lines[2]:<{max_len}}  [cyan]{location_str}[/cyan]")
 
-                # Determine which distance was used for validation
-                used_distance = (
-                    edit_distance if distance_metric == "edit" else hamming_distance
-                )
-                used_metric_name = "Edit" if distance_metric == "edit" else "Hamming"
-
-                # Color code the distances based on validity
-                edit_color = (
-                    "bold green" if edit_distance <= max_distance else "bold red"
-                )
-                hamming_color = (
-                    "bold green" if hamming_distance <= max_distance else "bold red"
-                )
-                used_color = (
-                    "bold green" if used_distance <= max_distance else "bold red"
-                )
-
-                # Always show edit distance
+                # show distance
                 logger.debug(
-                    f"  Edit distance (substitutions + indels): [{edit_color}]{edit_distance}[/{edit_color}]"
+                    f"  {metric_name.capitalize()} distance: [{'bold green' if metric_value <= max_distance else 'bold red'}]{metric_value}[/{'bold green' if metric_value <= max_distance else 'bold red'}]"
                 )
 
-                # Show hamming distance, but note if it's not meaningful due to indels
-                if has_indels:
-                    logger.debug(
-                        f"  Hamming distance (substitutions only): [{hamming_color}]{hamming_distance}[/{hamming_color}] [dim](indels present)[/dim]"
-                    )
-                else:
-                    logger.debug(
-                        f"  Hamming distance (substitutions only): [{hamming_color}]{hamming_distance}[/{hamming_color}]"
-                    )
-
-                logger.debug(f"  Max allowed mismatches: [bold]{max_distance}[/bold]")
-                logger.debug(
-                    f"  Metric used for validation: [bold]{used_metric_name} distance[/bold] ([{used_color}]{used_distance}[/{used_color}])"
-                )
-
-                if has_indels:
-                    num_indels = edit_distance - hamming_distance
-                    logger.debug(
-                        f"  Indels (gap positions): [yellow]{num_indels}[/yellow]"
-                    )
-                else:
-                    logger.debug("  Indels (gap positions): [green]0[/green]")
-
-                if tool_names:
-                    logger.debug(
-                        f"  Found by tools: [magenta]{', '.join(tool_names)}[/magenta]"
-                    )
-
-
-def display_false_negatives(
-    ground_truth: pl.DataFrame,
-    alignment_classifications: pl.DataFrame,
-    tools_results: pl.DataFrame,
-    contigs_file: str,
-    spacers_file: str,
-    num_examples: int = 5,
-    distance_metric: str = "hamming",
-    gap_open_penalty: int = 5,
-    gap_extend_penalty: int = 5,
-    show_all_tools_missed: bool = False,
-    specific_tool: Optional[str] = None,
-    all_tools: Optional[Dict] = None,
-):
-    """
-    Display example false negative alignments (in ground truth but not found by tools).
-
-    Args:
-        ground_truth: Ground truth DataFrame
-        alignment_classifications: DataFrame with classified alignments
-        tools_results: DataFrame with tool results
-        contigs_file: Path to contigs FASTA file
-        spacers_file: Path to spacers FASTA file
-        num_examples: Number of examples to show per tool
-        distance_metric: Distance metric for validation
-        gap_open_penalty: Gap open penalty for alignment
-        gap_extend_penalty: Gap extend penalty for alignment
-        show_all_tools_missed: If True, show FNs missed by ALL tools
-        specific_tool: If provided, show FNs for this tool only
-        all_tools: Dictionary of all tools (used when showing per-tool FNs)
-    """
-
-    if show_all_tools_missed:
-        # Show only FNs missed by ALL tools
-        # Use ground truth coordinates (start_gt, end_gt) from matches
-        found_gt = (
-            alignment_classifications.filter(
-                pl.col("classification") == "positive_in_plan"
+            logger.debug(f"  Max allowed mismatches: [bold]{max_distance}[/bold]")
+            logger.debug(
+                "  Metric used for validation: [bold]" +
+                f"{distance_metric.capitalize()} distance:[/bold] " +
+                f"{gap_affine_distance if distance_metric == 'gap_affine' else edit_distance if distance_metric == 'edit' else hamming_distance} "
             )
-            .select(["spacer_id", "contig_id", "start_gt", "end_gt", "strand"])
-            .unique()
-        )
 
-        # Rename to match ground truth column names for join
-        found_gt = found_gt.rename({"start_gt": "start", "end_gt": "end"})
+            # Display which tools found this alignment and region
+            if tool_names_this_alignment:
+                logger.debug(f"  Tools reporting this alignment_idx ({alignment_idx}): [magenta]{', '.join(tool_names_this_alignment)}[/magenta]")
+            # if tool_names_this_region and tool_names_this_region != tool_names_this_alignment:
+                logger.debug(f"  Tools reporting this region_idx ({region_idx}): [cyan]{', '.join(tool_names_this_region)}[/cyan]")
+            
+            # Highlight "planned" false negatives (in ground_truth but not in other tools)
+            if "ground_truth" in tool_names_this_alignment:
+                other_tools = [t for t in tool_names_this_alignment if t != "ground_truth"]
+                if not other_tools:
+                    logger.debug(f"  [bold red]FALSE NEGATIVE: Missed by all tools[/bold red]")
+                else:
+                    all_real_tools = set([t for t in tool_names_this_region if t != "ground_truth"])
+                    missed_tools = all_real_tools - set(other_tools)
+                    if missed_tools:
+                        logger.debug(f"  [yellow]Missed by: {', '.join(sorted(missed_tools))}[/yellow]")
 
-        false_negatives = ground_truth.join(
-            found_gt,
-            on=["spacer_id", "contig_id", "start", "end", "strand"],
-            how="anti",
-        )
 
-        if false_negatives.height == 0:
-            logger.debug("\n[green]No false negatives missed by ALL tools![/green]")
-            return
-
-        logger.debug(
-            f"\n[bold red]FALSE NEGATIVES MISSED BY ALL TOOLS ({false_negatives.height} total, showing {min(num_examples, false_negatives.height)})[/bold red]"
-        )
-        _display_fn_examples(
-            false_negatives.head(num_examples),
-            tools_results,
-            contigs_file,
-            spacers_file,
-            distance_metric,
-            gap_open_penalty,
-            gap_extend_penalty,
-        )
-        return
-
-    # Show per-tool FNs
-    if specific_tool:
-        tools_to_check = [specific_tool]
-    elif all_tools:
-        tools_to_check = sorted(all_tools.keys())
-    else:
-        tools_to_check = tools_results["tool"].unique().sort().to_list()
-
-    for tool_name in tools_to_check:
-        # Get what this tool found (using ground truth coordinates)
-        tool_found = (
-            tools_results.filter(pl.col("tool") == tool_name)
-            .join(
-                alignment_classifications.filter(
-                    pl.col("classification") == "positive_in_plan"
-                ),
-                on=["spacer_id", "contig_id", "start", "end", "strand"],
-                how="inner",
-            )
-            .select(["spacer_id", "contig_id", "start_gt", "end_gt", "strand"])
-            .unique()
-        )
-
-        # Rename to match ground truth column names for join
-        tool_found = tool_found.rename({"start_gt": "start", "end_gt": "end"})
-
-        # Find what this tool missed
-        false_negatives = ground_truth.join(
-            tool_found,
-            on=["spacer_id", "contig_id", "start", "end", "strand"],
-            how="anti",
-        )
-
-        if false_negatives.height == 0:
-            logger.debug(f"\n[green]{tool_name.upper()}: No false negatives![/green]")
+            # Highlight "non-planned" false negatives (not in ground_truth but  in other tools)
+            if "ground_truth" not in tool_names_this_alignment:
+                missed =  set(all_run_tools) - set(tool_names_this_alignment) 
+                logger.debug(f"  [yellow]Missed by: {', '.join(sorted(missed))}[/yellow]")
+    
+    # Second, for each tool, display an example REGION that was completely missed (if any)
+    logger.debug("\n[bold cyan]PER-TOOL COMPLETELY MISSED REGIONS:[/bold cyan]")
+    
+    for tool in sorted(all_run_tools):
+        # Get all true positive regions (unique region_idx values)
+        if "region_idx" not in alignment_classifications.columns:
             continue
-
-        pct_missed = 100 * false_negatives.height / ground_truth.height
-        logger.debug(
-            f"\n[bold yellow]{tool_name.upper()} FALSE NEGATIVES ({false_negatives.height:,} total = {pct_missed:.2f}%, showing {min(num_examples, false_negatives.height)})[/bold yellow]"
+            
+        true_positive_regions = (
+            alignment_classifications
+            .filter(pl.col("classification").is_in(["positive_in_plan", "positive_not_in_plan"]))
+            .select("region_idx")
+            .unique()
         )
-
-        _display_fn_examples(
-            false_negatives.head(num_examples),
-            tools_results,
-            contigs_file,
-            spacers_file,
-            distance_metric,
-            gap_open_penalty,
-            gap_extend_penalty,
-            highlight_tool=tool_name,
+        
+        if true_positive_regions.height == 0:
+            continue
+        
+        # Get regions found by this specific tool (any alignment in the region counts)
+        tool_regions = (
+            tools_results
+            .filter(pl.col("tool") == tool)
+            .select("region_idx")
+            .unique()
         )
+        
+        # Find regions completely missed by this tool (anti-join)
+        missed_regions = true_positive_regions.join(
+            tool_regions,
+            on="region_idx",
+            how="anti"
+        )
+        
+        if missed_regions.height == 0:
+            logger.debug(f"\n[bold green]{tool}: Found all {true_positive_regions.height} true positive regions[/bold green]")
+            continue
+        
+        # Select one random missed region
+        missed_region_idx = missed_regions.sample(1)["region_idx"][0]
+        
+        # Get one example alignment from this missed region
+        region_alignments = alignment_classifications.filter(
+            pl.col("region_idx") == missed_region_idx
+        )
+        example = region_alignments.sample(1).row(0, named=True)
+        
+        logger.debug(f"\n[bold red]{tool}: Completely missed {missed_regions.height}/{true_positive_regions.height} true positive regions[/bold red]")
+        logger.debug(f"[bold red]Example region_idx {missed_region_idx} (alignment_idx {example.get('alignment_idx')}) missed by {tool}:[/bold red]")
+        
+        # Show which tools DID find this region
+        tools_that_found_region = (
+            tools_results
+            .filter(pl.col("region_idx") == missed_region_idx)
+            .select("tool")
+            .unique()
+            .sort("tool")
+        )
+        if tools_that_found_region.height > 0:
+            found_by = tools_that_found_region["tool"].to_list()
+            logger.debug(f"  [green]Region found by: {', '.join(found_by)}[/green]")
+        
+        # Display the example alignment from the missed region
+        spacer_id = example["spacer_id"]
+        contig_id = example["contig_id"]
+        start = example["start"]
+        end = example["end"]
+        strand = example["strand"]
+        classification = example["classification"]
 
-
-def _display_fn_examples(
-    examples: pl.DataFrame,
-    tools_results: pl.DataFrame,
-    contigs_file: str,
-    spacers_file: str,
-    distance_metric: str,
-    gap_open_penalty: int,
-    gap_extend_penalty: int,
-    highlight_tool: Optional[str] = None,
-):
-    """Helper to display FN examples."""
-    for idx, row in enumerate(examples.iter_rows(named=True), 1):
-        spacer_id = row["spacer_id"]
-        contig_id = row["contig_id"]
-        start = row["start"]
-        end = row["end"]
-        strand = row["strand"]
-        expected_mismatches = row.get("mismatches", "unknown")
-
-        # Get sequences
+        logger.debug(f"  Classification: [yellow]{classification}[/yellow]")
+        logger.debug(f"  Spacer: [cyan]{spacer_id}[/cyan]")
+        logger.debug(f"  Location: [cyan]{contig_id}:{start}-{end} {'(-)' if strand else '(+)'}[/cyan]")
         try:
             spacer_df = get_seq_from_fastx(
                 spacers_file,
@@ -719,111 +1063,46 @@ def _display_fn_examples(
         except Exception as e:
             logger.error(f"Error fetching sequences: {e}")
             continue
-
-        # Calculate actual distances
-        edit_distance = test_alignment(
+        
+        # Display alignments
+        alignment_edit = prettify_alignment_edit(
             spacer_seq,
             contig_seq,
             strand=strand,
             start=start,
             end=end,
-            distance_metric="edit",
-            gap_cost=gap_open_penalty,
-            extend_cost=gap_extend_penalty,
         )
-        hamming_distance = test_alignment(
+        alignment_hamming = prettify_alignment_hamming(
             spacer_seq,
             contig_seq,
             strand=strand,
             start=start,
             end=end,
-            distance_metric="hamming",
-            gap_cost=gap_open_penalty,
-            extend_cost=gap_extend_penalty,
         )
-        if distance_metric == "hamming":
-            alignment_str = prettify_alignment_hamming(
-                spacer_seq,
-                contig_seq,
-                strand=strand,
-                start=start,
-                end=end,
-            )
-
-        # Generate alignment visualization
-        elif distance_metric == "edit":
-            alignment_str = prettify_alignment_edit(
-                spacer_seq,
-                contig_seq,
-                strand=strand,
-                start=start,
-                end=end,
-            )
-        elif distance_metric == "gap_affine":
-            alignment_str = prettify_alignment_gap_affine(
-                spacer_seq,
-                contig_seq,
-                strand=strand,
-                start=start,
-                end=end,
-                gap_cost=gap_open_penalty,
-                extend_cost=gap_extend_penalty,
-            )
-
-        # Check which tools reported this location (even if wrongly classified)
-        tools_that_reported = tools_results.filter(
-            (pl.col("spacer_id") == spacer_id)
-            & (pl.col("contig_id") == contig_id)
-            & (pl.col("start") == start)
-            & (pl.col("end") == end)
-            & (pl.col("strand") == strand)
+        
+        logger.debug(f"  Alignment (edit):\n{alignment_edit}")
+        logger.debug(f"  Alignment (hamming):\n{alignment_hamming}")
+        
+        # Show which tools DID find this alignment
+        tools_that_found = tools_results.filter(
+            (pl.col("spacer_id") == spacer_id) &
+            (pl.col("contig_id") == contig_id) &
+            (pl.col("start") == start) &
+            (pl.col("end") == end) &
+            (pl.col("strand") == strand)
         )
-        tools_reported_names = (
-            tools_that_reported["tool"].unique().to_list()
-            if tools_that_reported.height > 0
-            else []
-        )
+        if tools_that_found.height > 0:
+            found_by = tools_that_found["tool"].unique().sort().to_list()
+            logger.debug(f"  [green]Found by: {', '.join(found_by)}[/green]")
 
-        logger.debug(f"\n[bold]False Negative #{idx}:[/bold]")
-        logger.debug(f"\n  Spacer:            {spacer_id}")
-        logger.debug(f"\n  Contig:            {contig_id}")
-        logger.debug(
-            f"\n  Position:          {start}-{end} ({'reverse' if strand else 'forward'})"
-        )
-        logger.debug(f"\n  Expected distance: {expected_mismatches}")
-        logger.debug(f"\n  Actual hamming:    {hamming_distance}")
-        logger.debug(f"\n  Actual edit:       {edit_distance}")
-
-        if highlight_tool:
-            # Highlight which tools DID find this that the highlight_tool missed
-            if tools_reported_names:
-                logger.debug(
-                    f"\n  [green]Found by: {', '.join(tools_reported_names)}[/green]"
-                )
-            else:
-                logger.debug("\n  [red]Not reported by any tool[/red]")
-        else:
-            if tools_reported_names:
-                logger.debug(
-                    f"\n  [yellow]Reported by (but not classified as TP): {', '.join(tools_reported_names)}[/yellow]"
-                )
-            else:
-                logger.debug("\n  [red]Not reported by any tool[/red]")
-
-        # Display alignment
-        # lines = alignment_str.split("\n )")
-        # if len(lines) >= 3:
-        #     logger.debug("\n  Alignment:")
-        #     for line in lines:
-        #         logger.debug(f"    {line}")
-
-        logger.debug(f"\n  Alignment::\n{alignment_str}")
 
 
 def calculate_all_tool_performance(
     tools_results: pl.DataFrame,
     alignment_classifications: pl.DataFrame,
     ground_truth: pl.DataFrame,
+    max_distance: int,
+    distance_metric: str = "hamming",
 ) -> pl.DataFrame:
     """
     Calculate performance metrics for all tools at once using group_by aggregations.
@@ -835,15 +1114,45 @@ def calculate_all_tool_performance(
         alignment_classifications: DataFrame with classifications for unique alignments
                                   (columns: spacer_id, contig_id, start, end, strand, classification, recalculated_distance)
         ground_truth: Original ground truth DataFrame (needed to identify false negatives)
+        max_distance: Maximum distance threshold
+        distance_metric: Which distance metric to use for filtering ("hamming", "edit", "gap_affine")
 
     Returns:
         DataFrame with performance metrics for all tools (both planned-only and augmented)
     """
-    # Join tool results with classifications
+    # Select which distance column to use based on distance_metric
+    distance_col = {
+        "edit": "distance_edit",
+        "gap_affine": "distance_gap_affine",
+    }.get(distance_metric, "distance_hamming")
+    
+    # FIRST: Reclassify alignment_classifications based on the selected distance metric
+    # This determines the global augmented GT for this metric
+    reclassified_alignments = alignment_classifications.with_columns(
+        pl.when(pl.col("classification") == "positive_in_plan")
+        .then(
+            pl.when(pl.col(distance_col) <= max_distance)
+            .then(pl.lit("positive_in_plan"))
+            .otherwise(pl.lit("invalid_alignment"))
+        )
+        .when(pl.col("classification") == "positive_not_in_plan")
+        .then(
+            pl.when(pl.col(distance_col) <= max_distance)
+            .then(pl.lit("positive_not_in_plan"))
+            .otherwise(pl.lit("invalid_alignment"))
+        )
+        .otherwise(pl.col("classification"))
+        .alias(f"classification_{distance_metric}")
+    )
+    
+    # Join tool results with reclassified alignments
     classified_results = tools_results.join(
-        alignment_classifications,
+        reclassified_alignments,
         on=["spacer_id", "contig_id", "start", "end", "strand"],
         how="left",
+    ).with_columns(
+        # Use the metric-specific classification
+        pl.col(f"classification_{distance_metric}").alias("classification")
     )
 
     # Handle cases where some results don't have classifications (shouldn't happen, but defensive)
@@ -865,9 +1174,7 @@ def calculate_all_tool_performance(
             {
                 "tool": [],
                 "recall_planned": [],
-                "precision_planned": [],
                 "recall_augmented": [],
-                "precision_augmented": [],
                 "all_true_positives": [],
                 "planned_true_positives": [],
                 "positives_not_in_plan": [],
@@ -876,30 +1183,17 @@ def calculate_all_tool_performance(
             }
         )
 
-    # Calculate ground truth counts
+    # Ground truth counts (constant across all tools)
     planned_gt_count = ground_truth.height
-
-    # For augmented GT, count unique genomic locations (not tool-reported coordinates)
-    # For positive_not_in_plan, merge overlapping intervals to avoid counting
-    # the same spurious match multiple times when tools report slightly different boundaries
-    not_in_plan_df = alignment_classifications.filter(
-        pl.col("classification") == "positive_not_in_plan"
-    ).select(["spacer_id", "contig_id", "start", "end", "strand"])
     
-    # Merge overlapping intervals within tolerance
+    # For augmented GT, count verified non-planned alignments (overlap-merged) FOR THIS METRIC
+    # Use the reclassified alignments, not the original
+    not_in_plan_df = reclassified_alignments.filter(
+        pl.col(f"classification_{distance_metric}") == "positive_not_in_plan"
+    ).select(["spacer_id", "contig_id", "start", "end", "strand"])
     merged_not_in_plan = merge_overlapping_intervals(not_in_plan_df, tolerance=3)
     unique_positives_not_in_plan = merged_not_in_plan.height
-
     augmented_gt_count = planned_gt_count + unique_positives_not_in_plan
-
-    logger.debug(f"Ground truth (planned only): {planned_gt_count}")
-    logger.debug(
-        f"Verified non-planned alignments (before merging overlaps): {not_in_plan_df.height}"
-    )
-    logger.debug(
-        f"Verified non-planned alignments (after merging overlaps within 3bp): {unique_positives_not_in_plan}"
-    )
-    logger.debug(f"Ground truth (augmented): {augmented_gt_count}")
 
     # Aggregate by tool to count each classification type
     # Important: We need to count unique genomic locations, not duplicate tool reports
@@ -918,13 +1212,12 @@ def calculate_all_tool_performance(
             .select(["spacer_id", "contig_id", "start", "end", "strand"])
         )
         merged = merge_overlapping_intervals(tool_not_in_plan, tolerance=3)
-        tool_not_in_plan_counts.append({
-            "tool": tool_name,
-            "positives_not_in_plan": merged.height,
-        })
-    
+        tool_not_in_plan_counts.append(
+            {"tool": tool_name, "positives_not_in_plan": merged.height}
+        )
+
     not_in_plan_df = pl.DataFrame(tool_not_in_plan_counts)
-    
+
     performance = classified_results.group_by("tool").agg(
         [
             # Count unique GROUND TRUTH locations for positive_in_plan (use start_gt, end_gt)
@@ -954,592 +1247,43 @@ def calculate_all_tool_performance(
     # Join the merged positives_not_in_plan counts
     performance = performance.join(not_in_plan_df, on="tool", how="left")
 
-    # Calculate false negatives per tool
-    # FN = ground truth entries not found by the tool (within the distance threshold)
-    fn_counts = []
-    for tool_name in performance["tool"].to_list():
-        tool_alignments = classified_results.filter(pl.col("tool") == tool_name)
-
-        # GT entries found by this tool (positive_in_plan)
-        # Use ground truth coordinates (start_gt, end_gt) instead of tool coordinates
-        gt_found = (
-            tool_alignments.filter(pl.col("classification") == "positive_in_plan")
-            .select(["spacer_id", "contig_id", "start_gt", "end_gt", "strand"])
-            .unique()
-        )
-
-        # Rename to match ground truth column names for join
-        gt_found = gt_found.rename({"start_gt": "start", "end_gt": "end"})
-
-        # False negatives = GT entries not in the found set
-        fn = ground_truth.join(
-            gt_found,
-            on=["spacer_id", "contig_id", "start", "end", "strand"],
-            how="anti",
-        ).height
-
-        fn_counts.append({"tool": tool_name, "false_negatives_planned": fn})
-
-    fn_df = pl.DataFrame(fn_counts)
-    performance = performance.join(fn_df, on="tool", how="left")
-
-    # Add ground truth counts
+    # Add ground truth counts and calculate metrics
+    # Note: augmented_gt is GLOBAL for this metric (not per-tool)
     performance = performance.with_columns(
         [
             pl.lit(planned_gt_count).alias("ground_truth_planned"),
             pl.lit(augmented_gt_count).alias("ground_truth_augmented"),
-        ]
-    )
-
-    # Calculate all true positives (planned + non-planned)
-    performance = performance.with_columns(
-        [
             (pl.col("planned_true_positives") + pl.col("positives_not_in_plan")).alias(
                 "all_true_positives"
             ),
         ]
     )
 
-    # Calculate metrics for PLANNED ONLY mode (strict)
     performance = performance.with_columns(
         [
-            # Precision (planned only) = planned TP / (planned TP + all FP)
-            (
-                pl.col("planned_true_positives")
-                / (
-                    pl.col("planned_true_positives")
-                    + pl.col("positives_not_in_plan")
-                    + pl.col("invalid_alignments")
-                )
-            )
-            .fill_null(0.0)
-            .alias("precision_planned"),
-            # Recall (planned only) = planned TP / (planned TP + FN)
-            (
-                pl.col("planned_true_positives")
-                / (pl.col("planned_true_positives") + pl.col("false_negatives_planned"))
-            )
-            .fill_null(0.0)
-            .alias("recall_planned"),
+            # False negatives: GT - TPs detected by this tool
+            (pl.lit(planned_gt_count) - pl.col("planned_true_positives")).clip(lower_bound=0).alias(
+                "false_negatives_planned"
+            ),
+            (pl.lit(augmented_gt_count) - pl.col("all_true_positives")).clip(lower_bound=0).alias(
+                "false_negatives_augmented"
+            ),
         ]
     )
 
-    # Calculate metrics for AUGMENTED mode (including non-planned)
     performance = performance.with_columns(
         [
-            # FN (augmented) = augmented GT - all TPs found by this tool
-            (pl.col("ground_truth_augmented") - pl.col("all_true_positives")).alias(
-                "false_negatives_augmented"
-            ),
-            # Precision (augmented) = all TP / (all TP + invalid only)
-            (
-                pl.col("all_true_positives")
-                / (pl.col("all_true_positives") + pl.col("invalid_alignments"))
-            )
+            # Recall: TPs detected by tool / total GT
+            (pl.col("planned_true_positives") / pl.lit(planned_gt_count))
             .fill_null(0.0)
-            .alias("precision_augmented"),
-            # Recall (augmented) = all TP / augmented GT (shared across all tools)
-            (pl.col("all_true_positives") / pl.col("ground_truth_augmented"))
+            .alias("recall_planned"),
+            (pl.col("all_true_positives") / pl.lit(augmented_gt_count))
             .fill_null(0.0)
             .alias("recall_augmented"),
         ]
     )
-
-
     return performance
 
-
-def compare_all_tools(
-    tools: Dict,
-    ground_truth: pl.DataFrame,
-    tools_results: pl.DataFrame,
-    contigs_file: Optional[str] = None,
-    spacers_file: Optional[str] = None,
-    hyperfine_results: Optional[pl.DataFrame] = None,
-    max_mismatches: int = 5,
-    distance_metric: str = "hamming",
-    gap_open_penalty: int = 5,
-    gap_extend_penalty: int = 5,
-) -> pl.DataFrame:
-    """
-    Compare all tool results against ground truth with consolidated validation.
-
-    This function:
-    1. Validates unique alignments once across all tools
-    2. Calculates per-tool performance metrics using efficient group_by aggregations
-    3. Always computes both planned-only and augmented metrics
-
-    This approach is much more efficient than validating each tool separately.
-
-    Args:
-        tools: Dictionary of tool configurations
-        ground_truth: Ground truth DataFrame
-        tools_results: Combined results from all tools
-        contigs_file: Path to contigs FASTA file (for FP verification and spurious estimation)
-        spacers_file: Path to spacers FASTA file (for FP verification and spurious estimation)
-        hyperfine_results: Optional DataFrame with hyperfine benchmark results
-        max_mismatches: Maximum number of mismatches to consider valid
-        distance_metric: Distance metric for validation: 'hamming' (substitutions only) or 'edit' (substitutions + indels)
-        gap_open_penalty: Gap open penalty for alignment validation (default: 5)
-        gap_extend_penalty: Gap extension penalty for alignment validation (default: 5)
-
-    Returns:
-        DataFrame with comparison results for all tools (includes both planned and augmented metrics)
-    """
-    logger.debug("Starting consolidated tool comparison...")
-
-    # Step 1: Classify unique alignments across all tools
-    alignment_classifications = classify_unique_alignments_across_tools(
-        ground_truth=ground_truth,
-        all_tool_results=tools_results,
-        contigs_file=contigs_file,
-        spacers_file=spacers_file,
-        max_distance=max_mismatches,
-        distance_metric=distance_metric,
-        gap_open_penalty=gap_open_penalty,
-        gap_extend_penalty=gap_extend_penalty,
-        coordinate_tolerance=5,  # Allow 5bp tolerance for coordinate matching
-    )
-
-    # Step 1.5: Create synthetic "all_tools_combined" entry
-    # This combines all unique alignments from all tools into a single tool-independent view
-    logger.debug("Creating tool-independent combined results...")
-    
-    # Get unique alignments by coordinates (drop the tool column, deduplicate, then add new tool name)
-    all_tools_combined = (
-        tools_results
-        .select([col for col in tools_results.columns if col != "tool"])
-        .unique(subset=["spacer_id", "contig_id", "start", "end", "strand"])
-        .with_columns(pl.lit("all_tools_combined").alias("tool"))
-    )
-    
-    # Add the combined results to tools_results for unified processing
-    tools_results_with_combined = vstack_easy(tools_results, all_tools_combined)
-    logger.debug(f"Added 'all_tools_combined' with {all_tools_combined.height} unique alignments")
-
-    # Step 2: Display example alignments for each classification
-    if contigs_file and spacers_file:
-        try:
-            display_example_alignments(
-                alignment_classifications=alignment_classifications,
-                tools_results=tools_results_with_combined,
-                contigs_file=contigs_file,
-                spacers_file=spacers_file,
-                max_distance=max_mismatches,
-                num_examples=1,
-                distance_metric=distance_metric,
-                gap_open_penalty=gap_open_penalty,
-                gap_extend_penalty=gap_extend_penalty,
-            )
-        except Exception as e:
-            logger.warning(f"Failed to display example alignments: {e}")
-
-        # Display false negatives missed by all tools
-        try:
-            # First, show how many FNs each tool has
-            logger.debug("\n[bold cyan]FALSE NEGATIVE COUNTS BY TOOL:[/bold cyan]")
-            for tool_name in sorted(tools.keys()):
-                tool_alignments = tools_results_with_combined.filter(pl.col("tool") == tool_name)
-                # Use ground truth coordinates (start_gt, end_gt) from matches
-                tool_found_gt = (
-                    tool_alignments.join(
-                        alignment_classifications.filter(
-                            pl.col("classification") == "positive_in_plan"
-                        ),
-                        on=["spacer_id", "contig_id", "start", "end", "strand"],
-                        how="inner",
-                    )
-                    .select(["spacer_id", "contig_id", "start_gt", "end_gt", "strand"])
-                    .unique()
-                )
-
-                # Rename to match ground truth column names for join
-                tool_found_gt = tool_found_gt.rename(
-                    {"start_gt": "start", "end_gt": "end"}
-                )
-
-                tool_fn_count = ground_truth.join(
-                    tool_found_gt,
-                    on=["spacer_id", "contig_id", "start", "end", "strand"],
-                    how="anti",
-                ).height
-
-                if tool_fn_count == 0:
-                    logger.debug(f"  [green]{tool_name}: {tool_fn_count} FNs[/green]")
-                else:
-                    logger.debug(
-                        f"  [yellow]{tool_name}: {tool_fn_count:,} FNs ({100 * tool_fn_count / ground_truth.height:.2f}%)[/yellow]"
-                    )
-
-            # Show FNs missed by ALL tools
-            display_false_negatives(
-                ground_truth=ground_truth,
-                alignment_classifications=alignment_classifications,
-                tools_results=tools_results_with_combined,
-                contigs_file=contigs_file,
-                spacers_file=spacers_file,
-                num_examples=1,
-                distance_metric=distance_metric,
-                gap_open_penalty=gap_open_penalty,
-                gap_extend_penalty=gap_extend_penalty,
-                show_all_tools_missed=True,
-            )
-
-            # Show per-tool FN examples (2 examples per tool)
-            display_false_negatives(
-                ground_truth=ground_truth,
-                alignment_classifications=alignment_classifications,
-                tools_results=tools_results_with_combined,
-                contigs_file=contigs_file,
-                spacers_file=spacers_file,
-                num_examples=1,
-                distance_metric=distance_metric,
-                gap_open_penalty=gap_open_penalty,
-                gap_extend_penalty=gap_extend_penalty,
-                show_all_tools_missed=False,
-                all_tools=tools,
-            )
-
-            # Show per-tool FN examples (3 examples per tool)
-            display_false_negatives(
-                ground_truth=ground_truth,
-                alignment_classifications=alignment_classifications,
-                tools_results=tools_results_with_combined,
-                contigs_file=contigs_file,
-                spacers_file=spacers_file,
-                num_examples=1,
-                distance_metric=distance_metric,
-                gap_open_penalty=gap_open_penalty,
-                gap_extend_penalty=gap_extend_penalty,
-                show_all_tools_missed=False,
-                all_tools=tools,
-            )
-        except Exception as e:
-            logger.warning(f"Failed to display false negatives: {e}")
-
-    # Step 3: Calculate performance for all tools at once using group_by
-    logger.info(
-        "Calculating performance for all tools (both planned-only and augmented metrics)..."
-    )
-    try:
-        results_df = calculate_all_tool_performance(
-            tools_results=tools_results_with_combined,
-            alignment_classifications=alignment_classifications,
-            ground_truth=ground_truth,
-        )
-
-        # # Add expected spurious estimates if available (both methods)
-        # if expected_spurious_hamming is not None:
-        #     results_df = results_df.with_columns([
-        #         pl.lit(expected_spurious_hamming).alias("expected_spurious_hamming"),
-        #     ])
-
-        logger.debug(
-            f"Successfully calculated performance for {results_df.height} tools"
-        )
-
-    except Exception as e:
-        logger.error(f"Failed to calculate performance metrics: {e}")
-        import traceback
-
-        logger.error(traceback.format_exc())
-        return pl.DataFrame()
-
-    # Step 4: Merge with hyperfine results if available
-    if hyperfine_results is not None and hyperfine_results.height > 0:
-        hyperfine_df = hyperfine_results.select(
-            [pl.col("tool"), pl.col("mean_time").alias("avg_runtime_seconds")]
-        )
-        results_df = results_df.join(hyperfine_df, on="tool", how="left")
-
-    logger.debug("Comparison completed successfully")
-    return results_df
-
-
-def run_compare_results(
-    input_dir,
-    max_mismatches=5,
-    output_file=None,
-    threads=4,
-    skip_tools="",
-    only_tools=None,
-    contigs=None,
-    spacers=None,
-    distance_metric="hamming",
-    gap_open_penalty=5,
-    gap_extend_penalty=5,
-    logfile=None,
-    skip_hyperfine=False,
-    tools_results_out_file=None,
-):
-    """
-    This function reads alignment tool outputs, compares them against ground truth,
-    and calculates performance metrics including precision, recall...
-
-    Always calculates both planned-only and augmented (including non-planned) metrics.
-
-    Args:
-        input_dir: Directory containing tool outputs and ground truth
-        max_mismatches: Maximum number of mismatches to consider valid
-        output_file: Output file for comparison results (None = stdout)
-        threads: Number of threads for processing
-        skip_tools: Comma-separated list of tools to skip
-        only_tools: Comma-separated list of tools to process (overrides skip_tools)
-        contigs: Path to custom contigs file (optional)
-        spacers: Path to custom spacers file (optional)
-        distance_metric: Distance metric for validation: 'hamming' (substitutions only) or 'edit' (substitutions + indels). Default: 'hamming'
-        gap_open_penalty: Gap open penalty for alignment validation (default: 5)
-        gap_extend_penalty: Gap extension penalty for alignment validation (default: 5)
-        logfile: Path to log file for DEBUG output (handled by CLI, included here for documentation, do not set!)
-        skip_hyperfine: If True, skip reading hyperfine results (default: False)
-        tools_results_out_file: Optional path to save the combined tools results TSV (Default: <input_dir>/tools_results.tsv)
-
-    Returns:
-        Tuple of (tools_results, hyperfine_results, performance_results)
-    """
-    logger.debug(f"Processing tool results from {input_dir}")
-
-    # Ensure directory exists
-    if not os.path.exists(input_dir):
-        logger.error(f"Input directory {input_dir} does not exist")
-        raise FileNotFoundError(f"Input directory {input_dir} does not exist")
-
-    # Determine file paths
-    contigs_path = (
-        contigs if contigs else f"{input_dir}/simulated_data/simulated_contigs.fa"
-    )
-    spacers_path = (
-        spacers if spacers else f"{input_dir}/simulated_data/simulated_spacers.fa"
-    )
-
-    logger.debug(f"Contigs: {contigs_path}")
-    logger.debug(f"Spacers: {spacers_path}")
-
-    if tools_results_out_file:
-        logger.debug(f"Tools results will be saved to: {tools_results_out_file}")
-    else:
-        logger.debug(f"No custom tools results output file specified, will be saved to {input_dir}/tools_results.tsv")
-    # Load tool configurations using the new clean function
-    logger.debug("Loading tool configurations...")
-    tools = load_tool_configs(
-        results_dir=input_dir,
-        threads=threads,
-        contigs_file=contigs,
-        spacers_file=spacers,
-    )
-    logger.debug(f"Loaded {len(tools)} tool configurations")
-
-    # Filter tools based on skip_tools
-    if skip_tools:
-        logger.debug(f"Skipping tools: {skip_tools}")
-        skip_list = skip_tools.split(",")
-        tools = {k: v for k, v in tools.items() if k not in skip_list}
-        logger.debug(f"Remaining tools after skip: {len(tools)}")
-
-    # Filter tools based on only_tools
-    if only_tools:
-        logger.debug(f"Only processing tools: {only_tools}")
-        only_list = only_tools.split(",")
-        tools = {k: v for k, v in tools.items() if k in only_list}
-        logger.debug(f"Tools to process: {len(tools)}")
-
-    # Create spacer length dataframe
-    logger.debug("Reading spacer sequences...")
-    spacers_dict = read_fasta(spacers_path)
-    spacer_lendf = pl.DataFrame(
-        {
-            "spacer_id": spacers_dict.keys(),
-            "length": [len(seq) for seq in spacers_dict.values()],
-        }
-    )
-    logger.debug(f"Loaded {len(spacers_dict)} spacers")
-
-    # Read tool results
-    logger.debug("Reading tool alignment results...")
-    tools_results = read_results(
-        tools,
-        max_mismatches=max_mismatches,
-        spacer_lendf=spacer_lendf,
-        ref_file=contigs_path,
-    )
-    logger.info(f"Read {tools_results.height} total alignment results")
-
-    # Write tools results
-
-    if tools_results_out_file:
-        tools_output = tools_results_out_file
-    else:
-        tools_output = f"{input_dir}/tools_results.tsv"
-        
-    tools_results.write_csv(tools_output, separator="\t")
-    logger.debug(f"Wrote tool results to {tools_output}")
-
-    if not skip_hyperfine:
-        # Read hyperfine benchmarking results
-        logger.debug("Reading hyperfine benchmark results...")
-        hyperfine_results = read_hyperfine_results(tools, input_dir)
-        hyperfine_output = f"{input_dir}/hyperfine_results.tsv"
-        hyperfine_results.write_csv(hyperfine_output, separator="\t")
-        logger.debug(f"Wrote hyperfine results to {hyperfine_output}")
-
-    # Check for ground truth and run performance comparison
-    ground_truth_file = f"{input_dir}/simulated_data/planned_ground_truth.tsv"
-    if not os.path.exists(ground_truth_file):
-        # Try alternate name
-        ground_truth_file = f"{input_dir}/simulated_data/ground_truth.tsv"
-
-    # Load ground truth or create empty DataFrame if not found
-    if os.path.exists(ground_truth_file):
-        logger.debug(f"Reading ground truth from {ground_truth_file}...")
-        ground_truth = pl.read_csv(ground_truth_file, separator="\t")
-        logger.info(f"Loaded {ground_truth.height} ground truth annotations")
-
-        # Only filter if ground truth is not empty (avoid type inference issues with empty files)
-        if ground_truth.height > 0:
-            ground_truth = ground_truth.filter(pl.col("mismatches") <= max_mismatches)
-            logger.info(
-                f"{ground_truth.height} ground truth annotations within max mismatches of {max_mismatches}"
-            )
-
-            # Check for duplicates in ground truth
-            unique_gt = ground_truth.unique(
-                subset=["spacer_id", "contig_id", "start", "end", "strand"]
-            )
-            if unique_gt.height != ground_truth.height:
-                logger.warning(
-                    f"Ground truth contains {ground_truth.height - unique_gt.height} duplicate entries!"
-                )
-                logger.debug(
-                    f"Using deduplicated ground truth: {unique_gt.height} unique entries"
-                )
-                ground_truth = unique_gt
-        else:
-            # Empty ground truth file - ensure correct schema to avoid type issues downstream
-            logger.info("Ground truth file is empty (0 annotations)")
-            ground_truth = pl.DataFrame(
-                {
-                    "spacer_id": [],
-                    "contig_id": [],
-                    "start": [],
-                    "end": [],
-                    "strand": [],
-                    "mismatches": [],
-                },
-                schema={
-                    "spacer_id": pl.Utf8,
-                    "contig_id": pl.Utf8,
-                    "start": pl.Int64,
-                    "end": pl.Int64,
-                    "strand": pl.Boolean,
-                    "mismatches": pl.Int64,
-                },
-            )
-    else:
-        logger.warning("No ground truth file found, using empty ground truth")
-        logger.debug(f"Expected file at: {ground_truth_file}")
-        # Create empty ground truth DataFrame with expected schema
-        ground_truth = pl.DataFrame(
-            {
-                "spacer_id": [],
-                "contig_id": [],
-                "start": [],
-                "end": [],
-                "strand": [],
-                "mismatches": [],
-            },
-            schema={
-                "spacer_id": pl.Utf8,
-                "contig_id": pl.Utf8,
-                "start": pl.Int64,
-                "end": pl.Int64,
-                "strand": pl.Boolean,
-                "mismatches": pl.Int64,
-            },
-        )
-        logger.info("Created empty ground truth (0 annotations)")
-
-    logger.debug(
-        "Comparing results against ground truth using consolidated validation..."
-    )
-    logger.debug("Computing both planned-only and augmented metrics")
-
-    performance_results = compare_all_tools(
-        tools=tools,
-        ground_truth=ground_truth,
-        tools_results=tools_results,
-        contigs_file=contigs_path,
-        spacers_file=spacers_path,
-        hyperfine_results=None if skip_hyperfine else hyperfine_results,
-        max_mismatches=max_mismatches,
-        distance_metric=distance_metric,
-        gap_open_penalty=gap_open_penalty,
-        gap_extend_penalty=gap_extend_penalty,
-    )
-
-    # Output performance results
-    if output_file:
-        performance_results.write_csv(output_file, separator="\t")
-        logger.debug(f"Wrote performance results to {output_file}")
-    # else:
-    #     logger.debug("\n=== Performance Results ===")
-    #     print(performance_results)
-
-    # Also save to standard location with distance metric and threshold in filename
-    perf_output = f"{input_dir}/performance_results_{distance_metric}_mm{max_mismatches}.tsv"
-    performance_results.write_csv(perf_output, separator="\t")
-    logger.info(f"Saved performance results to {perf_output}")
-
-    # Print a sorted, slimmer summary table to screen
-
-    logger.info("PERFORMANCE SUMMARY (sorted by recall_planned)")
-
-    # Handle empty results (e.g., when ground truth is empty and no classifications succeeded)
-    if performance_results.height == 0:
-        logger.warning(
-            "No performance results to display - all tool results may have been unclassified or ground truth was empty"
-        )
-        logger.info("Results processing completed (no valid comparisons)")
-        return (
-            tools_results,
-            None if skip_hyperfine else hyperfine_results,
-            performance_results,
-        )
-
-    # Select key columns and sort by recall_planned
-    summary_cols = [
-        "tool",
-        "recall_planned",
-        "precision_planned",
-        "recall_augmented",
-        "precision_augmented",
-        "all_true_positives",
-        "planned_true_positives",
-        "positives_not_in_plan",
-        "invalid_alignments",
-        "false_negatives_planned",
-    ]
-    if "expected_spurious_hamming" in performance_results.columns:
-        summary_cols.extend(["expected_spurious_hamming"])
-    if "avg_runtime_seconds" in performance_results.columns:
-        summary_cols.append("avg_runtime_seconds")
-
-    summary_table = performance_results.select(summary_cols).sort(
-        "recall_planned", descending=True
-    )
-
-    # Format and print
-    pl.Config.set_tbl_cols(-1)
-    pl.Config.set_tbl_rows(15)
-    logger.info("")  # Add newline
-    print(summary_table)  # Use regular print to avoid Rich padding/whitespace
-
-    logger.info("Results processing completed successfully")
-
-    return (
-        tools_results,
-        None if skip_hyperfine else hyperfine_results,
-        performance_results,
-    )
 
 
 def calculate_all_distances_for_alignment(
@@ -1598,288 +1342,3 @@ def calculate_all_distances_for_alignment(
         'distance_gap_affine': gap_affine_dist,
     }
 
-
-def analyze_simulation_multi_metric(
-    sim_dir: str,
-    max_distance_threshold: int = 5,
-    coordinate_tolerance: int = 5,
-    gap_open: int = 5,
-    gap_extend: int = 5,
-    spacer_file: Optional[str] = None,
-    contig_file: Optional[str] = None,
-    ground_truth_file: Optional[str] = None,
-) -> pl.DataFrame:
-    """
-    Analyze all unique alignments in a simulation using three distance metrics.
-    
-    Args:
-        sim_dir: Path to simulation directory
-        max_distance_threshold: Maximum distance to classify as valid (applied to ALL metrics)
-        coordinate_tolerance: Tolerance for matching to ground truth
-        gap_open: Gap opening penalty for gap-affine alignment
-        gap_extend: Gap extension penalty for gap-affine alignment
-        spacer_file: Optional custom path to spacer FASTA file (default: sim_dir/simulated_data/simulated_spacers.fa)
-        contig_file: Optional custom path to contig FASTA file (default: sim_dir/simulated_data/simulated_contigs.fa)
-        ground_truth_file: Optional custom path to ground truth TSV file (default: sim_dir/simulated_data/planned_ground_truth.tsv)
-        
-    Returns:
-        DataFrame with all unique alignments and their distances calculated via all 3 metrics
-    """
-    sim_path = Path(sim_dir)
-    
-    # Determine file paths (use custom or defaults)
-    if ground_truth_file is None:
-        gt_file = sim_path / "simulated_data" / "planned_ground_truth.tsv"
-    else:
-        gt_file = Path(ground_truth_file)
-    
-    # Load ground truth (if exists)
-    if gt_file.exists():
-        ground_truth = pl.read_csv(str(gt_file), separator='\t')
-        print(f"Loaded ground truth: {ground_truth.height} entries")
-    else:
-        ground_truth = pl.DataFrame({
-            'spacer_id': [],
-            'contig_id': [],
-            'start': [],
-            'end': [],
-            'strand': [],
-            'mismatches': [],
-        })
-        print("No ground truth file found - all alignments will be 'not_in_plan'")
-    
-    # Load tool configs and results
-    tool_configs_dir = "/clusterfs/jgi/scratch/science/metagen/neri/code/blits/spacer_bench/tool_configs"
-    tools = load_tool_configs(tool_configs_dir)
-    
-    # Filter to tools that have output files in this simulation
-    raw_outputs_dir = sim_path / "raw_outputs"
-    available_tools = {}
-    for tool_name, tool_config in tools.items():
-        # Extract just the filename from the output_file path (after {output_dir}/)
-        output_filename = Path(tool_config['output_file']).name
-        output_file = raw_outputs_dir / output_filename
-        if output_file.exists():
-            available_tools[tool_name] = tool_config.copy()
-            available_tools[tool_name]['output_file'] = str(output_file)
-    
-    print(f"Found {len(available_tools)} tools with results: {list(available_tools.keys())}")
-    
-    # Debug: show what we found
-    if len(available_tools) > 0:
-        print("Sample tool config:")
-        first_tool = list(available_tools.keys())[0]
-        print(f"  {first_tool}: {available_tools[first_tool]['output_file']}")
-    
-    # Determine spacer and contig file paths (use custom or defaults)
-    if spacer_file is None:
-        spacer_file_path = str(sim_path / "simulated_data" / "simulated_spacers.fa")
-    else:
-        spacer_file_path = spacer_file
-    
-    if contig_file is None:
-        contig_file_path = str(sim_path / "simulated_data" / "simulated_contigs.fa")
-    else:
-        contig_file_path = contig_file
-    
-    # Load spacer lengths for filtering - convert dict to DataFrame
-    spacer_lengths_dict = read_fasta(spacer_file_path)
-    spacer_lengths = pl.DataFrame({
-        'spacer_id': list(spacer_lengths_dict.keys()),
-        'length': [len(seq) for seq in spacer_lengths_dict.values()]
-    })
-    
-    print("Reading tool results...")
-    all_tool_results = read_results(
-        tools=available_tools,
-        max_mismatches=max_distance_threshold,
-        spacer_lendf=spacer_lengths,
-        ref_file=contig_file_path,
-        threads=8,
-        use_duckdb=True,
-    )
-    
-    print(f"Total alignments from all tools: {all_tool_results.height}")
-    print(f"unique alignments from all tools: {all_tool_results.select(['spacer_id', 'contig_id', 'start', 'end', 'strand', 'mismatches']).unique().height}")
-
-    # Get unique alignments (by coordinates)
-    unique_alignments = all_tool_results.select(
-        ["spacer_id", "contig_id", "start", "end", "strand", "mismatches"]
-    ).unique()
-    
-    print(f"Unique alignment regions: {unique_alignments.height}")
-    
-    # Add alignment index
-    unique_alignments = unique_alignments.with_row_index("alignment_idx")
-    
-    # Create region index by merging overlapping intervals
-    merged_regions = merge_overlapping_intervals(
-        unique_alignments, tolerance=coordinate_tolerance
-    )
-    merged_regions = merged_regions.with_row_index("region_idx")
-    
-    # Join back to get region_idx for each alignment
-    unique_alignments = unique_alignments.join(
-        merged_regions,
-        on=["spacer_id", "contig_id", "strand"],
-        how="left",
-        suffix="_region"
-    ).filter(
-        # Keep only if alignment falls within merged region
-        (pl.col("start") >= pl.col("start_region") - coordinate_tolerance) &
-        (pl.col("start") <= pl.col("end_region") + coordinate_tolerance)
-    ).select(
-        [c for c in unique_alignments.columns] + ["region_idx"]
-    )
-    
-    print(f"Merged into {merged_regions.height} unique regions (with {coordinate_tolerance}bp tolerance)")
-    
-    # Match to ground truth
-    if ground_truth.height > 0:
-        matches_with_tolerance = match_intervals_with_tolerance(
-            ground_truth=ground_truth,
-            tool_results=unique_alignments,
-            tolerance=coordinate_tolerance,
-        )
-        
-        # Join ground truth mismatches to matches
-        matches_with_gt_data = matches_with_tolerance.join(
-            ground_truth.select(["spacer_id", "contig_id", "start", "end", "strand", "mismatches"]),
-            left_on=["spacer_id", "contig_id", "start_gt", "end_gt", "strand"],
-            right_on=["spacer_id", "contig_id", "start", "end", "strand"],
-            how="left",
-            suffix="_gt_data"
-        ).rename({"mismatches": "mismatches_gt"})
-        
-        # Add classification to unique alignments
-        unique_alignments = unique_alignments.join(
-            matches_with_gt_data.select([
-                "spacer_id", "contig_id", "start", "end", "strand",
-                "classification", "start_gt", "end_gt", "mismatches_gt"
-            ]),
-            on=["spacer_id", "contig_id", "start", "end", "strand"],
-            how="left"
-        )
-        
-        # Fill in classifications for non-matches (will verify later)
-        unique_alignments = unique_alignments.with_columns(
-            pl.col("classification").fill_null("needs_verification")
-        )
-    else:
-        # No ground truth - all alignments need verification
-        unique_alignments = unique_alignments.with_columns([
-            pl.lit("needs_verification").alias("classification"),
-            pl.lit(None).cast(pl.Int64).alias("start_gt"),
-            pl.lit(None).cast(pl.Int64).alias("end_gt"),
-            pl.lit(None).cast(pl.Int64).alias("mismatches_gt"),
-        ])
-    
-    # Load sequences for all alignments
-    print("Loading sequences for distance calculations...")
-    unique_alignments = populate_pldf_withseqs_needletail(
-        unique_alignments,
-        seqfile=spacer_file_path,
-        idcol="spacer_id",
-        seqcol="spacer_seq",
-        trim_to_region=False,
-        reverse_by_strand_col=False,
-    )
-    
-    unique_alignments = populate_pldf_withseqs_needletail(
-        unique_alignments,
-        seqfile=contig_file_path,
-        idcol="contig_id",
-        seqcol="contig_seq",
-        trim_to_region=True,
-        reverse_by_strand_col=True,
-    )
-    
-    # Calculate all three distance metrics for each alignment
-    print("Calculating all distance metrics (hamming, edit, gap_affine)...")
-    unique_alignments = unique_alignments.with_columns(
-        pl.struct(
-            pl.col("spacer_seq"),
-            pl.col("contig_seq"),
-            pl.col("strand")
-        ).map_elements(
-            lambda x: calculate_all_distances_for_alignment(
-                spacer_seq=x["spacer_seq"],
-                contig_seq=x["contig_seq"],
-                strand=x["strand"],
-                gap_open=gap_open,
-                gap_extend=gap_extend,
-            ),
-            return_dtype=pl.Struct({
-                'distance_hamming': pl.Int64,
-                'distance_edit': pl.Int64,
-                'distance_gap_affine': pl.Int64,
-            })
-        ).alias("distances")
-    ).unnest("distances")
-    
-    # Update classification based on all three metrics
-    # Only mark as invalid if ALL three metrics exceed threshold
-    unique_alignments = unique_alignments.with_columns(
-        pl.when(pl.col("classification") == "needs_verification")
-        .then(
-            pl.when(
-                (pl.col("distance_hamming") > max_distance_threshold) &
-                (pl.col("distance_edit") > max_distance_threshold) &
-                (pl.col("distance_gap_affine") > max_distance_threshold)
-            )
-            .then(pl.lit("invalid_alignment"))
-            .otherwise(pl.lit("positive_not_in_plan"))
-        )
-        .otherwise(pl.col("classification"))
-        .alias("classification")
-    )
-    
-    # Add planned_mismatches column (from GT if available, else recalculated hamming)
-    unique_alignments = unique_alignments.with_columns(
-        pl.when(pl.col("mismatches_gt").is_not_null())
-        .then(pl.col("mismatches_gt"))
-        .otherwise(pl.col("distance_hamming"))
-        .alias("planned_mismatches")
-    )
-    
-    # Collect which tools reported each alignment
-    tool_assignments = all_tool_results.group_by(
-        ["spacer_id", "contig_id", "start", "end", "strand"]
-    ).agg(
-        pl.col("tool").unique().alias("tools")
-    )
-    
-    # Join tools list
-    unique_alignments = unique_alignments.join(
-        tool_assignments,
-        on=["spacer_id", "contig_id", "start", "end", "strand"],
-        how="left"
-    )
-    
-    # Select final columns in desired order
-    final_columns = [
-        "alignment_idx",
-        "region_idx",
-        "classification",
-        "tools",
-        "spacer_id",
-        "contig_id",
-        "start",
-        "end",
-        "strand",
-        "distance_hamming",
-        "distance_edit",
-        "distance_gap_affine",
-        "planned_mismatches",
-        "start_gt",
-        "end_gt",
-        "spacer_seq",
-        "contig_seq",
-    ]
-    
-    result = unique_alignments.select(final_columns)
-    
-    print("Classification summary:")
-    print(result['classification'].value_counts(sort=True))
-    
-    return result

@@ -621,6 +621,18 @@ def execute_tools(input_dir, skip_tools, only_tools, debug):
     default=None,
     help="Output file for combined tools results (default: <output_dir>/tools_results.tsv)",
 )
+@click.option(
+    "--multi-metric",
+    is_flag=True,
+    default=False,
+    help="Calculate all three distance metrics (hamming, edit, gap_affine) for each alignment and save full results.",
+)
+@click.option(
+    "--multi-metric-output",
+    type=click.Path(),
+    default=None,
+    help="Output file for multi-metric results (default: <output_dir>/multi_metric_results.parquet). Only used with --multi-metric.",
+)
 def full_run(
     output_dir,
     num_contigs,
@@ -643,6 +655,8 @@ def full_run(
     gap_extend_penalty,
     verbose,
     tools_results_out_file,
+    multi_metric,
+    multi_metric_output,
 ):
     """
     Run the complete benchmarking pipeline.
@@ -719,6 +733,8 @@ def full_run(
             gap_extend_penalty=gap_extend_penalty,
             verbose=verbose,
             tools_results_out_file=tools_results_out_file,
+            multi_metric=multi_metric,
+            multimetric_output=multi_metric_output,
         )
         click.echo(click.style("✓ Step 4/4: Results comparison completed", fg="green"))
 
@@ -797,9 +813,22 @@ def full_run(
 )
 @click.option(
     "--distance",
-    type=click.Choice(["hamming", "edit"]),
+    type=click.Choice(["hamming", "edit", "gap_affine"]),
     default="hamming",
-    help="Distance metric for validation: hamming (substitutions only) or edit (substitutions + indels). Default: hamming",
+    help="Distance metric for validation: hamming (substitutions only), edit (substitutions + indels), or gap_affine. Default: hamming. When --multi-metric is used, this specifies the primary metric for classification.",
+)
+@click.option(
+    "--multi-metric",
+    is_flag=True,
+    default=False,
+    help="Calculate all three distance metrics (hamming, edit, gap_affine) for each alignment and save full results. " 
+         "Results saved as parquet file with all metrics instead of single-metric TSV.",
+)
+@click.option(
+    "--multi-metric-output",
+    type=click.Path(),
+    default=None,
+    help="Output file for multi-metric results (default: <input_dir>/multi_metric_results.parquet). Only used with --multi-metric.",
 )
 @click.option(
     "--gap-open-penalty",
@@ -839,6 +868,13 @@ def full_run(
     default=None,
     help="Output file for combined tools results (default: <input_dir>/tools_results.tsv)",
 )
+@click.option(
+    "--ground-truth-file",
+    type=click.Path(exists=True),
+    required=False,
+    default=None,
+    help="Path to ground truth file (optional, if not in standard location)",
+)
 def compare_results(
     input_dir,
     max_mismatches,
@@ -848,6 +884,8 @@ def compare_results(
     skip_tools,
     only_tools,
     distance,
+    multi_metric,
+    multi_metric_output,
     gap_open_penalty,
     gap_extend_penalty,
     verbose,
@@ -855,6 +893,7 @@ def compare_results(
     contigs,
     spacers,
     tools_results_out_file,
+    ground_truth_file=None,
 
 ):
     """
@@ -863,6 +902,12 @@ def compare_results(
     This command analyzes the output from alignment tools, compares them
     against ground truth data, and generates performance metrics including
     precision, recall, and F1 scores.
+    
+    \b
+    Multi-Metric Mode (--multi-metric):
+      When enabled, calculates all three distance metrics (hamming, edit, gap_affine) 
+      for each alignment. This allows you to analyze how different metrics affect 
+      spurious match rates and tool performance. Results are saved as parquet for 
 
     \b
     Metrics Calculated: (either counts or %age)
@@ -886,6 +931,7 @@ def compare_results(
     \b
     Example:
       spacer_bencher compare-results -i tests/validation -mm 3 -o results.tsv
+      spacer_bencher compare-results -i tests/validation -mm 3 --multi-metric --distance hamming
     """
     from bench.commands.compare_results import run_compare_results
 
@@ -894,7 +940,9 @@ def compare_results(
         setup_logging(verbose=verbose, logfile=logfile)
 
     logger.info(f"Comparing tool results in {input_dir}")
-
+    if multi_metric:
+        logger.info("Multi-metric mode enabled: calculating performance for both hamming and edit distance")
+    
     try:
         run_compare_results(
             input_dir=input_dir,
@@ -911,6 +959,10 @@ def compare_results(
             logfile=logfile,
             skip_hyperfine=skip_hyperfine,
             tools_results_out_file=tools_results_out_file,
+            coordinate_tolerance=5,
+            multimetric_output=multi_metric_output,
+            ground_truth_file=ground_truth_file,
+            multi_metric=multi_metric,
         )
     except Exception as e:
         logger.exception(f"Results comparison failed: {e}")
