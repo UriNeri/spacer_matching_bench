@@ -110,6 +110,7 @@ build-all = { depends-on = ["build-rust", "build-python"] }
 render = "bash ./draft/build_docs.sh"
 
 [tool.ruff]
+extend-exclude = ["*.ipynb"]
 lint.ignore = [
     "E402", # Module level import not at top of file
     "F403", # import * / *` used; unable to detect undefined names
@@ -117,3 +118,8 @@ lint.ignore = [
     "F401", #imported but unused
     "F541", # "f-string without any placeholders"
 ]
+
+lint.per-file-ignores."*.ipynb" = [
+    "F841", # local variable assigned but never used
+]
+

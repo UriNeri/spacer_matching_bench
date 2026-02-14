@@ -4058,7 +4058,7 @@ packages:
 - pypi: ./
   name: spacer-matching-bench
   version: 0.1.18
-  sha256: 8b7242fef705da29567a8b61611d906cca05d6822b3af1b69382d2a157e83e99
+  sha256: f7a1a520aff74396a7a479586884bbe2d44793e5f2b4daa968f56a51b926b5a0
   requires_dist:
   - altair>=5.5.0,<6
   - charset-normalizer>=3.4.2,<4
