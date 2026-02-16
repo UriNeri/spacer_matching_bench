@@ -1,0 +1,10 @@
+file                                                                      , n_seqs, median_length, avg_length           , sum_length, min_length, max_length, gc_frac_mean       , type   , name
+results/simulated/ns_100000_nc_10000/simulated_data/simulated_spacers.fa  , 100000,          32.0,    32.01222          ,    3201222,         25,         40, 0.49019877734321576, spacers, ns_100000_nc_10000
+results/simulated/ns_100000_nc_10000/simulated_data/simulated_contigs.fa  ,  10000,       80582.5, 80283.2723           ,  802832723,      10067,     149921, 0.49002908754253033, contigs, ns_100000_nc_10000
+results/simulated/ns_100000_nc_20000/simulated_data/simulated_spacers.fa  , 100000,          32.0,    32.00186          ,    3200186,         25,         40, 0.48982337999371056, spacers, ns_100000_nc_20000
+results/simulated/ns_100000_nc_20000/simulated_data/simulated_contigs.fa  ,  20000,       80348.5, 80207.19875          , 1604143975,      10014,     149390, 0.49001112182685447, contigs, ns_100000_nc_20000
+results/simulated/ns_50000_nc_5000/simulated_data/simulated_spacers.fa    ,  50000,          32.0,    31.99304          ,    1599652,         25,         40, 0.49082402409176445, spacers, ns_50000_nc_5000
+results/simulated/ns_50000_nc_5000/simulated_data/simulated_contigs.fa    ,   5000,       80264.5, 80521.314            ,  402606570,      11391,     149534, 0.4899928220115341 , contigs, ns_50000_nc_5000
+results/simulated/ns_75000_nc_5000/simulated_data/simulated_spacers.fa    ,  75000,          32.0,    32.021226666666664,    2401592,         25,         40, 0.48962141329513514, spacers, ns_75000_nc_5000
+results/simulated/ns_75000_nc_5000/simulated_data/simulated_contigs.fa    ,   5000,       80453.5, 80214.9624           ,  401074812,      10244,     149609, 0.48998426650653565, contigs, ns_75000_nc_5000
+results/simulated/ns_3826979_nc_421431/simulated_data/simulated_contigs.fa, 421431,       50929.0, 50947.797445         , 4291112041,       2006,     100000, 0.459993           , contigs, ns_3826979_nc_421431

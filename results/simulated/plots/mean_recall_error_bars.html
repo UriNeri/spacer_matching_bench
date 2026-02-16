@@ -5,7 +5,7 @@
        <script type="text/javascript" data-lets-plot-script="library" src="https://cdn.jsdelivr.net/gh/JetBrains/lets-plot@v4.8.2/js-package/distr/lets-plot.min.js"></script>
    </head>
    <body>
-          <div id="lCjuXv" ></div>
+          <div id="10nzBJ" ></div>
    <script type="text/javascript" data-lets-plot-script="plot">
    
    (function() {
@@ -30,17 +30,17 @@
        };
    }
    
-   const containerDiv = document.getElementById("lCjuXv");
+   const containerDiv = document.getElementById("10nzBJ");
    let fig = null;
    
    function renderPlot() {
        if (fig === null) {
            const plotSpec = {
 "data":{
-"tool":["indelfree_bruteforce","bowtie1","minimap2","mummer4","indelfree_indexed","sassy","mmseqs2","blastn","bowtie2","x_mapper","strobealign","all_tools_combined"],
-"mean_recall":[1.0,1.0,2.592106436164592E-4,0.509957775677998,1.0,0.9808388907716926,0.6920702282517688,0.7821051967973404,0.9693467089586084,0.38787777692216113,0.47405591444284806,1.0],
-"std_max":[1.0,1.0,3.0234728302561825E-4,0.5169139277919932,1.0,0.9865427947371874,0.7646594639683548,0.7969126051772167,0.9865451149582052,0.5526365525626085,0.6413350648029579,1.0],
-"std_min":[1.0,1.0,2.160740042073001E-4,0.5030016235640029,1.0,0.9751349868061978,0.6194809925351827,0.767297788417464,0.9521483029590116,0.22311900128171375,0.30677676408273824,1.0]
+"tool":["sassy","indelfree_indexed","mummer4","blastn","x_mapper","bowtie2","mmseqs2","indelfree_bruteforce","minimap2","bowtie1","strobealign"],
+"mean_recall":[0.9808388907716924,1.0,0.509957775677998,0.7821051967973401,0.38787777692216124,0.9693467089586084,0.6920702282517688,1.0,2.592106436164592E-4,1.0,0.474055914442848],
+"std_max":[0.9865427947371872,1.0,0.5169139277919932,0.7969126051772165,0.5526365525626087,0.9865451149582052,0.7646594639683549,1.0,3.0234728302561825E-4,1.0,0.6413350648029578],
+"std_min":[0.9751349868061976,1.0,0.5030016235640029,0.7672977884174638,0.2231190012817138,0.9521483029590116,0.6194809925351826,1.0,2.160740042073001E-4,1.0,0.30677676408273824]
 },
 "mapping":{
 "x":"tool",
@@ -126,7 +126,7 @@
 }
 }],
 "metainfo_list":[],
-"spec_id":"16"
+"spec_id":"82"
 };
            fig = LetsPlot.buildPlotFromProcessedSpecs(plotSpec, containerDiv, sizing);
        } else {
