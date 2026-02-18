@@ -3,66 +3,77 @@
         "color": "#7C3018",
         "marker": "+",
         "marker_word": "plus",
-        "letsplot_shape_num": 3
+        "letsplot_shape_num": 3,
+        "matplotlib_marker": "P"
     },
     "bowtie1": {
         "color": "#0275DC",
         "marker": "s",
         "marker_word": "square",
-        "letsplot_shape_num": 15
+        "letsplot_shape_num": 15,
+        "matplotlib_marker": "s"
     },
     "bowtie2": {
         "color": "#70FC28",
         "marker": "⊞",
         "marker_word": "square-plus",
-        "letsplot_shape_num": 17
+        "letsplot_shape_num": 17,
+        "matplotlib_marker": "$\\boxplus$"
     },
     "indelfree_bruteforce": {
         "color": "#116B28",
         "marker": "○",
         "marker_word": "circle",
-        "letsplot_shape_num": 1
+        "letsplot_shape_num": 1,
+        "matplotlib_marker": "o"
     },
     "indelfree_indexed": {
         "color": "#305566",
         "marker": "⊕",
         "marker_word": "circle_plus",
-        "letsplot_shape_num": 13
+        "letsplot_shape_num": 13,
+        "matplotlib_marker": "$\\oplus$"
     },
     "minimap2": {
-        "color": "#172CBB",
-        "marker": "*",
-        "marker_word": "star",
-        "letsplot_shape_num": 8
+        "color": "#E1FC16",
+        "marker": "D",
+        "marker_word": "diamond",
+        "letsplot_shape_num": 18,
+        "matplotlib_marker": "D"
     },
     "mmseqs2": {
         "color": "#8B7937",
         "marker": "X",
         "marker_word": "cross",
-        "letsplot_shape_num": 4
+        "letsplot_shape_num": 4,
+        "matplotlib_marker": "X"
     },
     "mummer4": {
         "color": "#F97762",
         "marker": "v",
         "marker_word": "triangle-down",
-        "letsplot_shape_num": 6
+        "letsplot_shape_num": 6,
+        "matplotlib_marker": "v"
     },
     "sassy": {
         "color": "#EBA60A",
-        "marker": "D",
-        "marker_word": "diamond",
-        "letsplot_shape_num": 18
+        "marker": "X",
+        "marker_word": "cross",
+        "letsplot_shape_num": 4,
+        "matplotlib_marker": "X"
     },
     "strobealign": {
         "color": "#ED3415",
         "marker": "^",
         "marker_word": "triangle-up",
-        "letsplot_shape_num": 17
+        "letsplot_shape_num": 17,
+        "matplotlib_marker": "^"
     },
     "x_mapper": {
-        "color": "#E1FC16",
+        "color": "#172CBB",
         "marker": "^",
         "marker_word": "triangle-up",
-        "letsplot_shape_num": 24
+        "letsplot_shape_num": 24,
+        "matplotlib_marker": "$^\\triangle$"
     }
 }

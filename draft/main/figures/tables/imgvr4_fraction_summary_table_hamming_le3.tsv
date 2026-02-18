@@ -1,0 +1,8 @@
+fraction	fraction_value	n_contigs	total_bp	size_mb	n_tools_completed	total_unique_regions	total_alignments_raw	completed_tools	timed_out_tools	missing_tools
+fraction_0.0005	0.0005	279	7036591	7.053331	11	0	0	blastn, bowtie1, bowtie2, indelfree_bruteforce, indelfree_indexed, minimap2, mmseqs2, mummer4, sassy, strobealign, x_mapper	None	None
+fraction_0.001	0.001	421	9745671	9.770854	11	0	0	blastn, bowtie1, bowtie2, indelfree_bruteforce, indelfree_indexed, minimap2, mmseqs2, mummer4, sassy, strobealign, x_mapper	None	None
+fraction_0.005	0.005	2107	57059412	57.186897	10	0	0	blastn, bowtie1, bowtie2, indelfree_indexed, minimap2, mmseqs2, mummer4, sassy, strobealign, x_mapper	indelfree_bruteforce	None
+fraction_0.01	0.01	4214	123668270	123.924622	10	0	0	blastn, bowtie1, bowtie2, indelfree_indexed, minimap2, mmseqs2, mummer4, sassy, strobealign, x_mapper	indelfree_bruteforce	None
+fraction_0.05	0.05	21071	715073062	716.359075	9	0	0	blastn, bowtie1, bowtie2, indelfree_indexed, minimap2, mmseqs2, mummer4, strobealign, x_mapper	None	indelfree_bruteforce, sassy
+fraction_0.1	0.1	42143	1504536616	1507.113929	9	0	0	blastn, bowtie1, bowtie2, indelfree_indexed, minimap2, mmseqs2, mummer4, strobealign, x_mapper	None	indelfree_bruteforce, sassy
+fraction_1	1.0	421431	18870643188	18896.546044	8	0	0	blastn, bowtie1, bowtie2, minimap2, mmseqs2, mummer4, strobealign, x_mapper	indelfree_indexed	indelfree_bruteforce, sassy
