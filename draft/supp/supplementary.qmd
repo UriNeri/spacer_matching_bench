@@ -108,28 +108,8 @@ Detailed statistics on the iPHoP spacer dataset before and after complexity filt
 -->
 
 ### Supplementary Table S4: Detailed Statistics for All Datasets {#tbl-supp-simulation-params}
-Sequence statistics for all datasets used in this study.
-| Dataset / Subset | N Seqs | Total Size (bp) | Length Range (bp) | Mean Length | GC % |
-|:---|---:|---:|:---|---:|---:|
-| Real Spacers (iPHoP) | 3,826,979 | 129,494,053 | 25-40 | 33.84 | 47.6% |
-| Real Data fraction 0.0005 | 279 | 7,036,591 | 1,060-233,373 | 25,220.76 | 48.0% |
-| Real Data fraction 0.001 | 421 | 9,745,671 | 1,700-246,318 | 23,148.86 | 48.0% |
-| Real Data fraction 0.005 | 2,107 | 57,059,412 | 1,060-618,736 | 27,080.88 | 47.2% |
-| Real Data fraction 0.01 | 4,214 | 123,668,270 | 1,060-482,156 | 29,347.00 | 47.3% |
-| Real Data fraction 0.05 | 21,071 | 715,073,062 | 1,060-505,259 | 33,936.36 | 47.4% |
-| Real Data fraction 0.1 | 42,143 | 1,504,536,616 | 1,060-596,785 | 35,700.75 | 47.5% |
-| Real Data fraction 1 | 421,431 | 1,690,774,004 | 1,060-711,471 | 44,777.54 | 47.5% |
-| ns_100000_nc_10000 (spacers) | 100,000 | 3,201,222 | 25-40 | 32.01 | 49.0% |
-| ns 100000 nc 10000 (contigs) | 10,000 | 802,832,723 | 10,067-149,921 | 80,283.27 | 49.0% |
-| ns 100000 nc 20000 (spacers) | 100,000 | 3,200,186 | 25-40 | 32.00 | 49.0% |
-| ns 100000 nc 20000 (contigs) | 20,000 | 1,604,143,975 | 10,014-149,390 | 80,207.20 | 49.0% |
-| ns 50000 nc 5000 (spacers) | 50,000 | 1,599,652 | 25-40 | 31.99 | 49.1% |
-| ns 50000 nc 5000 (contigs) | 5,000 | 402,606,570 | 11,391-149,534 | 80,521.31 | 49.0% |
-| ns 75000 nc 5000 (spacers) | 75,000 | 2,401,592 | 25-40 | 32.02 | 49.0% |
-| ns 75000 nc 5000 (contigs) | 5,000 | 401,074,812 | 10,244-149,609 | 80,214.96 | 49.0% |
-| ns 3826979 nc 421431 (contigs) | 421,431 | 4,291,112,041 | 2,006-100,000 | 50,947.80 | 46.0% |
-| ns 500 nc 5000 HIGH INSERTION RATE (spacers) | 500 | 16,007 | 25-39 | 32.01 | 48.9% |
-| ns 500 nc 5000 HIGH INSERTION RATE (contigs) | 5,000 | 400,779,688 | 11,241-149,479 | 80,155.94 | 49.0% |
+
+Sequence statistics for all datasets used in this study. \| Dataset / Subset \| N Seqs \| Total Size (bp) \| Length Range (bp) \| Mean Length \| GC % \| \|:---\|---:\|---:\|:---\|---:\|---:\| \| Real Spacers (iPHoP) \| 3,826,979 \| 129,494,053 \| 25-40 \| 33.84 \| 47.6% \| \| Real Data fraction 0.0005 \| 279 \| 7,036,591 \| 1,060-233,373 \| 25,220.76 \| 48.0% \| \| Real Data fraction 0.001 \| 421 \| 9,745,671 \| 1,700-246,318 \| 23,148.86 \| 48.0% \| \| Real Data fraction 0.005 \| 2,107 \| 57,059,412 \| 1,060-618,736 \| 27,080.88 \| 47.2% \| \| Real Data fraction 0.01 \| 4,214 \| 123,668,270 \| 1,060-482,156 \| 29,347.00 \| 47.3% \| \| Real Data fraction 0.05 \| 21,071 \| 715,073,062 \| 1,060-505,259 \| 33,936.36 \| 47.4% \| \| Real Data fraction 0.1 \| 42,143 \| 1,504,536,616 \| 1,060-596,785 \| 35,700.75 \| 47.5% \| \| Real Data fraction 1 \| 421,431 \| 1,690,774,004 \| 1,060-711,471 \| 44,777.54 \| 47.5% \| \| ns_100000_nc_10000 (spacers) \| 100,000 \| 3,201,222 \| 25-40 \| 32.01 \| 49.0% \| \| ns 100000 nc 10000 (contigs) \| 10,000 \| 802,832,723 \| 10,067-149,921 \| 80,283.27 \| 49.0% \| \| ns 100000 nc 20000 (spacers) \| 100,000 \| 3,200,186 \| 25-40 \| 32.00 \| 49.0% \| \| ns 100000 nc 20000 (contigs) \| 20,000 \| 1,604,143,975 \| 10,014-149,390 \| 80,207.20 \| 49.0% \| \| ns 50000 nc 5000 (spacers) \| 50,000 \| 1,599,652 \| 25-40 \| 31.99 \| 49.1% \| \| ns 50000 nc 5000 (contigs) \| 5,000 \| 402,606,570 \| 11,391-149,534 \| 80,521.31 \| 49.0% \| \| ns 75000 nc 5000 (spacers) \| 75,000 \| 2,401,592 \| 25-40 \| 32.02 \| 49.0% \| \| ns 75000 nc 5000 (contigs) \| 5,000 \| 401,074,812 \| 10,244-149,609 \| 80,214.96 \| 49.0% \| \| ns 3826979 nc 421431 (contigs) \| 421,431 \| 4,291,112,041 \| 2,006-100,000 \| 50,947.80 \| 46.0% \| \| ns 500 nc 5000 HIGH INSERTION RATE (spacers) \| 500 \| 16,007 \| 25-39 \| 32.01 \| 48.9% \| \| ns 500 nc 5000 HIGH INSERTION RATE (contigs) \| 5,000 \| 400,779,688 \| 11,241-149,479 \| 80,155.94 \| 49.0% \|
 
 ### Supplementary Table S5: Recall Values for Each Tool at Different Mismatch Thresholds {#tbl-supp-recall}
 
@@ -154,9 +134,9 @@ Detailed resource usage metrics for all completed tool runs on both real (IMG/VR
 
 Data files:
 
-- `resource_usage_real_data_completed_jobs.tsv` (real data, all fractions)
-- `resource_usage_simulated_completed_jobs.tsv` (all simulated datasets)
-- `resource_usage_real_data_failed_jobs.tsv` (timeout/failed jobs)
+-   `resource_usage_real_data_completed_jobs.tsv` (real data, all fractions)
+-   `resource_usage_simulated_completed_jobs.tsv` (all simulated datasets)
+-   `resource_usage_real_data_failed_jobs.tsv` (timeout/failed jobs)
 
 ## Supplementary Figures
 
@@ -269,13 +249,13 @@ Peak-memory scaling shown (A) Real IMG/VR4 subsampled datasets. (B) Simulated da
 
 Individual resource usage plots for real IMG/VR4 subsampled datasets. (A) Total CPU time vs total contig size. (B) Peak memory vs total contig size. (C) Peak memory vs total CPU time (marker size proportional to dataset size). All axes are log-scaled. See Supplementary Table S8 for exact values.
 
-<merge resource_usage_real_cpu_vs_size.svg, resource_usage_real_memory_vs_size.svg, and resource_usage_real_memory_vs_cputime.svg in three-panel layout, with labels A, B, C>
+\<merge resource_usage_real_cpu_vs_size.svg, resource_usage_real_memory_vs_size.svg, and resource_usage_real_memory_vs_cputime.svg in three-panel layout, with labels A, B, C\>
 
 ### Supplementary Figure S18: Simulated data resource usage detail {#fig-supp-resource-detail-sim}
 
 Individual resource usage plots for simulated datasets. (A) Total CPU time vs search space size (spacers x contigs). (B) Peak memory vs search space size. (C) Peak memory vs total CPU time (marker size proportional to search space). All axes are log-scaled. See Supplementary Table S8 for exact values.
 
-<merge resource_usage_sim_cpu_vs_searchspace.svg, resource_usage_sim_memory_vs_searchspace.svg, and resource_usage_sim_memory_vs_cputime.svg in three-panel layout, with labels A, B, C>
+\<merge resource_usage_sim_cpu_vs_searchspace.svg, resource_usage_sim_memory_vs_searchspace.svg, and resource_usage_sim_memory_vs_cputime.svg in three-panel layout, with labels A, B, C\>
 
 ## Supplementary Notes
 
@@ -284,7 +264,7 @@ Individual resource usage plots for simulated datasets. (A) Total CPU time vs se
 To illustrate the necessity for coordinate tolerance matching, consider the following case from one of the synthetic dataset (ns_100000_nc_10000) where three different tools detected the same ground truth region, but reported it with slightly different coordinates:
 
 | Source | Spacer ID | Contig ID | Query Start | Query End | Target Start | Target End | Strand | Mismatches/Cost (tool-reported) | Notes |
-|:-------|:-------|:-------|-------:|-------:|-------:|-------:|:-------|-------:|:-------|
+|:-------|:-------|:-------|-------:|-------:|-------:|-------:|:------|:---------|:-------|
 | Ground Truth | 1c47e31b_spacer_10034 | 1c47e31b_contig_1828 | \- | \- | 5001 | 5036 | reverse | 1 |  |
 | BLASTn | 1c47e31b_spacer_10034 | 1c47e31b_contig_1828 | 1 | 34 | 5036 | 5003 | reverse | 0 |  |
 | MMseqs2 | 1c47e31b_spacer_10034 | 1c47e31b_contig_1828 | 1 | 35 | 5036 | 5002 | reverse | 1 |  |
@@ -307,13 +287,14 @@ Referenced in main text introduction regarding phage mutation patterns
 -->
 
 ### Supplementary Note 3: Non-planned Match Rate Analysis {#note-supp-nonplanned}
+
 #### Hamming vs edit distance: per-simulation results
 
 For each of the four fully synthetic simulations (ns_50000_nc_5000, ns_75000_nc_5000, ns_100000_nc_10000, ns_100000_nc_20000), we compared non-planned match counts under hamming distance (substitutions only) and edit distance (allowing indels) at thresholds 0 through 5. Across all simulations, edit distance consistently yielded higher non-planned match counts than hamming distance at the same numeric threshold, with the discrepancy increasing at higher thresholds.
 
 ##### Supplementary Figure S11: Per-simulation non-planned match counts (Hamming vs Edit) {#fig-supp-per-sim-background}
 
-Each panel below shows one simulation. Grouped bars compare hamming (blue) and edit (orange) distance non-planned match counts at each threshold (0--5, log scale). Annotations above each bar indicate exact counts. 
+Each panel below shows one simulation. Grouped bars compare hamming (blue) and edit (orange) distance non-planned match counts at each threshold (0--5, log scale). Annotations above each bar indicate exact counts.
 
 ###### A. ns_50000_nc_5000: 50,000 spacers (1.6 Mbp), 5,000 contigs (403 Mbp)
 
@@ -352,7 +333,7 @@ To account for differences in dataset size across simulations, we normalized non
 The table below summarizes the normalized non-planned match rates at distance threshold ≤3 for each simulation, extracted from the full dataset in `search_space_normalized_metrics.csv`. The threshold ≤3 subset is also available as `search_space_normalized_metrics_threshold3.csv`.
 
 | Simulation | Metric | n_spacers | contig_bp (Gbp) | Non-planned | Per spacer per Gbp | Per Gbp$^2$ |
-|:-----------|:-------|----------:|----------------:|------------:|-------------------:|------------:|
+|:----------|:----------|----------:|----------:|----------:|----------:|----------:|
 | ns_50000_nc_5000 | Hamming | 50,000 | 0.40 | 26 | 0.0013 | 40,371 |
 | ns_50000_nc_5000 | Edit | 50,000 | 0.40 | 173 | 0.0086 | 268,621 |
 | ns_75000_nc_5000 | Hamming | 75,000 | 0.40 | 39 | 0.0013 | 40,489 |
@@ -372,12 +353,12 @@ The table below summarizes the normalized non-planned match rates at distance th
 
 | Hamming threshold | Non-planned matches | Per spacer per Gbp | Per Gbp$^2$ |
 |------------------:|--------------------:|-------------------:|------------:|
-| 0 | 1 | 6.1 × 10$^{-8}$ | 1.80 |
-| ≤1 | 49 | 3.0 × 10$^{-6}$ | 88.2 |
-| ≤2 | 2,354 | 1.4 × 10$^{-4}$ | 4,236 |
-| ≤3 | 56,273 | 3.4 × 10$^{-3}$ | 101,270 |
-| ≤4 | 72,132 | 4.4 × 10$^{-3}$ | 129,810 |
-| ≤5 | 113,314 | 6.9 × 10$^{-3}$ | 203,922 |
+|                 0 |                   1 |    6.1 × 10$^{-8}$ |        1.80 |
+|                ≤1 |                  49 |    3.0 × 10$^{-6}$ |        88.2 |
+|                ≤2 |               2,354 |    1.4 × 10$^{-4}$ |       4,236 |
+|                ≤3 |              56,273 |    3.4 × 10$^{-3}$ |     101,270 |
+|                ≤4 |              72,132 |    4.4 × 10$^{-3}$ |     129,810 |
+|                ≤5 |             113,314 |    6.9 × 10$^{-3}$ |     203,922 |
 
 : Non-planned matches in the semi-synthetic dataset (3,826,979 real spacers × 421,431 simulated contigs, 0 planned spacer "injections") at cumulative hamming distance thresholds. The per Gbp$^2$ rate at hamming ≤3 (101,270) is higher than observed in the fully synthetic datasets (approximately 40,000), which is expected given differences in sequence composition between real and simulated spacers (e.g., non-uniform k-mer distribution, biological sequence features). Note: though to the sValues at thresholds ≤4 and ≤5 are **lower bounds** as only heuristic tools were used. {#tbl-supp-semisynthetic-rates}
 
@@ -386,7 +367,7 @@ The table below summarizes the normalized non-planned match rates at distance th
 The table below compares normalized non-planned match rates between the semi-synthetic dataset and the mean across fully synthetic simulations at hamming distance ≤3.
 
 | Metric | Simulated (mean ± SD) | Semi-synthetic | Ratio |
-|:-------|----------------------:|---------------:|------:|
+|:---|---:|---:|---:|
 | Absolute count | 91.3 ± 64.5 | 56,273 | n/a (different search space) |
 | Per spacer per Gbp | 0.0013 ± 0.0001 | 0.0034 | 2.6× |
 | Per Gbp$^2$ | 40,314 ± 2,791 | 101,270 | 2.5× |
@@ -397,9 +378,9 @@ The table below compares normalized non-planned match rates between the semi-syn
 
 These non-planned match rate estimates should be interpreted qualitatively rather than as exact predictive values, for several reasons:
 
-1. **Sequence composition bias**: Real spacer sequences have compositional features (conserved motifs, non-random k-mer structure, locus-specific GC variation) not fully captured by simulated sequences. The approximately 2.5-fold difference between semi-synthetic and fully synthetic rates illustrates this effect.
-2. **Simulated contig limitations**: While contig GC content and length distributions were matched to IMG/VR4, real viral genomes have additional structural features (coding density, gene arrangement, horizontal transfer footprints) that may influence match frequencies.
-3. **Heuristic tool aggregation**: For the semi-synthetic dataset, only heuristic tools were computationally feasible. The reported counts are therefore lower bounds on the true non-planned match frequency.
+1.  **Sequence composition bias**: Real spacer sequences have compositional features (conserved motifs, non-random k-mer structure, locus-specific GC variation) not fully captured by simulated sequences. The approximately 2.5-fold difference between semi-synthetic and fully synthetic rates illustrates this effect.
+2.  **Simulated contig limitations**: While contig GC content and length distributions were matched to IMG/VR4, real viral genomes have additional structural features (coding density, gene arrangement, horizontal transfer footprints) that may influence match frequencies.
+3.  **Heuristic tool aggregation**: For the semi-synthetic dataset, only heuristic tools were computationally feasible. The reported counts are therefore lower bounds on the true non-planned match frequency.
 
 These estimates are most informative for relative comparisons: hamming vs edit distance, threshold effects, and scaling with search space size. For absolute prediction of non-planned match counts in a given analysis, the rates should be treated as order-of-magnitude guides rather than precise values.
 
