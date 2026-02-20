@@ -70,7 +70,7 @@ In Quarto, cross-references between files require using the `@` symbol with labe
 
 ### Supplementary Table S1: Tool Configuration Details {#tbl-supp-tool-config}
 
-For full version and build information see the git repo at [github.com/UriNeri/spacer_matching_bench](https://github.com/UriNeri/spacer_matching_bench).
+For full version and build information see the github repository at [github.com/UriNeri/spacer_matching_bench](https://github.com/UriNeri/spacer_matching_bench).
 
 **Note on tool versions:** Following reviewer suggestions, we added three tools to the benchmark compared to the initial version: Sassy (exhaustive edit distance search), X-mapper (dynamic gapped x-mer approach), and indelfree.sh (BBTools suite, both bruteforce exhaustive mode and indexed heuristic mode). We also updated versions of existing tools where newer releases were available.
 
@@ -78,38 +78,107 @@ For full version and build information see the git repo at [github.com/UriNeri/s
 
 | Tool | Version | Command |
 |:-----|:--------|:--------|
+| blastn | BLAST+ 2.16.0 | `makeblastdb -in {contigs_file} -dbtype nucl -out {output_dir}/contigs_blastdb && blastn -query {spacers_file} -db {output_dir}/contigs_blastdb -max_target_seqs 1000000 -out {output_dir}/blastn_output.tsv -perc_identity 84 -qcov_hsp_perc 80 -dust no -ungapped -num_threads {threads} -task blastn-short -outfmt "6 qaccver saccver nident length mismatch qlen gapopen qstart qend sstart send evalue bitscore"` |
+| bowtie1 | 1.3.1 | `bowtie-build --threads {threads} {contigs_file} {output_dir}/bt1_contigs_index && bowtie --threads {threads} --seedmms 3 --no-unal -f --all -v {max_mismatches} -x {output_dir}/bt1_contigs_index {spacers_file} -S {output_dir}/bowtie1_output.sam` |
+| bowtie2 | 2.5.4 | `bowtie2-build --large-index --threads {threads} {contigs_file} {output_dir}/contigs_bt2indx && bowtie2 -N 1 -L 15 --all --xeq --very-sensitive -x {output_dir}/contigs_bt2indx -f {spacers_file} -S {output_dir}/bowtie2_output.sam --threads {threads}` |
+| indelfree_bruteforce | BBTools 39.62 | `indelfree.sh subs={max_mismatches} in={spacers_file} ref={contigs_file} out={output_dir}/indelfree_bruteforce_output.sam index=f threads={threads} simd` |
+| indelfree_indexed | BBTools 39.62 | `indelfree.sh subs={max_mismatches} in={spacers_file} ref={contigs_file} out={output_dir}/indelfree_indexed_output.sam index=t threads={threads} k=8` |
+| mmseqs2 | 18.8cc5c | `mkdir -p {output_dir}/tmp_spacers {output_dir}/tmp_contigs {output_dir}/tmp_mmseqs {output_dir}/tmp_mmseqs_outputs && mmseqs createdb {spacers_file} {output_dir}/tmp_spacers/mmdb && mmseqs createdb {contigs_file} {output_dir}/tmp_contigs/mmdb && mmseqs search {output_dir}/tmp_spacers/mmdb {output_dir}/tmp_contigs/mmdb {output_dir}/tmp_mmseqs_outputs/mmseqs_output {output_dir}/tmp_mmseqs --min-seq-id 0.85 --min-aln-len 17 --threads {threads} -a --search-type 3 -v 1 && mmseqs convertalis {output_dir}/tmp_spacers/mmdb {output_dir}/tmp_contigs/mmdb {output_dir}/tmp_mmseqs_outputs/mmseqs_output {output_dir}/mmseqs_output.tsv --format-mode 0 --search-type 4 --format-output query,target,nident,alnlen,mismatch,qlen,gapopen,qstart,qend,tstart,tend,evalue,bits` |
+| mummer4 | 4.0.0rc1 | `nucmer --maxmatch --nosimplify --batch=10000000 --threads {threads} --sam-long={output_dir}/mummer4_output.sam -c 1 {contigs_file} {spacers_file}` |
+| sassy | 0.1.4 | `sassy search --alphabet iupac --pattern-fasta {spacers_file} -k {max_mismatches} --output {output_dir}/sassy.tsv --threads {threads} {contigs_file}` |
+| strobealign | 0.16.1 | `strobealign --eqx -k 15 -N 10000 -M 200 -t {threads} {contigs_file} {spacers_file} -o {output_dir}/strobealign_output.sam` |
+| x_mapper | 1.2.0 | `x-mapper --reference {contigs_file} --queries {spacers_file} --out-sam {output_dir}/x_mapper_output.sam --num-threads {threads} --max-penalty 0.2 --max-penalty-span 2 --snp-penalty 1 --new-indel-penalty 1.5 --extend-indel-penalty 0.5 -Xmx28G` |
+| minimap2 | 2.30-r1287 | `minimap2 -k 8 -w 6 -P --eqx -m 10 --sam-hit-only -t {threads} -a {contigs_file} {spacers_file} -o {output_dir}/minimap2_output.sam` |
 
 ### Supplementary Table S2: IMG/VR4 Contig Dataset Statistics and Filtering Steps {#tbl-supp-contig-stats}
 
 Summary of IMG/VR4 v1.1 high-confidence viral contigs after taxonomic filtering and length cutoff.
 
-<PLACE_HOLDER> <!-- Should include:
-- Starting dataset: 5,457,198 high-confidence contigs from IMG/VR4 v1.1
-- Taxonomic filtering steps (removal of eukaryotic virus families, orders, classes)
-- Length filtering: contigs ≤1000 bp removed
-- Final dataset: 5,115,894 prokaryotic viral contigs
-- Size statistics: total ~79 Gbp, range 1,001-2,473,870 bp, median 7,664 bp, GC% 44.45%
-- HQ subset selection: 421,431 contigs (~18.9 Gbp) via stratified sampling by taxonomic class
--->
+| Step | Operation | Output contigs | Notes |
+|:-----------------|:-----------------|:-----------------|:-----------------|
+| 1 | Load IMG/VR4 v1.1 high-confidence set | 5,457,198 | Initial high-confidence contigs |
+| 2 | Remove eukaryotic virus taxa | 5,115,894 | Filtered by ICTV class/order/family lists in `fetch_real_data.ipynb` |
+| 3 | Remove short contigs | 5,115,894 | Length filter: keep contigs \>1000 bp |
+| 4 | Export filtered reference | 5,115,894 | `filtered_contigs.fasta` and `filtered_contig_stats.parquet` |
+| 5 | Build HQ benchmark subset | 421,431 | Stratified taxonomic subsampling by class for fraction_1 analyses |
+
+The filtered prokaryotic viral set used for sampling contains approximately 79 Gbp total sequence length (GC approximately 44.45%). The fraction_1 subset used for full real-data benchmarking contains 421,431 contigs (approximately 18.9 Gbp).
 
 ### Supplementary Table S3: CRISPR Spacer Dataset Composition and Statistics {#tbl-supp-spacer-stats}
 
 Detailed statistics on the iPHoP spacer dataset before and after complexity filtering.
 
-<PLACE_HOLDER> <!-- Should include:
-- Raw iPHoP dataset: 3,882,812 unique spacers
-- Length distribution: range 25-40 bp, median 34 bp (or 25-100 bp based on table in main text)
-- GC content: 47.6% (raw), 46.73% (filtered)
-- Complexity filtering criteria (entropy ≤1, N fraction >0, homopolymer ≥95%, non-unique 6-mers ≥4)
-- Filtered spacers removed: 55,833 (~1.4%)
-- Final dataset: 3,826,979 spacers
-- Total length: 132 Mbp
-- See also Figure S7 for distributions
--->
+| Stage | N spacers | Length range (bp) | Median length (bp) | GC (%) | Notes |
+|:-----------|:-----------|:-----------|:-----------|:-----------|:-----------|
+| Raw iPHoP spacer set | 3,882,812 | 25-40 | 34 | 47.6 | Input dataset used in `spacer_inspection.ipynb` |
+| Removed by complexity/ambiguity filtering | 55,833 | — | — | — | Removed if `n_frac > 0`, homopolymer-like base fraction \>= 0.95 (A/C/G/T or GC), entropy \<= 1, or repeated 6-mer count \>= 4 |
+| Final filtered spacer set | 3,826,979 | 25-40 | 34 | 46.73 | Exported as `iphop_filtered_spacers.fna`; used in real-data runs |
+
+Total filtered spacer sequence length is approximately 132 Mbp. Distribution summaries are shown in Supplementary Figures S6 and S7.
 
 ### Supplementary Table S4: Detailed Statistics for All Datasets {#tbl-supp-simulation-params}
 
-Sequence statistics for all datasets used in this study. \| Dataset / Subset \| N Seqs \| Total Size (bp) \| Length Range (bp) \| Mean Length \| GC % \| \|:---\|---:\|---:\|:---\|---:\|---:\| \| Real Spacers (iPHoP) \| 3,826,979 \| 129,494,053 \| 25-40 \| 33.84 \| 47.6% \| \| Real Data fraction 0.0005 \| 279 \| 7,036,591 \| 1,060-233,373 \| 25,220.76 \| 48.0% \| \| Real Data fraction 0.001 \| 421 \| 9,745,671 \| 1,700-246,318 \| 23,148.86 \| 48.0% \| \| Real Data fraction 0.005 \| 2,107 \| 57,059,412 \| 1,060-618,736 \| 27,080.88 \| 47.2% \| \| Real Data fraction 0.01 \| 4,214 \| 123,668,270 \| 1,060-482,156 \| 29,347.00 \| 47.3% \| \| Real Data fraction 0.05 \| 21,071 \| 715,073,062 \| 1,060-505,259 \| 33,936.36 \| 47.4% \| \| Real Data fraction 0.1 \| 42,143 \| 1,504,536,616 \| 1,060-596,785 \| 35,700.75 \| 47.5% \| \| Real Data fraction 1 \| 421,431 \| 1,690,774,004 \| 1,060-711,471 \| 44,777.54 \| 47.5% \| \| ns_100000_nc_10000 (spacers) \| 100,000 \| 3,201,222 \| 25-40 \| 32.01 \| 49.0% \| \| ns 100000 nc 10000 (contigs) \| 10,000 \| 802,832,723 \| 10,067-149,921 \| 80,283.27 \| 49.0% \| \| ns 100000 nc 20000 (spacers) \| 100,000 \| 3,200,186 \| 25-40 \| 32.00 \| 49.0% \| \| ns 100000 nc 20000 (contigs) \| 20,000 \| 1,604,143,975 \| 10,014-149,390 \| 80,207.20 \| 49.0% \| \| ns 50000 nc 5000 (spacers) \| 50,000 \| 1,599,652 \| 25-40 \| 31.99 \| 49.1% \| \| ns 50000 nc 5000 (contigs) \| 5,000 \| 402,606,570 \| 11,391-149,534 \| 80,521.31 \| 49.0% \| \| ns 75000 nc 5000 (spacers) \| 75,000 \| 2,401,592 \| 25-40 \| 32.02 \| 49.0% \| \| ns 75000 nc 5000 (contigs) \| 5,000 \| 401,074,812 \| 10,244-149,609 \| 80,214.96 \| 49.0% \| \| ns 3826979 nc 421431 (contigs) \| 421,431 \| 4,291,112,041 \| 2,006-100,000 \| 50,947.80 \| 46.0% \| \| ns 500 nc 5000 HIGH INSERTION RATE (spacers) \| 500 \| 16,007 \| 25-39 \| 32.01 \| 48.9% \| \| ns 500 nc 5000 HIGH INSERTION RATE (contigs) \| 5,000 \| 400,779,688 \| 11,241-149,479 \| 80,155.94 \| 49.0% \|
+Sequence statistics for all datasets used in this study.
+
+| Dataset / Subset | N Seqs | Total Size (bp) | Length Range (bp) | Mean Length | GC % |
+|:-----------|:-----------|:-----------|:-----------|:-----------|:-----------|
+| Real Spacers (iPHoP) | 3,826,979 | 129,494,053 | 25-40 | 33.84 | 47.6% |
+| Real Data fraction 0.0005 | 279 | 7,036,591 | 1,060-233,373 | 25,220.76 | 48.0% |
+| Real Data fraction 0.001 | 421 | 9,745,671 | 1,700-246,318 | 23,148.86 | 48.0% |
+| Real Data fraction 0.005 | 2,107 | 57,059,412 | 1,060-618,736 | 27,080.88 | 47.2% |
+| Real Data fraction 0.01 | 4,214 | 123,668,270 | 1,060-482,156 | 29,347.00 | 47.3% |
+| Real Data fraction 0.05 | 21,071 | 715,073,062 | 1,060-505,259 | 33,936.36 | 47.4% |
+| Real Data fraction 0.1 | 42,143 | 1,504,536,616 | 1,060-596,785 | 35,700.75 | 47.5% |
+| Real Data fraction 1 | 421,431 | 1,690,774,004 | 1,060-711,471 | 44,777.54 | 47.5% |
+| ns_100000_nc_10000 (spacers) | 100,000 | 3,201,222 | 25-40 | 32.01 | 49.0% |
+| ns_100000_nc_10000 (contigs) | 10,000 | 802,832,723 | 10,067-149,921 | 80,283.27 | 49.0% |
+| ns_100000_nc_20000 (spacers) | 100,000 | 3,200,186 | 25-40 | 32.00 | 49.0% |
+| ns_100000_nc_20000 (contigs) | 20,000 | 1,604,143,975 | 10,014-149,390 | 80,207.20 | 49.0% |
+| ns_50000_nc_5000 (spacers) | 50,000 | 1,599,652 | 25-40 | 31.99 | 49.1% |
+| ns_50000_nc_5000 (contigs) | 5,000 | 402,606,570 | 11,391-149,534 | 80,521.31 | 49.0% |
+| ns_75000_nc_5000 (spacers) | 75,000 | 2,401,592 | 25-40 | 32.02 | 49.0% |
+| ns_75000_nc_5000 (contigs) | 5,000 | 401,074,812 | 10,244-149,609 | 80,214.96 | 49.0% |
+| ns_3826979_nc_421431 (contigs) | 421,431 | 4,291,112,041 | 2,006-100,000 | 50,947.80 | 46.0% |
+| ns_500_nc_5000 HIGH_INSERTION_RATE (spacers) | 500 | 16,007 | 25-39 | 32.01 | 48.9% |
+| ns_500_nc_5000 HIGH_INSERTION_RATE (contigs) | 5,000 | 400,779,688 | 11,241-149,479 | 80,155.94 | 49.0% |
+
+### Supplementary Table S4b: Simulation and job-generation configuration from `Prepare_all_jobs.ipynb` {#tbl-supp-prepare-jobs}
+
+| Dataset group | Dataset(s) | Sequence generation parameters | Tool-run parameters |
+|:-----------------|:-----------------|:-----------------|:-----------------|
+| Real-data subsamples | fraction_0.0005, 0.001, 0.005, 0.01 | Subsample IMG/VR4 filtered contigs by class-stratified fraction; full filtered iPHoP spacers | `max_distance=5`, 38 threads |
+| Real-data subsamples | fraction_0.05, 0.1 | Same as above | `max_distance=3`, 38 threads, skip `sassy` and `indelfree_bruteforce` |
+| Full real data | fraction_1 | 421,431 HQ contigs (class-stratified), full filtered iPHoP spacers | `max_distance=3`, 38 threads, `mem=250G`, `t=72:00:00`, skip `sassy` and `indelfree_bruteforce` |
+| Semi-synthetic baseline | `ns_3826979_nc_421431_real_baseline` | `num_contigs=421431`, `num_spacers=3826979`, contig length `2000-100000`, contig GC `46`, spacer length `25-50`, mismatch range `0-0`, spacer insertions `0-0`, reverse-complement rate `0.5` | `max_distance=3`, 38 threads, `mem=250G`, `t=72:00:00`, skip `sassy` and `indelfree_bruteforce` |
+| Fully synthetic (small/medium) | `ns_50000_nc_5000`, `ns_75000_nc_5000`, `ns_100000_nc_10000`, `ns_100000_nc_20000`, `ns_75000_nc_10000` | Typical settings: contig distribution normal, spacer distribution normal, spacer GC `49`, spacer length `25-40`, contig length `10000-150000`, spacer insertions `1-5`, mismatch range `0-5` (except selected large runs) | Mostly `max_distance=5`, 38 threads |
+| High-occurrence synthetic | `ns_500_nc_5000_HIGH_INSERTION_RATE` | Spacer insertions `100-2500`, spacer length `25-40`, contig length `10000-150000`, mismatch range `0-5` | `max_distance=5`, 38 threads |
+| Fully synthetic (largest) | `ns_500000_nc_100000` | contig length up to `550000`, mismatch range `0-3` | `max_distance=3`, skip `sassy` and `indelfree_bruteforce` |
+
+### Supplementary Figure S1: Curation workflow for contigs and spacers {#fig-supp-workflow}
+
+```{mermaid}
+flowchart LR
+  subgraph C[IMG/VR4 contig curation]
+    C1[IMG/VR4 v1.1 high-confidence contigs\nN=5,457,198]
+    C2[Merge sequence stats + metadata\nstandardize taxonomy fields]
+    C3[Filter eukaryotic taxa\nfamily/order/class exclusion lists]
+    C4[Filter length > 1000 bp]
+    C5[Export filtered set\nfiltered_contigs.fasta + stats parquet]
+    C6[Class-stratified subsampling\nfraction_0.0005 ... fraction_1]
+    C1 --> C2 --> C3 --> C4 --> C5 --> C6
+  end
+```
+
+```{mermaid}
+flowchart LR
+  subgraph S[iPHoP spacer curation]
+    S1[Raw iPHoP spacers\nN=3,882,812]
+    S2[Compute per-spacer features\nlength, base fractions, entropy, repeated 6-mers]
+    S3[Filter low-complexity/ambiguous spacers\nN fraction=0, entropy>1, repeated 6-mers<4, no >=95% single-base composition]
+    S4[Export filtered spacers\niphop_filtered_spacers.fna\nN=3,826,979]
+    S1 --> S2 --> S3 --> S4
+  end
+```
 
 ### Supplementary Table S5: Recall Values for Each Tool at Different Mismatch Thresholds {#tbl-supp-recall}
 
@@ -130,32 +199,172 @@ Detailed resource usage metrics for all completed tool runs on both real (IMG/VR
 
 **Note on BLASTn fraction_1:** Resource tracking captured data for 1,689,771 of 3,826,979 total spacers. The reported values are extrapolated by a factor of 3826979/1689771 ≈ 2.266, assuming linear scaling with spacer count (validated on smaller fractions). This is annotated in the "note" column of the data files.
 
-**Note on Java-based tools (indelfree.sh):** Peak memory reported by SLURM may overestimate actual requirements due to JVM memory management behavior (see Methods §sec-resource-tracking).
+#### A. Real data (IMG/VR4 subsampled fractions) — completed jobs
 
-Data files:
+| Tool | Fraction | Job ID | CPU Time (h) | Wall Time (h) | Peak Mem (GB) | CPUs | Max Distance |
+| :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| blastn | 0.0005 | 20697879 | 6.60 | 0.55 | 0.61 | 38 | perc_id=84% |
+| blastn | 0.001 | 20697880 | 9.02 | 0.55 | 0.63 | 38 | perc_id=84% |
+| blastn | 0.005 | 20697881 | 44.79 | 3.19 | 0.68 | 38 | perc_id=84% |
+| blastn | 0.01 | 20697882 | 94.72 | 9.00 | 0.70 | 38 | perc_id=84% |
+| blastn | 0.05 | 20697883 | 556.64 | 28.77 | 1.31 | 38 | perc_id=84% |
+| blastn | 0.1 | 20697884 | 1135.98 | 146.80 | 2.82 | 38 | perc_id=84% |
+| bowtie1 | 0.0005 | 20668861 | 0.04 | 0.04 | 0.18 | 38 | 3 |
+| bowtie1 | 0.001 | 20668609 | 0.04 | 0.04 | 0.50 | 38 | 3 |
+| bowtie1 | 0.005 | 20668621 | 0.09 | 0.09 | 0.83 | 38 | 3 |
+| bowtie1 | 0.01 | 20668633 | 0.11 | 0.11 | 1.22 | 38 | 3 |
+| bowtie1 | 0.05 | 20668645 | 4.07 | 0.32 | 4.15 | 38 | 3 |
+| bowtie1 | 0.1 | 20668655 | 10.27 | 1.50 | 8.02 | 38 | 3 |
+| bowtie1 | 1.0 | 20668665 | 117.29 | 14.33 | 146.37 | 38 | 3 |
+| bowtie2 | 0.0005 | 20668433 | 0.06 | 0.06 | 1.05 | 38 | N/A |
+| bowtie2 | 0.001 | 20668610 | 0.06 | 0.06 | 0.78 | 38 | N/A |
+| bowtie2 | 0.005 | 20668622 | 0.16 | 0.16 | 1.10 | 38 | N/A |
+| bowtie2 | 0.01 | 20668634 | 2.88 | 0.39 | 1.84 | 38 | N/A |
+| bowtie2 | 0.05 | 20668646 | 13.63 | 1.46 | 6.28 | 38 | N/A |
+| bowtie2 | 0.1 | 20668656 | 30.74 | 3.40 | 11.62 | 38 | N/A |
+| bowtie2 | 1.0 | 20668666 | 994.87 | 115.92 | 151.48 | 38 | N/A |
+| indelfree_bruteforce | 0.0005 | 20668599 | 197.77 | 26.75 | 22.04 | 38 | N/A |
+| indelfree_bruteforce | 0.001 | 20668611 | 371.13 | 41.72 | 27.82 | 38 | N/A |
+| indelfree_indexed | 0.0005 | 20668600 | 2.72 | 0.47 | 20.31 | 38 | N/A |
+| indelfree_indexed | 0.001 | 20668612 | 4.06 | 0.69 | 27.88 | 38 | N/A |
+| indelfree_indexed | 0.005 | 20668624 | 20.73 | 2.54 | 28.42 | 38 | N/A |
+| indelfree_indexed | 0.01 | 20668636 | 44.38 | 6.04 | 31.41 | 38 | N/A |
+| indelfree_indexed | 0.05 | 20668647 | 185.84 | 18.43 | 35.83 | 38 | N/A |
+| indelfree_indexed | 0.1 | 20668657 | 418.20 | 51.18 | 40.76 | 38 | N/A |
+| minimap2 | 0.0005 | 20668602 | 0.03 | 0.03 | 0.76 | 38 | N/A |
+| minimap2 | 0.001 | 20668614 | 0.04 | 0.04 | 0.76 | 38 | N/A |
+| minimap2 | 0.005 | 20668626 | 0.15 | 0.15 | 1.12 | 38 | N/A |
+| minimap2 | 0.01 | 20668638 | 2.61 | 0.63 | 1.65 | 38 | N/A |
+| minimap2 | 0.05 | 20668649 | 15.64 | 0.92 | 5.15 | 38 | N/A |
+| minimap2 | 0.1 | 20668659 | 34.19 | 7.72 | 9.85 | 38 | N/A |
+| minimap2 | 1.0 | 20668669 | 517.35 | 48.13 | 90.69 | 38 | N/A |
+| mmseqs2 | 0.0005 | 20668603 | 0.07 | 0.07 | 9.99 | 38 | min-seq-id=85% |
+| mmseqs2 | 0.001 | 20668615 | 0.07 | 0.07 | 9.98 | 38 | min-seq-id=85% |
+| mmseqs2 | 0.005 | 20668627 | 0.07 | 0.07 | 10.33 | 38 | min-seq-id=85% |
+| mmseqs2 | 0.01 | 20668639 | 0.07 | 0.07 | 10.75 | 38 | min-seq-id=85% |
+| mmseqs2 | 0.05 | 20668650 | 0.07 | 0.07 | 15.30 | 38 | min-seq-id=85% |
+| mmseqs2 | 0.1 | 20668660 | 0.13 | 0.13 | 22.84 | 38 | min-seq-id=85% |
+| mmseqs2 | 1.0 | 20668670 | 5.37 | 0.73 | 141.76 | 38 | min-seq-id=85% |
+| mummer4 | 0.0005 | 20668604 | 0.01 | 0.01 | 0.39 | 38 | N/A |
+| mummer4 | 0.001 | 20668616 | 0.01 | 0.01 | 0.12 | 38 | N/A |
+| mummer4 | 0.005 | 20668628 | 0.03 | 0.03 | 0.26 | 38 | N/A |
+| mummer4 | 0.01 | 20668640 | 0.08 | 0.08 | 0.28 | 38 | N/A |
+| mummer4 | 0.05 | 20668651 | 0.26 | 0.26 | 0.43 | 38 | N/A |
+| mummer4 | 0.1 | 20668661 | 4.64 | 0.86 | 2.31 | 38 | N/A |
+| mummer4 | 1.0 | 20668671 | 47.88 | 9.33 | 9.02 | 38 | N/A |
+| sassy | 0.0005 | 20668605 | 26.24 | 2.75 | 2.95 | 38 | N/A |
+| sassy | 0.001 | 20668617 | 37.25 | 4.66 | 3.14 | 38 | N/A |
+| sassy | 0.005 | 20668629 | 212.28 | 25.47 | 10.43 | 38 | N/A |
+| sassy | 0.01 | 20668641 | 439.60 | 65.63 | 27.94 | 38 | N/A |
+| strobealign | 0.0005 | 20668606 | 0.01 | 0.01 | 0.63 | 38 | N/A |
+| strobealign | 0.001 | 20668618 | 0.00 | 0.00 | 0.67 | 38 | N/A |
+| strobealign | 0.005 | 20668630 | 0.01 | 0.01 | 2.02 | 38 | N/A |
+| strobealign | 0.01 | 20668642 | 0.02 | 0.02 | 3.55 | 38 | N/A |
+| strobealign | 0.05 | 20668652 | 0.03 | 0.03 | 11.72 | 38 | N/A |
+| strobealign | 0.1 | 20668662 | 0.08 | 0.08 | 21.29 | 38 | N/A |
+| strobealign | 1.0 | 20668672 | 0.32 | 0.32 | 116.67 | 38 | N/A |
+| x_mapper | 0.0005 | 20668607 | 0.02 | 0.02 | 6.04 | 38 | N/A |
+| x_mapper | 0.001 | 20668619 | 0.03 | 0.03 | 6.07 | 38 | N/A |
+| x_mapper | 0.005 | 20668631 | 0.06 | 0.06 | 4.18 | 38 | N/A |
+| x_mapper | 0.01 | 20668643 | 0.06 | 0.06 | 7.35 | 38 | N/A |
+| x_mapper | 0.05 | 20668653 | 0.43 | 0.43 | 10.75 | 38 | N/A |
+| x_mapper | 0.1 | 20668663 | 3.36 | 1.11 | 10.86 | 38 | N/A |
+| x_mapper | 1.0 | 20695756 | 45.50 | 12.42 | 244.28 | 38 | N/A |
 
--   `resource_usage_real_data_completed_jobs.tsv` (real data, all fractions)
--   `resource_usage_simulated_completed_jobs.tsv` (all simulated datasets)
--   `resource_usage_real_data_failed_jobs.tsv` (timeout/failed jobs)
+#### B. Simulated datasets — completed jobs
+
+| Dataset | Tool | Job ID | Search Space | N Spacers | N Contigs | Spacer Mbp | Contig Mbp | CPU Time (h) | Wall Time (h) | Peak Mem (GB) | CPUs | Max Distance |
+| :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :--- |
+| ns_100000_nc_10000 | blastn | 20697887 | 1000000000 | 100000 | 10000 | 3.20 | 802.83 | 12.99 | 1.11 | 1.14 | 38 | perc_id=84% |
+| ns_100000_nc_10000 | bowtie1 | 20704670 | 1000000000 | 100000 | 10000 | 3.20 | 802.83 | 7.09 | 0.45 | 5.69 | 38 | 3 |
+| ns_100000_nc_10000 | bowtie2 | 20697890 | 1000000000 | 100000 | 10000 | 3.20 | 802.83 | 3.83 | 0.48 | 6.52 | 38 | N/A |
+| ns_100000_nc_10000 | indelfree_bruteforce | 20697892 | 1000000000 | 100000 | 10000 | 3.20 | 802.83 | 653.95 | 51.71 | 105.35 | 38 | 5 |
+| ns_100000_nc_10000 | indelfree_indexed | 20697894 | 1000000000 | 100000 | 10000 | 3.20 | 802.83 | 6.24 | 0.26 | 39.30 | 38 | 5 |
+| ns_100000_nc_10000 | minimap2 | 20697895 | 1000000000 | 100000 | 10000 | 3.20 | 802.83 | 0.07 | 0.07 | 5.33 | 38 | N/A |
+| ns_100000_nc_10000 | mmseqs2 | 20697897 | 1000000000 | 100000 | 10000 | 3.20 | 802.83 | 0.06 | 0.06 | 14.13 | 38 | min-seq-id=85% |
+| ns_100000_nc_10000 | mummer4 | 20697898 | 1000000000 | 100000 | 10000 | 3.20 | 802.83 | 0.08 | 0.08 | 0.27 | 38 | N/A |
+| ns_100000_nc_10000 | sassy | 20697900 | 1000000000 | 100000 | 10000 | 3.20 | 802.83 | 68.36 | 7.42 | 0.12 | 38 | 5 |
+| ns_100000_nc_10000 | strobealign | 20697902 | 1000000000 | 100000 | 10000 | 3.20 | 802.83 | 0.01 | 0.01 | 3.80 | 38 | N/A |
+| ns_100000_nc_10000 | x_mapper | 20697903 | 1000000000 | 100000 | 10000 | 3.20 | 802.83 | 0.08 | 0.08 | 21.95 | 38 | N/A |
+| ns_100000_nc_20000 | blastn | 20697905 | 2000000000 | 100000 | 20000 | 3.20 | 1604.14 | 25.74 | 1.14 | 2.13 | 38 | perc_id=84% |
+| ns_100000_nc_20000 | bowtie1 | 20704671 | 2000000000 | 100000 | 20000 | 3.20 | 1604.14 | 6.92 | 0.70 | 8.13 | 38 | 3 |
+| ns_100000_nc_20000 | bowtie2 | 20697908 | 2000000000 | 100000 | 20000 | 3.20 | 1604.14 | 7.41 | 0.76 | 12.21 | 38 | N/A |
+| ns_100000_nc_20000 | indelfree_bruteforce | 20697909 | 2000000000 | 100000 | 20000 | 3.20 | 1604.14 | 2948.61 | 137.93 | 32.38 | 38 | 5 |
+| ns_100000_nc_20000 | indelfree_indexed | 20697910 | 2000000000 | 100000 | 20000 | 3.20 | 1604.14 | 13.02 | 1.55 | 29.51 | 38 | 5 |
+| ns_100000_nc_20000 | minimap2 | 20697911 | 2000000000 | 100000 | 20000 | 3.20 | 1604.14 | 0.05 | 0.05 | 9.98 | 38 | N/A |
+| ns_100000_nc_20000 | mmseqs2 | 20697912 | 2000000000 | 100000 | 20000 | 3.20 | 1604.14 | 0.04 | 0.04 | 20.16 | 38 | min-seq-id=85% |
+| ns_100000_nc_20000 | mummer4 | 20697913 | 2000000000 | 100000 | 20000 | 3.20 | 1604.14 | 0.16 | 0.16 | 0.28 | 38 | N/A |
+| ns_100000_nc_20000 | sassy | 20697914 | 2000000000 | 100000 | 20000 | 3.20 | 1604.14 | 141.30 | 5.74 | 0.15 | 38 | 5 |
+| ns_100000_nc_20000 | strobealign | 20697915 | 2000000000 | 100000 | 20000 | 3.20 | 1604.14 | 0.02 | 0.02 | 7.58 | 38 | N/A |
+| ns_100000_nc_20000 | x_mapper | 20697916 | 2000000000 | 100000 | 20000 | 3.20 | 1604.14 | 2.16 | 0.42 | 29.34 | 38 | N/A |
+| ns_3826979_nc_421431_real_baseline | bowtie1 | 20693675 | 1612807586949 | 3826979 | 421431 | 129.49 | 4291.11 | 109.49 | 10.43 | 182.05 | 38 | 3 |
+| ns_3826979_nc_421431_real_baseline | bowtie2 | 20697538 | 1612807586949 | 3826979 | 421431 | 129.49 | 4291.11 | 618.22 | 49.78 | 164.30 | 38 | N/A |
+| ns_3826979_nc_421431_real_baseline | minimap2 | 20697704 | 1612807586949 | 3826979 | 421431 | 129.49 | 4291.11 | 451.04 | 27.94 | 77.42 | 38 | N/A |
+| ns_3826979_nc_421431_real_baseline | mmseqs2 | 20697705 | 1612807586949 | 3826979 | 421431 | 129.49 | 4291.11 | 6.55 | 0.72 | 172.10 | 38 | min-seq-id=85% |
+| ns_3826979_nc_421431_real_baseline | mummer4 | 20804503 | 1612807586949 | 3826979 | 421431 | 129.49 | 4291.11 | 72.12 | 12.51 | 20.54 | 38 | N/A |
+| ns_3826979_nc_421431_real_baseline | strobealign | 20697709 | 1612807586949 | 3826979 | 421431 | 129.49 | 4291.11 | 0.23 | 0.23 | 93.29 | 38 | N/A |
+| ns_3826979_nc_421431_real_baseline | x_mapper | 20695761 | 1612807586949 | 3826979 | 421431 | 129.49 | 4291.11 | 32.10 | 2.87 | 229.82 | 38 | N/A |
+| ns_500000_nc_100000 | blastn | 20697917 | 50000000000 | 500000 | 100000 | 16.00 | 2232.68 | 2578.12 | 208.46 | 33.08 | 38 | perc_id=84% |
+| ns_500000_nc_100000 | bowtie1 | 20704672 | 50000000000 | 500000 | 100000 | 16.00 | 2232.68 | 131.26 | 24.04 | 207.01 | 38 | 3 |
+| ns_500000_nc_100000 | bowtie2 | 20697919 | 50000000000 | 500000 | 100000 | 16.00 | 2232.68 | 210.24 | 26.82 | 208.15 | 38 | N/A |
+| ns_500000_nc_100000 | indelfree_indexed | 20697920 | 50000000000 | 500000 | 100000 | 16.00 | 2232.68 | 414.51 | 40.23 | 70.63 | 38 | 3 |
+| ns_500000_nc_100000 | minimap2 | 20697921 | 50000000000 | 500000 | 100000 | 16.00 | 2232.68 | 70.34 | 3.22 | 89.59 | 38 | N/A |
+| ns_500000_nc_100000 | mmseqs2 | 20697922 | 50000000000 | 500000 | 100000 | 16.00 | 2232.68 | 8.30 | 1.23 | 217.16 | 38 | min-seq-id=85% |
+| ns_500000_nc_100000 | mummer4 | 20697923 | 50000000000 | 500000 | 100000 | 16.00 | 2232.68 | 14.59 | 3.26 | 1.89 | 38 | N/A |
+| ns_500000_nc_100000 | strobealign | 20697924 | 50000000000 | 500000 | 100000 | 16.00 | 2232.68 | 0.23 | 0.23 | 141.83 | 38 | N/A |
+| ns_50000_nc_5000 | blastn | 20697926 | 250000000 | 50000 | 5000 | 1.60 | 402.61 | 3.35 | 0.18 | 0.70 | 38 | perc_id=84% |
+| ns_50000_nc_5000 | bowtie1 | 20704673 | 250000000 | 50000 | 5000 | 1.60 | 402.61 | 3.71 | 0.21 | 3.29 | 38 | 3 |
+| ns_50000_nc_5000 | bowtie2 | 20697928 | 250000000 | 50000 | 5000 | 1.60 | 402.61 | 0.19 | 0.19 | 3.77 | 38 | N/A |
+| ns_50000_nc_5000 | indelfree_bruteforce | 20697929 | 250000000 | 50000 | 5000 | 1.60 | 402.61 | 251.32 | 10.48 | 85.46 | 38 | 5 |
+| ns_50000_nc_5000 | indelfree_indexed | 20697930 | 250000000 | 50000 | 5000 | 1.60 | 402.61 | 0.10 | 0.10 | 66.20 | 38 | 5 |
+| ns_50000_nc_5000 | minimap2 | 20697931 | 250000000 | 50000 | 5000 | 1.60 | 402.61 | 0.01 | 0.01 | 2.64 | 38 | N/A |
+| ns_50000_nc_5000 | mmseqs2 | 20697932 | 250000000 | 50000 | 5000 | 1.60 | 402.61 | 0.02 | 0.02 | 11.29 | 38 | min-seq-id=85% |
+| ns_50000_nc_5000 | mummer4 | 20697933 | 250000000 | 50000 | 5000 | 1.60 | 402.61 | 0.04 | 0.04 | 0.26 | 38 | N/A |
+| ns_50000_nc_5000 | sassy | 20697934 | 250000000 | 50000 | 5000 | 1.60 | 402.61 | 18.18 | 1.06 | 0.06 | 38 | 5 |
+| ns_50000_nc_5000 | strobealign | 20697935 | 250000000 | 50000 | 5000 | 1.60 | 402.61 | 0.00 | 0.00 | 2.27 | 38 | N/A |
+| ns_50000_nc_5000 | x_mapper | 20697936 | 250000000 | 50000 | 5000 | 1.60 | 402.61 | 0.04 | 0.04 | 15.75 | 38 | N/A |
+| ns_500_nc_5000_HIGH_INSERTION_RATE | blastn | 20697868 | 2500000 | 500 | 5000 | 0.02 | 400.78 | 0.02 | 0.02 | 1.46 | 38 | perc_id=84% |
+| ns_500_nc_5000_HIGH_INSERTION_RATE | bowtie1 | 20704675 | 2500000 | 500 | 5000 | 0.02 | 400.78 | 2.99 | 0.21 | 3.64 | 38 | 3 |
+| ns_500_nc_5000_HIGH_INSERTION_RATE | bowtie2 | 20697870 | 2500000 | 500 | 5000 | 0.02 | 400.78 | 0.18 | 0.18 | 4.09 | 38 | N/A |
+| ns_500_nc_5000_HIGH_INSERTION_RATE | indelfree_bruteforce | 20697871 | 2500000 | 500 | 5000 | 0.02 | 400.78 | 0.18 | 0.18 | 27.47 | 38 | 5 |
+| ns_500_nc_5000_HIGH_INSERTION_RATE | indelfree_indexed | 20697872 | 2500000 | 500 | 5000 | 0.02 | 400.78 | 0.02 | 0.02 | 7.56 | 38 | 5 |
+| ns_500_nc_5000_HIGH_INSERTION_RATE | minimap2 | 20697873 | 2500000 | 500 | 5000 | 0.02 | 400.78 | 0.01 | 0.01 | 2.69 | 38 | N/A |
+| ns_500_nc_5000_HIGH_INSERTION_RATE | mmseqs2 | 20697874 | 2500000 | 500 | 5000 | 0.02 | 400.78 | 0.04 | 0.04 | 11.21 | 38 | min-seq-id=85% |
+| ns_500_nc_5000_HIGH_INSERTION_RATE | mummer4 | 20697875 | 2500000 | 500 | 5000 | 0.02 | 400.78 | 0.07 | 0.07 | 0.28 | 38 | N/A |
+| ns_500_nc_5000_HIGH_INSERTION_RATE | sassy | 20697876 | 2500000 | 500 | 5000 | 0.02 | 400.78 | 0.03 | 0.03 | 0.09 | 38 | 5 |
+| ns_500_nc_5000_HIGH_INSERTION_RATE | strobealign | 20697877 | 2500000 | 500 | 5000 | 0.02 | 400.78 | 0.00 | 0.00 | 1.85 | 38 | N/A |
+| ns_500_nc_5000_HIGH_INSERTION_RATE | x_mapper | 20697878 | 2500000 | 500 | 5000 | 0.02 | 400.78 | 0.07 | 0.07 | 13.16 | 38 | N/A |
+| ns_75000_nc_5000 | blastn | 20697937 | 375000000 | 75000 | 5000 | 2.40 | 401.07 | 4.88 | 0.30 | 0.69 | 38 | perc_id=84% |
+| ns_75000_nc_5000 | bowtie1 | 20704674 | 375000000 | 75000 | 5000 | 2.40 | 401.07 | 3.01 | 0.20 | 3.67 | 38 | 3 |
+| ns_75000_nc_5000 | bowtie2 | 20697939 | 375000000 | 75000 | 5000 | 2.40 | 401.07 | 0.18 | 0.18 | 3.72 | 38 | N/A |
+| ns_75000_nc_5000 | indelfree_bruteforce | 20697940 | 375000000 | 75000 | 5000 | 2.40 | 401.07 | 407.00 | 16.98 | 85.47 | 38 | 5 |
+| ns_75000_nc_5000 | indelfree_indexed | 20697941 | 375000000 | 75000 | 5000 | 2.40 | 401.07 | 2.54 | 0.14 | 85.13 | 38 | 5 |
+| ns_75000_nc_5000 | minimap2 | 20697942 | 375000000 | 75000 | 5000 | 2.40 | 401.07 | 0.02 | 0.02 | 2.63 | 38 | N/A |
+| ns_75000_nc_5000 | mmseqs2 | 20697943 | 375000000 | 75000 | 5000 | 2.40 | 401.07 | 0.02 | 0.02 | 11.44 | 38 | min-seq-id=85% |
+| ns_75000_nc_5000 | mummer4 | 20697944 | 375000000 | 75000 | 5000 | 2.40 | 401.07 | 0.04 | 0.04 | 0.26 | 38 | N/A |
+| ns_75000_nc_5000 | sassy | 20697945 | 375000000 | 75000 | 5000 | 2.40 | 401.07 | 25.83 | 1.36 | 0.08 | 38 | 5 |
+| ns_75000_nc_5000 | strobealign | 20697946 | 375000000 | 75000 | 5000 | 2.40 | 401.07 | 0.01 | 0.01 | 2.31 | 38 | N/A |
+
+#### C. Timed-out / failed jobs
+
+| Tool | Fraction | Status | Job ID | CPUs | Time (h) |
+| :--- | :--- | :--- | :--- | ---: | ---: |
+| indelfree_bruteforce | 0.005 | TIMEOUT | 20668623 | 38 | 216.01 |
+| indelfree_bruteforce | 0.01 | TIMEOUT | 20668635 | 38 | 216.03 |
+| indelfree_indexed | 1.0 | TIMEOUT | 20668667 | 38 | 216.00 |
 
 ## Supplementary Figures
 
-### Supplementary Figure S1: Benchmarking framework pipeline overview {#fig-supp-workflow}
-
-![](figures/supp/workflow.svg) !!! THIS NEEDS TO BE UPDATED !!!
-
 ### Supplementary Figure S2: IMG/VR4 tool-vs-tool comparison matrices {#fig-supp-real-matrix}
 
-IMG/VR v4 based results in a tool vs tool comparison. Unlike the similar matrix in the main text (figure 1) which showcases the values for up to 1 and 3 mismatches, here the matrices are separated for each mismatch threshold at an **exact** mismatch value. From top left to bottom right, the mismatch threshold is 0, 1, 2, 3. Like the main text figure, the value of a cell(i,j) is the fraction of spacer-contig pairs identified by the tool listed in row i, which were not identified by the tool listed in the j column.
+Pairwise tool-comparison matrices for the IMG/VR4 fraction_1 dataset at exact hamming distance values. Each sub-panel corresponds to a specific hamming distance (0, 1, 2, 3). Cell $(i,j)$ shows the number of unique spacer-contig aligned regions detected by tool $i$ (row) but not by tool $j$ (column) at that exact distance.
 
-![](figures/supp/real_data_matrix_combined.svg)
+![](figures/performance/imgvr4_fraction1_tool_comparison_matrix.svg)
 
 ### Supplementary Figure S3: Simulated dataset performance metrics {#fig-supp-sim-performance}
 
 Performance metrics for tools on simulated datasets.\
-Precision = True Positives / (True Positives + False Positives)\
 Recall = True Positives / (True Positives + False Negatives)\
-F1 = 2 \* (Precision \* Recall) / (Precision + Recall)\
 Note: Because of the various prefiltering steps, the number of False Negatives and False Positives may not be indicative of the actual raw tool-reported results. As such, we recommend focusing on the recall rate between tools, which is equivalent to the fraction of detected spacer-protospacer pairs out of all the spacer-protospacer pairs in the reference file.
 
 ![](figures/supp/simulated_tool_performance_by_mismatches.svg)
@@ -174,17 +383,15 @@ High-occurrence-focused recall view for the real IMG/VR4 fraction_1 dataset at h
 
 ### Supplementary Figure S6: Comparison of simulated vs real spacer characteristics {#fig-supp-spacer-comparison}
 
-Distributions of spacer sequence features comparing simulated and real datasets (1.) to D that synthetic sequences mimic real data characteristics. Features analyzed include k-mer repeatability, Shannon entropy, base frequencies, GC content, and linguistic complexity (LCC). Most features show similar distributions between simulated and real sequences, with some complexity measures (k-mer repeatability and LCC) showing real spacers have slightly wider range of values, suggesting a minor fraction of real spacers have more extreme complexity values.
+Distributions of spacer sequence features comparing simulated and real datasets, demonstrating that synthetic sequences approximate real data characteristics. Features analyzed include k-mer repeatability, Shannon entropy, base frequencies, GC content, and linguistic complexity (LCC). Most features show similar distributions between simulated and real sequences, with some complexity measures (k-mer repeatability and LCC) showing real spacers have a slightly wider range of values, suggesting a minor fraction of real spacers have more extreme complexity values.
 
-1.  Filtered iPhoP set:
+**A.** Filtered iPHoP spacer set:
 
 ![](figures/supp/filtered_iphop_spacers_attribute_distributions_multiplot.png)
 
-2.  Fully simulated spacer set (specifically: ns_100000_nc_20000)
+**B.** Fully simulated spacer set (dataset: ns_100000_nc_20000):
 
 ![](figures/supp/simulated_spacer_distributions.svg)
-
-###  {#fig-supp-upset}
 
 ### Supplementary Figure S7: Spacer characteristic distributions by dataset {#fig-supp-spacer-distributions}
 
@@ -193,69 +400,33 @@ Distributions of spacers characteristics for both real (IMG/VR4) and simulated d
 (B) Mismatches observed in spacer alignments\
 (C) Spacer occurrence rate.
 
-#### 1. IMG/VR4 dataset
+#### 1. IMG/VR4 dataset (contig-side distributions)
 
-Contigs:
+Note: we removed outliers to enable plotting for the length (top left panel), see fraction_1 in table S4 above.
 
-![](figures/supp/real_data_spacer_distributions.svg)
+![](figures/supp/real_data_contig_distributions.svg)
 
-### Supplementary Figure S8: Upset plots showing tool result overlaps
+### Supplementary Figure S8: Distribution of matched spacers from fraction_1 {#fig-supp-occurrence-distribution}
 
-Upset plot of tool performance for IMG/VR4 dataset. The panels (from top to bottom) are sorted by number of mismatches. The sets in each panel are sorted from left to right by the set size. Each row in each panel represents a tool, and the vertical lines connecting the dots indicate the intersection of the connected tool results'.
-
-#### A. 0 mismatches
-
-![](figures/supp/upset_0.svg)
-
-#### B. 1 mismatch
-
-![](figures/supp/upset_1.svg)
-
-#### C. 2 mismatches
-
-![](figures/supp/upset_2.svg)
-
-#### D. 3 mismatches
-
-![](figures/supp/upset_3.svg)
-
-### Supplementary Figure S9: Tool-vs-tool comparison matrices for IMG/VR4 at exact mismatch levels {#fig-supp-real-matrix-exact}
-
-\<merge matrices for exact mismatch values 0, 1, 2, 3 into single combined figure similar to main text Figure 3 panel B but showing separate panels for each exact hamming distance value\>
-
-IMG/VR4 based results in a tool vs tool comparison at exact mismatch values. Unlike the main text figure which shows cumulative results (up to X mismatches), these matrices show results for exact mismatch values. Cell(i,j) represents the number of spacer-contig pairs identified by tool i (row) but not by tool j (column) at the specified exact hamming distance.
-
-### Supplementary Figure S10: Distribution of spacer occurrence frequencies showing rarity of ultra-high occurrence spacers {#fig-supp-occurrence-distribution}
-
-Distribution of spacer occurrence frequencies in the IMG/VR4 dataset demonstrating that ultra-high occurrence spacers (\>1000 occurrences) represent less than 0.01% of all spacers. This figure contextualizes the occurrence-dependent performance analysis presented in the main text, showing that while performance degradation at high occurrence frequencies is measurable, it affects only an extremely small fraction of analyses.
-
-The panel set contains three complementary summaries for fraction_1 matched spacers (histogram/statistics views) to show both the long-tail behavior and the low absolute prevalence of ultra-high-occurrence spacers.
+Distributions derived from the aggregate of all unique valid tool-reported alignments at hamming distance ≤3, from the results when scanning fraction_1 with the iPHoP spacer set. **A.** Length (bp) distribution of matched spacers. **B.** Total number of spacer occurrences (both axes are log-scaled), i.e. how many distinct contig regions each spacer aligned to. **C.** Number of reported unique alignments at each exact hamming distance value.
 
 ![](figures/supp/fraction_1_matched_spacers_distributions.png)
 
-### Supplementary Figure S15: CPU time scaling including minimap2 {#fig-supp-resource-w-minimap2}
+### Supplementary Figure S9: Peak memory scaling (real and simulated datasets) {#fig-supp-resource-memory}
 
-CPU-time scaling with minimap2 included. (A) Real IMG/VR4 subsampled datasets. (B) Simulated datasets. Minimap2 was excluded from the main text CPU figure due to overall poor performance in spacer-protospacer detection (see main text and Performance_simulated_v2.ipynb, Performance_imgvr4_v2.ipynb); it is included here for completeness of computational resource comparison.
-
-![](figures/resource_usage/cpu_time_scaling_combined_w_minimap2.svg)
-
-### Supplementary Figure S16: Peak memory scaling (real and simulated datasets) {#fig-supp-resource-memory}
-
-Peak-memory scaling shown (A) Real IMG/VR4 subsampled datasets. (B) Simulated datasets. Axes are log-scaled and tool identity is encoded by marker shape and color.
+Peak memory usage (RSS, as reported by SLURM) scaling with dataset size. **A.** Real IMG/VR4 subsampled datasets (fractions 0.001-1.0). **B.** Simulated datasets with varying spacer and contig counts. Axes are log-scaled; tool identity is encoded by marker shape and color (see @tbl-tools for tool details).
 
 ![](figures/resource_usage/resource_usage_memory_2panel.svg)
 
-### Supplementary Figure S17: Real data resource usage detail {#fig-supp-resource-detail-real}
+### Supplementary Figure S10: Tool recall consistency across dataset sizes {#fig-supp-sim-consistency}
 
-Individual resource usage plots for real IMG/VR4 subsampled datasets. (A) Total CPU time vs total contig size. (B) Peak memory vs total contig size. (C) Peak memory vs total CPU time (marker size proportional to dataset size). All axes are log-scaled. See Supplementary Table S8 for exact values.
+Per-tool recall consistency at hamming distance ≤3. Upper panel: per-tool mean recall with error bars indicating standard deviation. **A.** Real IMG/VR4 subsampled datasets. **B.** Fully synthetic datasets.
 
-\<merge resource_usage_real_cpu_vs_size.svg, resource_usage_real_memory_vs_size.svg, and resource_usage_real_memory_vs_cputime.svg in three-panel layout, with labels A, B, C\>
+![](figures/cross_fraction_recall_real_vs_sim.png)
 
-### Supplementary Figure S18: Simulated data resource usage detail {#fig-supp-resource-detail-sim}
+Lower panel: heatmap of per-tool recall values across simulated datasets at hamming distance ≤3. Rows correspond to tools; columns correspond to individual simulation runs.
 
-Individual resource usage plots for simulated datasets. (A) Total CPU time vs search space size (spacers x contigs). (B) Peak memory vs search space size. (C) Peak memory vs total CPU time (marker size proportional to search space). All axes are log-scaled. See Supplementary Table S8 for exact values.
-
-\<merge resource_usage_sim_cpu_vs_searchspace.svg, resource_usage_sim_memory_vs_searchspace.svg, and resource_usage_sim_memory_vs_cputime.svg in three-panel layout, with labels A, B, C\>
+![](figures/performance/simulated_heatmap_dataset_consistency_hamming_le3.svg) Heatmap of per-tool recall values across simulated datasets at Hamming distance ≤3. Rows correspond to tools and columns correspond to analyses runs.
 
 ## Supplementary Notes
 
@@ -264,7 +435,7 @@ Individual resource usage plots for simulated datasets. (A) Total CPU time vs se
 To illustrate the necessity for coordinate tolerance matching, consider the following case from one of the synthetic dataset (ns_100000_nc_10000) where three different tools detected the same ground truth region, but reported it with slightly different coordinates:
 
 | Source | Spacer ID | Contig ID | Query Start | Query End | Target Start | Target End | Strand | Mismatches/Cost (tool-reported) | Notes |
-|:-------|:-------|:-------|-------:|-------:|-------:|-------:|:------|:---------|:-------|
+|:-------|:-------|:-------|-------:|-------:|-------:|-------:|:-------|:-------|:-------|
 | Ground Truth | 1c47e31b_spacer_10034 | 1c47e31b_contig_1828 | \- | \- | 5001 | 5036 | reverse | 1 |  |
 | BLASTn | 1c47e31b_spacer_10034 | 1c47e31b_contig_1828 | 1 | 34 | 5036 | 5003 | reverse | 0 |  |
 | MMseqs2 | 1c47e31b_spacer_10034 | 1c47e31b_contig_1828 | 1 | 35 | 5036 | 5002 | reverse | 1 |  |
@@ -273,18 +444,6 @@ To illustrate the necessity for coordinate tolerance matching, consider the foll
 In this example, BLASTn reports the ungapped alignment at contig positions 5003-5036 (0 reported mismatches), MMseqs2 reports 5002-5036 (1 reported mismatch over the terminal base), and Sassy reports 5000-5036 (1 reported insertion, suggesting the position 5000 in the contig matches that of the last position in the spacer). The ground truth planned occurrence was at 5001-5036. Despite these coordinate variations, all three tools detected the same biological match. **Critically**, all three tools report alignments that are acceptable matches to the ground truth occurrence, under a maximum hamming distance of 1.
 
 This example demonstrates why a 5bp coordinate tolerance is necessary when aggregating results across tools to avoid double-counting essentially identical matches while accounting for valid algorithmic differences in gap versus substitution placement at alignment boundaries.
-
-### Supplementary Note 2: Anecdotal observations on frame-preserving indels {#note-supp-frame-indels}
-
-<PLACE_HOLDER> <!-- Should describe:
-- Observations of indels in multiples of 3bp (frame-preserving) in phage escape contexts
-- Why these are rare but potentially strong indicators of selection
-- Any specific examples from the datasets
-- Why this hasn't been previously reported in literature
-- Potential biological significance
-
-Referenced in main text introduction regarding phage mutation patterns
--->
 
 ### Supplementary Note 3: Non-planned Match Rate Analysis {#note-supp-nonplanned}
 
@@ -312,17 +471,9 @@ Each panel below shows one simulation. Grouped bars compare hamming (blue) and e
 
 ![](figures/ns_100000_nc_20000_background_counts_foldchange.svg)
 
-#### Aggregated hamming vs edit distance comparison
-
-Supplementary Figure S12 summarizes the mean ± SD non-planned match count across all four simulations at each threshold, for both hamming and edit distance.
-
-##### Supplementary Figure S12: Aggregated non-planned match counts (mean ± SD across simulations) {#fig-supp-aggregated-background}
-
-![Grouped bar chart showing the mean number of non-planned matches (log scale) at each distance threshold (0--5), comparing hamming distance (blue) and edit distance (orange). Error bars indicate standard deviation across the four fully synthetic simulations. At hamming distance ≤3, the mean count is approximately 91 (SD 64); at edit distance ≤3, it is approximately 642 (SD 480), a roughly 7-fold increase. At threshold ≤5, hamming yields approximately 20,411 (SD 15,391) while edit yields approximately 438,393 (SD 334,451), a roughly 21-fold increase. Data: `background_alignment_summary.csv`.](../main/figures/background_alignment_hamming_vs_edit.svg)
-
 #### Search-space-normalized non-planned match rates
 
-To account for differences in dataset size across simulations, we normalized non-planned match counts using the three metrics described above. Supplementary Figure S13 presents the mean ± SD across simulations at each threshold for all three metrics, separately for hamming and edit distance.
+To account for differences in dataset size across simulations, we normalized non-planned match counts using three metrics. Supplementary Figure S13 presents mean ± SD across simulations at each threshold, separately for hamming and edit distance.
 
 ##### Supplementary Figure S13: Search-space-normalized non-planned match rates {#fig-supp-search-space-normalization}
 
@@ -360,29 +511,11 @@ The table below summarizes the normalized non-planned match rates at distance th
 |                ≤4 |              72,132 |    4.4 × 10$^{-3}$ |     129,810 |
 |                ≤5 |             113,314 |    6.9 × 10$^{-3}$ |     203,922 |
 
-: Non-planned matches in the semi-synthetic dataset (3,826,979 real spacers × 421,431 simulated contigs, 0 planned spacer "injections") at cumulative hamming distance thresholds. The per Gbp$^2$ rate at hamming ≤3 (101,270) is higher than observed in the fully synthetic datasets (approximately 40,000), which is expected given differences in sequence composition between real and simulated spacers (e.g., non-uniform k-mer distribution, biological sequence features). Note: though to the sValues at thresholds ≤4 and ≤5 are **lower bounds** as only heuristic tools were used. {#tbl-supp-semisynthetic-rates}
-
-#### Semi-synthetic vs fully synthetic comparison
-
-The table below compares normalized non-planned match rates between the semi-synthetic dataset and the mean across fully synthetic simulations at hamming distance ≤3.
-
-| Metric | Simulated (mean ± SD) | Semi-synthetic | Ratio |
-|:---|---:|---:|---:|
-| Absolute count | 91.3 ± 64.5 | 56,273 | n/a (different search space) |
-| Per spacer per Gbp | 0.0013 ± 0.0001 | 0.0034 | 2.6× |
-| Per Gbp$^2$ | 40,314 ± 2,791 | 101,270 | 2.5× |
-
-: Comparison of non-planned match rates at hamming ≤3 between fully synthetic simulations (mean ± SD, n=4) and the semi-synthetic dataset. Absolute counts are not directly comparable due to different search space sizes. Normalized metrics show the semi-synthetic dataset has approximately 2.5× higher non-planned match rates, likely reflecting biological sequence composition features present in the real spacer set (iPHoP-derived) that are not fully captured by the simulated sequences (e.g., conserved motifs, non-uniform k-mer distributions, GC content variation within sequences).
+: Non-planned matches in the semi-synthetic dataset (3,826,979 real spacers × 421,431 simulated contigs, 0 planned spacer "injections") at cumulative hamming distance thresholds. The per Gbp$^2$ rate at hamming ≤3 (101,270) is higher than observed in the fully synthetic datasets (approximately 40,000), which is expected given differences in sequence composition between real and simulated spacers (e.g., non-uniform k-mer distribution, biological sequence features). Values at thresholds ≤4 and ≤5 are **lower bounds** as only heuristic tools were used. {#tbl-supp-semisynthetic-rates} The comparison of normalized non-planned match rates between the semi-synthetic dataset and the mean across fully synthetic simulations at hamming distance ≤3 is presented in the main text (@tbl-semisynthetic-hamming3).
 
 #### Caveats and interpretation
 
-These non-planned match rate estimates should be interpreted qualitatively rather than as exact predictive values, for several reasons:
-
-1.  **Sequence composition bias**: Real spacer sequences have compositional features (conserved motifs, non-random k-mer structure, locus-specific GC variation) not fully captured by simulated sequences. The approximately 2.5-fold difference between semi-synthetic and fully synthetic rates illustrates this effect.
-2.  **Simulated contig limitations**: While contig GC content and length distributions were matched to IMG/VR4, real viral genomes have additional structural features (coding density, gene arrangement, horizontal transfer footprints) that may influence match frequencies.
-3.  **Heuristic tool aggregation**: For the semi-synthetic dataset, only heuristic tools were computationally feasible. The reported counts are therefore lower bounds on the true non-planned match frequency.
-
-These estimates are most informative for relative comparisons: hamming vs edit distance, threshold effects, and scaling with search space size. For absolute prediction of non-planned match counts in a given analysis, the rates should be treated as order-of-magnitude guides rather than precise values.
+These non-planned match rate estimates should be interpreted qualitatively rather than as exact predictive values. Real spacer sequences have compositional features (conserved motifs, non-random k-mer structure, locus-specific GC variation) not fully captured by simulated sequences, as illustrated by the approximately 2.5-fold difference between semi-synthetic and fully synthetic rates. Simulated contigs, while matched to IMG/VR4 in GC content and length distributions, lack additional structural features of real viral genomes (coding density, gene arrangement, horizontal transfer footprints) that may influence match frequencies. For the semi-synthetic dataset, only heuristic tools were computationally feasible, so the reported counts represent lower bounds on the true non-planned match frequency. These estimates are most informative for relative comparisons (hamming vs edit distance, threshold effects, and scaling with search space size); for absolute prediction of non-planned match counts in a given analysis, they should be treated as order-of-magnitude guides.
 
 **Complete analysis available in:** `distance_metric_analysis_v3.ipynb` notebook in project repository, including per-distance breakdowns, tool-specific validation analyses, and detailed comparison tables.
 

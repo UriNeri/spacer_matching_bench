@@ -33,7 +33,8 @@ Briefly, following the reviewer suggestions we modified the analyses:
     tradeoffs of heuristic vs exhaustive tools.
 4.  **Explicitly suggesting tool choice:** To clarify the new results and
     different scenarios where spacer-protospacer might be investigated,
-    we have added a flowchart (diagram, figure nnn) that factors in the
+    we have expanded the discussion and conclusion sections to provide
+    explicit, scale-dependent tool recommendations that factor in
     dataset size, the availability of validation / experiment design, and
     the expected performance.
 5.  **Updated spacer dataset:** We replaced the "real-data" CRISPR
@@ -115,7 +116,8 @@ Briefly, following the reviewer suggestions we modified the analyses:
     Based on the simulated runs, we observe that such unplanned matches
     are typically an order of magnitude more frequent when searching up
     to n edit distance compared to n hamming distance, and this trend
-    increases considerably above distance 3 (see Supplementary Figure nnn).
+    increases considerably above distance 3 (see Supplementary
+    Figure S11, Supplementary Table S6).
     
     While this is expected (all hamming alignments are a subset of all
     edit-distance alignments), the exact rate and difference in the
@@ -126,9 +128,10 @@ Briefly, following the reviewer suggestions we modified the analyses:
     new simulation's ability to mimic real biological sequences more
     closely (with regard to base distribution, lengths, etc.). For
     example, using the semi-synthetic dataset (measuring the occurrence
-    of ~3.7M real spacers in 400k simulated contigs, matching the IMG/VR4
-    set size), we identified specific numbers of real spacers forming
-    alignments within hamming distance ≤3 [specific values to be added].
+    of ~3.8M real spacers in ~421k simulated contigs, matching the
+    IMG/VR4 set size), we identified 56,273 validated non-planned
+    alignments at hamming distance ≤3, 2,354 at ≤2, 49 at ≤1, and 1
+    exact match.
 
 9.  **Biological justification for hamming distance:** We added a brief
     literature review and argument for preferring hamming distance in most
@@ -142,14 +145,14 @@ Briefly, following the reviewer suggestions we modified the analyses:
         mutation types. We only identified one study mentioning indel
         escape mutations in protospacers, however that study does not
         perform a comparative quantification of them, and to the best of
-        our understanding, the provided information in the paper [citation nnn]
-        mentions only a single indel mutation.
+        our understanding, the provided information in the paper
+        [@Paez_Espino_2015] mentions only a single indel mutation.
     -   **Phage genome structure:** Phage genomes are coding-dense with
         most of the genome covered by coding sequences. A single indel
         in a coding sequence causes a frameshift mutation, which is
         often lethal. In contrast, a substitution may only affect a
         single amino acid residue.
-    -   **Frame-preserving indels:** Literature suggests indels are ~4x
+    -   **Frame-preserving indels:** Literature suggests indels are ~10x
         rarer than substitutions in bacteria (the host), and we
         expect this to be similar in phages.
     -   **Sequencing vs biological indels:** We distinguish biological
@@ -173,7 +176,8 @@ Briefly, following the reviewer suggestions we modified the analyses:
     -   **Large-scale rearrangements:** Another reported escape
         mechanism is large genomic rearrangements (e.g., when a spacer
         targets the boundary between two genes and gene order changes)
-        [citation nnn]. While these are rare and theoretically identifiable
+        [@Paez_Espino_2015; @Kupczok_2018_phage_genome_evolution].
+        While these are rare and theoretically identifiable
         by gap-affine methods, they would not be detectable with a small
         edit distance threshold (considering that these rearrangements
         involve substantial gene order changes).
@@ -210,7 +214,8 @@ these concerns:
     (k-mer distributions, repeat abundance, etc.) are also similar between
     the real and the new synthetic datasets, and included a notebook
     (spacer_inspection.ipynb) in the supplementary material to
-    demonstrate this (from which Supplementary Figures nnn were generated).
+    demonstrate this (from which Supplementary Figures S6 and S7 were
+    generated).
 
 **2. False Positive Analysis and Precision Metrics** "...I missed a more
 honest treatment of false positives. If you make a synthetic dataset,
@@ -255,10 +260,10 @@ occurrences, this percentage is not the most useful metric. We now
 instead report either the absolute number of such cases or their
 frequency normalized by the target (contigs) and query (spacers) set sizes.
 
-Specifically, using the semi-synthetic dataset (~3.7 million real spacers
-as queries, searched against 400k simulated contigs matching IMG/VR4
-sequence characteristics), we identified: 54,388 unique alignments at
-hamming distance ≤3, 2,217 unique alignments at ≤2, 47 alignments at ≤1,
+Specifically, using the semi-synthetic dataset (~3.8 million real spacers
+as queries, searched against ~421k simulated contigs matching IMG/VR4
+sequence characteristics), we identified: 56,273 unique alignments at
+hamming distance ≤3, 2,354 unique alignments at ≤2, 49 alignments at ≤1,
 and 1 exact match (distance 0). We observe similar rates (same order of
 magnitude, when adjusted for sequence length) in the fully synthetic runs.
 
@@ -346,8 +351,8 @@ We have addressed all methodological concerns:
     raises an important point about whether high-multiplicity spacers
     (\>1000 targets) are informative, noting that "...spacers
     with \>1000 targets are probably not very informative (unless the
-    MGE database is extremely redundant)". While these are rare (fig
-    nnn), we clarify that both the contig and spacer datasets used (in
+    MGE database is extremely redundant)". While these are rare
+    (Supplementary Figure S8B), we clarify that both the contig and spacer datasets used (in
     the original analysis and in this revision) are de-duplicated
     (non-redundant) at the sequence level (we explicitly only include
     unique sequences, removing duplicates or reverse-complement
@@ -401,7 +406,66 @@ computational benchmarking nature, and suggest the new title
 "Computational Tool Choice Impacts CRISPR Spacer-Protospacer Detection"
 to use more appropriate language than "drastically."
 
-**2. Enhanced BLASTn Analysis and Parameter Testing**
+**2. Introduction: Prior Work and Citations**
+
+The reviewer notes: "Most of these points have been examined using
+bioinformatic and experimental tools before and these should be cited.
+Reference and comment on the basis of current tools as well as older
+versions and reviews."
+
+**Response:** We have substantially expanded the introduction to cite and
+discuss prior work on CRISPR spacer-protospacer matching, the biological
+mechanisms of phage escape mutations, and the computational foundations
+of sequence similarity search. In particular, we now cite foundational
+experimental studies on escape mutations (Deveau et al. 2008, Semenova
+et al. 2011, Fineran et al. 2014, Schelling et al. 2023, Paez-Espino
+et al. 2015), mutation rate studies (Lee et al. 2012, Kucukyildirim et
+al. 2021), phage genome structure references (Hatfull & Hendrix 2011, Ha
+et al. 2018, Kupczok et al. 2018), and CRISPR-related host-prediction
+tools and databases (Edwards et al. 2015, Biswas et al. 2013, Roux et
+al. 2023, Zhang et al. 2021). We also cite algorithmic references for
+the evaluated tools and the classical sequence alignment literature
+(Needleman-Wunsch 1970, Smith-Waterman 1981, Myers 1999). The
+introduction now includes dedicated subsections on computational
+foundations, heuristic algorithm design, distance metrics, and false
+positive considerations.
+
+**3. DUST Citation and Low-Complexity Filtering**
+
+The reviewer asks: "Cite DUST if it has been used in this type of
+application before. Shannon entropy is not important here, base pairing
+is."
+
+**Response:** We now cite DUST (Morgulis et al. 2006) and tantan (Frith
+2010) in both the introduction and discussion as relevant complexity
+filtering tools. We clarify in the methods that Shannon entropy is used
+as one of several metrics in our pre-filtering step to identify
+low-complexity spacers, alongside base frequency thresholds and k-mer
+diversity, rather than as a primary analysis metric. The rationale for
+pre-filtering is to provide a uniform starting point across tools that
+handle complexity differently (some have internal filtering, some do
+not).
+
+**4. BLAST 2018 Issues**
+
+The reviewer notes: "The blast issues reported in 2018 appear to be
+resolved with later bug fixes and better documentation. They need not be
+reiterated here, unless discussing specific current issues or
+parameters."
+
+**Response:** We have revised the relevant paragraph in the introduction
+to explicitly note that the bugs reported by Shah et al. (2018) were
+subsequently patched, and that Madden et al. (2018) clarified the
+situation as a combination of a since-fixed software bug and
+misconceptions about BLAST+ tie-breaking. We retain a brief mention
+because the episode illustrates a broader point relevant to our work:
+assumptions about the exhaustiveness of tool result/reporting can lead to
+incorrect conclusions, and this is directly pertinent to our benchmark
+where reporting completeness is a key differentiator among tools. The
+discussion is now framed around the general principle rather than the
+specific historical dispute.
+
+**5. Enhanced BLASTn Analysis and Parameter Testing**
 
 The reviewer emphasizes that "blastn results are most relevant to many
 current tools and analyses" and requests "more analysis of blastn's
@@ -454,7 +518,7 @@ added a paragraph addressing this in the main text. Note - we do not see
 mention of using a modified "-max\_target\_seqs" in CRISPRTarget, and
 thus must assume the default (500) is used.
 
-**3. DUST Filtering / Low Complexity Analysis**
+**7. DUST Filtering / Low Complexity Analysis**
 
 The reviewer suggests testing "the effect of DUST" and asks "are the
 sequences with high abundance being missed of low complexity."
@@ -475,84 +539,60 @@ Regarding whether the high-abundance spacers being missed are low-complexity:
 we note that high-abundance spacers (>1000 occurrences) are still observed
 in the reanalysis of this version, indicating they pass the complexity filters.
 
-**4. Tool Recommendations and Guidelines**
+**8. Tool Recommendations and Guidelines**
 
 The reviewer notes that "the authors state they provide general
 guidelines in the abstract but these are less clear in the discussion."
 
 **Response:** We have clarified and expanded our tool recommendations
-with specific use cases (when and why to use certain tools) and have
-added a flowchart for tool selection under different scenarios (see figure nnn).
+with explicit, scale-dependent guidance in the revised discussion and
+conclusion sections.
 
 -   **Primary recommendation - Bowtie1 (hamming distance ≤3):** For most
-    large-scale metagenomic analyses, we recommend bowtie1 with hamming
-    distance ≤3. This provides high recall (>99% for spacers with 0-3
-    substitutions), a distance threshold that we find biologically
-    appropriate. Bowtie1 offers good computational efficiency and
-    scalability even for databases with millions of spacers and hundreds
-    of thousands of contigs.
+    large-scale metagenomic analyses where the total contig set exceeds
+    approximately 1 Gbp and the spacer set may contain millions of
+    sequences, we recommend Bowtie1 with hamming distance ≤3. Bowtie1
+    offers high recall (among the highest of heuristic tools evaluated)
+    with favorable computational efficiency and consistency across
+    dataset scales.
 -   **Extended hamming distance - Indelfree.sh indexed mode (hamming
     distance ≤5):** For scenarios requiring detection of spacers with up
     to 5 substitutions, we recommend indelfree.sh in indexed mode. While
-    more computationally intensive than bowtie1, it maintains near-perfect
-    recall and avoids the dramatic false positive increase associated
-    with using edit distance. It could be further optimized if the
-    minimum spacer length is known in advance to be ≥21 (allowing a
-    k-mer size of 8 instead of 7). Note that the false positive rate
-    increases beyond 3 substitutions, so this tool is best suited for
-    applications where extended mismatch tolerance is necessary and some
-    increase in false positives is acceptable.
--   **Sassy (edit distance) - Specific use cases:** Sassy is the only
-    tool evaluated with perfect recall that supports arbitrary edit
-    distances. However, it incurs massive computational costs (e.g.,
-    \~1M CPU seconds for 5% subsample with ≤5 edits). We recommend sassy
-    only for:
-
-    -   **Small datasets** where computational cost is acceptable
-    -   **Comparative studies** of escape mutation types in controlled
-        (experimental) phage-host systems. We note that such studies are
-        currently lacking, as the literature seems focused on measuring
-        substitution number and location rather than mutation type
-        (substitution vs. indel vs. rearrangement) and frequency. This
-        positions sassy as the only current recommendation for such
-        studies, which aligns with the historically small-scale nature of
-        such experimental setups (e.g., several phages and several host
-        strains).
-    -   **Testing with ≥3 substitutions and indels:** It is possible that
-        certain phage mutations accumulate both indels and substitutions,
-        particularly when the actual host of a divergent phage differs
-        from the closest available host from which spacers were extracted.
-
-    -   **Low-accuracy raw long reads** (e.g., Oxford Nanopore R9
-        chemistry) where indels are a larger concern and some minimal
-        edit distance tolerance might be considered
-    -   **Methodological validation** to establish baseline performance
-        when developing new tools, or deciding on benchmarking
-        guidelines (such as in this work)
-
--   **Sassy limitations:** We explicitly note that sassy's computational
-    requirements (1M CPU seconds for just 5% of data) make it prohibitive
-    for large-scale metagenomic analyses. This is not a limitation of
-    sassy as a tool, but rather a fundamental limitation of using edit
-    distance with exhaustive (non-heuristic) search for this biological
-    question at large scale. Notably, sassy actually has lower runtime
-    than some of the evaluated exhaustive tools that only report hamming
-    distances, which is quite impressive.
--   **Use case scenarios:** We provide specific recommendations:
-
-    -   **High-throughput host-virus prediction:** bowtie1 with hamming
-        ≤3
-    -   **Extended mismatch tolerance:** indelfree.sh indexed with
-        hamming ≤5
-    -   **Small experimental datasets:** sassy with appropriate distance
-        threshold
-    -   **Precision-focused applications:** Consider DUST filtering and
-        conservative thresholds
-
+    more computationally intensive than Bowtie1, it maintains
+    near-perfect recall and avoids the elevated non-planned match rates
+    associated with edit distance. Note that non-planned match
+    frequencies increase beyond 3 substitutions, so this tool is suited
+    for applications where extended mismatch tolerance is necessary and
+    the resulting increase in non-informative matches is acceptable.
+-   **Exhaustive tools for small-scale analyses:** For targeted analyses
+    of specific host-phage systems, lineage-specific comparisons, or any
+    setting where the total subject sequence is below approximately 1
+    Gbp, exhaustive tools such as Sassy and indelfree.sh bruteforce
+    remain tractable and provide guaranteed complete detection. This
+    includes experimental studies of individual host-phage systems,
+    where the number of query spacers ranges from tens to thousands and
+    the reference is a single or few phage genomes. In such settings,
+    the computational cost of exhaustive search is modest and the
+    guarantee of completeness is valuable for biological interpretation.
+-   **Edit distance - specific conditions only:** Edit distance metrics
+    may be warranted under narrowly defined conditions: (i) when
+    analyzing data from sequencing platforms with elevated indel error
+    rates (e.g., Oxford Nanopore R9 chemistry) where sequencing-induced
+    indels cannot be excluded, (ii) when explicitly characterizing
+    escape mutation mechanisms in controlled experimental systems where
+    the mutation type itself is informative, or (iii) in gene-editing
+    off-target prediction contexts where gapped alignments have
+    established biological relevance. Outside of these scenarios, the
+    substantially higher non-planned match rates associated with edit
+    distance (6-8 fold at ≤3) argue against its routine use for
+    inferring host-MGE interactions from natural populations.
 -   **Resource trade-offs:** We discuss computational requirements
-    comprehensively, showing that bowtie1 and indelfree.sh indexed mode
-    scale well to large databases, while sassy is limited to small-scale
-    applications.
+    comprehensively, showing that Bowtie1 and indelfree.sh indexed mode
+    scale well to large databases, while exhaustive tools are limited to
+    small-scale analyses. Sassy showed more favorable runtime than
+    indelfree_bruteforce despite being an exhaustive edit-distance
+    method, demonstrating that dedicated algorithmic optimizations can
+    substantially improve practical feasibility.
 -   **Parameter guidance:** We provide specific parameter
     recommendations for different tools and discuss how parameter
     choices affect performance, particularly for BLASTn where
@@ -573,7 +613,7 @@ We have addressed all figure issues:
 -   **Color consistency:** Colors and symbols representing tools should
     now be consistent across figures.
 
-**7. Historical Comparison**
+**Additional: Historical Comparison**
 
 The reviewer notes: "which would 'allow for a direct comparison to
 historical results'. Was that comparison ever made? I could not find any
@@ -586,6 +626,37 @@ publication, which used spacer-protospacer matching for host assignment
 version, we removed the explicit mention of comparison to historical
 results, as we are now using a different spacer sequence set (iPhoP June
 2025).
+
+**9. Reference Genome Spacers and Known Prokaryotic Viruses**
+
+The reviewer notes: "This study focuses only on metagenomic data and is
+useful as such. It would be useful to see a set of spacers from
+reference genomes, and known prokaryotic viruses. Some of the effects
+seen here could be due to biases in the spacer library or IMGVR
+datasets."
+
+**Response:** The datasets used in the revised manuscript include
+sequences from both reference genomes and metagenomic sources. The iPHoP
+spacer set (June 2025 release) explicitly combines CRISPR spacers
+extracted from both reference genomes and metagenomes, as described in
+the Methods. Similarly, IMG/VR4 viral contigs are supplemented with
+sequences from NCBI RefSeq and GenBank, which include known prokaryotic
+viruses with cultured isolate genomes. Thus, the benchmark is not
+exclusively metagenomic in origin.
+
+Additionally, the simulated datasets provide a complementary evaluation
+under controlled sequence composition (with known ground truth), which
+is independent of any biases present in the real spacer or contig
+databases. The consistency of tool behavior across synthetic, real, and
+semi-synthetic datasets (as shown in Figure 1 and the supplementary
+figures) suggests that the observed performance differences reflect
+genuine algorithmic properties rather than dataset-specific artifacts.
+We acknowledge that a dedicated analysis focusing exclusively on
+reference-genome-derived spacers matched against characterized phage
+isolates would be a valuable complementary study, but consider it beyond
+the scope of the present work, which is focused on benchmarking tool
+performance under conditions representative of current large-scale
+metagenomic analyses.
 
 ## Supplementary Material
 All new notebooks, datasets, and analysis scripts are provided in the

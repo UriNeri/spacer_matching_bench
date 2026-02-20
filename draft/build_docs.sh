@@ -12,10 +12,9 @@ cd ../supp
 # done
 
 # merge the header only file with the rawmd.not_md into the supplementary.qmd
-cat header.notqmd rawmd.notmd > supplementary.qmd
 quarto render 
 cd ../
-python build_supplementary_pdf.py
+# python build_supplementary_pdf.py
 
 # cp ./draft_main_manuscript.docx ../public/index.docx
 

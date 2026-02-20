@@ -3749,3 +3749,157 @@ def get_system_info(use_slurm: bool = True, also_out_to="system_info.json") -> d
         "python_path": python_path,
         "hyperfine_version": hyperfine_version,
     }
+
+
+# -- Table formatting utilities ------------------------------------------------
+
+def parse_polars_text_table(text: str) -> pl.DataFrame:
+    """Parse a Polars box-drawing text table into a pl.DataFrame.
+
+    Accepts the output of print(df) or str(df) with box-drawing characters
+    (e.g. ┌─┬─┐, │ ┆ │, └─┴─┘) OR standard pipe-delimited tables.
+    The first data row after the header is treated as the dtype row (e.g.
+    '--- / str / f64') and is skipped.
+    """
+    lines = text.strip().splitlines()
+
+    # keep only lines that contain cell data (│ ... │ or | ... |)
+    data_lines = [
+        l for l in lines
+        if (l.strip().startswith("│") or l.strip().startswith("|"))
+        and not all(c in "│|─┼╪═ ┆+-" for c in l.strip())
+    ]
+
+    if len(data_lines) < 2:
+        raise ValueError("Could not find header + at least one data row in the text table")
+
+    def _split_row(line: str) -> list[str]:
+        # strip leading/trailing box chars, then split on ┆ or |
+        line = line.strip().strip("│|")
+        # polars uses ┆ as inner separator
+        if "┆" in line:
+            return [c.strip() for c in line.split("┆")]
+        return [c.strip() for c in line.split("|")]
+
+    header = _split_row(data_lines[0])
+
+    # second row is the dtype indicator (e.g. "--- / str / f64") – skip it
+    # detect by checking if all cells match a dtype pattern or are "---"
+    start_idx = 1
+    if len(data_lines) > 2:
+        second = _split_row(data_lines[1])
+        if all(re.match(r"^-+$|^[a-z]\w*$", c) for c in second):
+            start_idx = 2
+
+    rows: list[dict[str, str]] = []
+    for line in data_lines[start_idx:]:
+        vals = _split_row(line)
+        if len(vals) != len(header):
+            continue  # skip malformed lines
+        rows.append(dict(zip(header, vals)))
+
+    if not rows:
+        raise ValueError("No data rows found after header")
+
+    df = pl.DataFrame(rows)
+
+    # attempt numeric casting for each column
+    for col in df.columns:
+        try:
+            df = df.with_columns(pl.col(col).cast(pl.Float64))
+        except Exception:
+            pass
+
+    return df
+
+
+def polars_to_quarto_md(
+    df: pl.DataFrame,
+    *,
+    align: str = "left",
+    float_fmt: str = "{:.4f}",
+    caption: str | None = None,
+    label: str | None = None,
+) -> str:
+    """Convert a Polars DataFrame to a Quarto-compatible markdown pipe table.
+
+    Parameters
+    ----------
+    df : pl.DataFrame
+        The table to convert.
+    align : str
+        Column alignment. One of 'left', 'right', 'center', or a string of
+        l/r/c characters (one per column). Default 'left'.
+    float_fmt : str
+        Format string applied to float columns. Default '{:.4f}'.
+    caption : str | None
+        Optional table caption (rendered as ': caption' below the table).
+    label : str | None
+        Optional Quarto cross-reference label (e.g. 'tbl-my-table').
+
+    Returns
+    -------
+    str
+        Markdown pipe table string.
+    """
+    headers = df.columns
+
+    # build alignment row
+    align_map = {"left": ":---", "right": "---:", "center": ":---:"}
+    if len(align) == 1 or align in align_map:
+        a = align_map.get(align, ":---")
+        aligns = [a] * len(headers)
+    else:
+        amap = {"l": ":---", "r": "---:", "c": ":---:"}
+        aligns = [amap.get(ch, ":---") for ch in align]
+        # pad if shorter than columns
+        while len(aligns) < len(headers):
+            aligns.append(":---")
+
+    def _fmt_val(val: Any, dtype: pl.DataType) -> str:
+        if val is None:
+            return ""
+        if dtype.is_float():
+            return float_fmt.format(val)
+        return str(val)
+
+    # header row
+    lines: list[str] = []
+
+    # optional label for quarto cross-referencing
+    if label:
+        lines.append("")
+
+    header_line = "| " + " | ".join(headers) + " |"
+    align_line = "| " + " | ".join(aligns) + " |"
+    lines.append(header_line)
+    lines.append(align_line)
+
+    for row in df.iter_rows():
+        cells = [
+            _fmt_val(v, df.schema[h])
+            for v, h in zip(row, headers)
+        ]
+        lines.append("| " + " | ".join(cells) + " |")
+
+    # caption / label
+    if caption or label:
+        cap = caption or ""
+        lbl = f" {{#{label}}}" if label else ""
+        lines.append(f": {cap}{lbl}")
+
+    lines.append("")
+    return "\n".join(lines)
+
+
+def polars_text_to_quarto_md(
+    text: str,
+    **kwargs,
+) -> str:
+    """Parse a Polars box-drawing text table and convert to Quarto markdown.
+
+    This is a convenience wrapper: parse_polars_text_table -> polars_to_quarto_md.
+    All keyword arguments are forwarded to polars_to_quarto_md.
+    """
+    df = parse_polars_text_table(text)
+    return polars_to_quarto_md(df, **kwargs)
