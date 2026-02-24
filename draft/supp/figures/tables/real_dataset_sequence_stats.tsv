@@ -1,9 +1,0 @@
-file	n_seqs	median_length	avg_length	sum_length	min_length	max_length	gc_frac_mean	type	name
-imgvr4_data/spacers/iphop_filtered_spacers.fna	3826979	34.0	33.837147525502495	129494053	25	40	0.476138043974702	spacers	all_spacers
-results/real_data/subsamples/fraction_0.0005/subsampled_data/subsampled_contigs.fa	279	15818.0	25220.756272401435	7036591	1060	233373	0.48038537717872704	contigs	fraction_0.0005
-results/real_data/subsamples/fraction_0.001/subsampled_data/subsampled_contigs.fa	421	14902.0	23148.862232779098	9745671	1700	246318	0.48004418739417815	contigs	fraction_0.001
-results/real_data/subsamples/fraction_0.005/subsampled_data/subsampled_contigs.fa	2107	16000.0	27080.878974845753	57059412	1060	618736	0.4724565149847955	contigs	fraction_0.005
-results/real_data/subsamples/fraction_0.01/subsampled_data/subsampled_contigs.fa	4214	18655.0	29347.00284765069	123668270	1060	482156	0.47295079371349835	contigs	fraction_0.01
-results/real_data/subsamples/fraction_0.05/subsampled_data/subsampled_contigs.fa	21071	34591.0	33936.360970053625	715073062	1060	505259	0.47432709438503057	contigs	fraction_0.05
-results/real_data/subsamples/fraction_0.1/subsampled_data/subsampled_contigs.fa	42143	36154.0	35700.7478347531	1504536616	1060	596785	0.4748090592640197	contigs	fraction_0.1
-results/real_data/subsamples/fraction_1/subsampled_data/subsampled_contigs.fa	421431	40550.0	44777.53935519694	1690774004	1060	711471	0.4754609151181408	contigs	fraction_1

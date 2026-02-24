@@ -1,0 +1,8 @@
+ Dataset group 	 Dataset(s) 	 Sequence generation parameters 	 Tool-run parameters 
+ Real-data subsamples 	 fraction_0.0005, 0.001, 0.005, 0.01 	 Subsample IMG/VR4 filtered contigs by class-stratified fraction; full filtered iPHoP spacers 	 `max_distance=5`, 38 threads 
+ Real-data subsamples 	 fraction_0.05, 0.1 	 Same as above 	 `max_distance=3`, 38 threads, skip `sassy` and `indelfree_bruteforce` 
+ Full real data 	 fraction_1 	 421,431 HQ contigs (class-stratified), full filtered iPHoP spacers 	 `max_distance=3`, 38 threads, `mem=250G`, `t=72:00:00`, skip `sassy` and `indelfree_bruteforce` 
+ Semi-synthetic baseline 	 `ns_3826979_nc_421431_real_baseline` 	 `num_contigs=421431`, `num_spacers=3826979`, contig length `2000-100000`, contig GC `46`, spacer length `25-50`, mismatch range `0-0`, spacer insertions `0-0`, reverse-complement rate `0.5` 	 `max_distance=3`, 38 threads, `mem=250G`, `t=72:00:00`, skip `sassy` and `indelfree_bruteforce` 
+ Fully synthetic (small/medium) 	 `ns_50000_nc_5000`, `ns_75000_nc_5000`, `ns_100000_nc_10000`, `ns_100000_nc_20000`, `ns_75000_nc_10000` 	 Typical settings: contig distribution normal, spacer distribution normal, spacer GC `49`, spacer length `25-40`, contig length `10000-150000`, spacer insertions `1-5`, mismatch range `0-5` (except selected large runs) 	 Mostly `max_distance=5`, 38 threads 
+ High-occurrence synthetic 	 `ns_500_nc_5000_HIGH_INSERTION_RATE` 	 Spacer insertions `100-2500`, spacer length `25-40`, contig length `10000-150000`, mismatch range `0-5` 	 `max_distance=5`, 38 threads 
+ Fully synthetic (largest) 	 `ns_500000_nc_100000` 	 contig length up to `550000`, mismatch range `0-3` 	 `max_distance=3`, skip `sassy` and `indelfree_bruteforce` 

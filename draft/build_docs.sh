@@ -1,5 +1,6 @@
 rm -rf ./public
 cd draft/main
+rm -rf _freeze
 quarto render 
 cd ../supp
 

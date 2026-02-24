@@ -1,0 +1,4 @@
+ Stage 	 N spacers 	 Length range (bp) 	 Median length (bp) 	 GC (%) 	 Notes 
+ Raw iPHoP spacer set 	 3,882,812 	 25-40 	 34 	 47.6 	 Input dataset used in `spacer_inspection.ipynb` 
+ Removed by complexity/ambiguity filtering 	 55,833 	 — 	 — 	 — 	 Removed if `n_frac > 0`, homopolymer-like base fraction \>= 0.95 (A/C/G/T or GC), entropy \<= 1, or repeated 6-mer count \>= 4 
+ Final filtered spacer set 	 3,826,979 	 25-40 	 34 	 46.73 	 Exported as `iphop_filtered_spacers.fna`; used in real-data runs 

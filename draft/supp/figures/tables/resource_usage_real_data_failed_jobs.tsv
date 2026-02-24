@@ -1,4 +1,0 @@
-tool	fraction	status	BaseJobID	AllocCPUS	Time_Hours
-indelfree_bruteforce	0.005	TIMEOUT	20668623	38	216.01
-indelfree_bruteforce	0.01	TIMEOUT	20668635	38	216.03
-indelfree_indexed	1	TIMEOUT	20668667	38	216.0

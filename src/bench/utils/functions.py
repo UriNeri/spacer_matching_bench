@@ -2216,11 +2216,15 @@ def get_seq_stats_pl(seq_file: str) -> pl.DataFrame:
         - file: filename (for reference)
     """
     # Read FASTA file into Polars DataFrame
-    seq_df = pl.DataFrame(read_fasta_needletail(seq_file), schema={'seqid': pl.Utf8, 'seq': pl.Utf8},)
-    seq_df = seq_df.with_columns(
-        pl.col("seq").str.len_chars().alias("length")
+    seq_df = pl.DataFrame(
+        read_fasta_needletail(seq_file),
+        schema={'seqid': pl.Utf8, 'seq': pl.Utf8},
+    ).with_columns(
+        pl.col("seq").str.len_chars().cast(pl.Int64).alias("length")
     )
-    median = seq_df.select(pl.col("length")).median().item()
+
+    # Use Int64 for aggregations to avoid overflow on large references
+    median = seq_df.select(pl.col("length").median()).item()
     mean = seq_df.select(pl.col("length").mean()).item()
     sum_length = seq_df.select(pl.col("length").sum()).item()
     min_length = seq_df.select(pl.col("length").min()).item()
@@ -2234,13 +2238,13 @@ def get_seq_stats_pl(seq_file: str) -> pl.DataFrame:
 
     seq_df = pl.DataFrame().with_columns(
         pl.lit(str(seq_file)).alias("file"),
-        pl.lit(seq_df.height).alias("n_seqs"),
-        pl.lit(median).alias("median_length"),
-        pl.lit(mean).alias("avg_length"),
-        pl.lit(sum_length).alias("sum_length"),
-        pl.lit(min_length).alias("min_length"),
-        pl.lit(max_length).alias("max_length"),
-        pl.lit(gc_frac_mean).alias("gc_frac_mean")
+        pl.lit(seq_df.height, dtype=pl.Int64).alias("n_seqs"),
+        pl.lit(median, dtype=pl.Float64).alias("median_length"),
+        pl.lit(mean, dtype=pl.Float64).alias("avg_length"),
+        pl.lit(sum_length, dtype=pl.Int64).alias("sum_length"),
+        pl.lit(min_length, dtype=pl.Int64).alias("min_length"),
+        pl.lit(max_length, dtype=pl.Int64).alias("max_length"),
+        pl.lit(gc_frac_mean, dtype=pl.Float64).alias("gc_frac_mean"),
     )
     return seq_df
 

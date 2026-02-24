@@ -1,0 +1,33 @@
+---
+title: "Main Text Tables (export source)"
+---
+
+### Table 1: Evaluated Tools and Their Characteristics {#tbl-main-1}
+
+| Tool | Indexed | Algorithm | Heuristic / Exhaustive | Reporting Threshold | Year | Original Purpose /intended use | Notes | Key Tool Configuration |
+|--------|--------|--------|--------|--------|--------|--------|--------|--------|
+| Bowtie1 | Yes | FM-Index (BWT) | Heuristic (backtracking) | Hamming | 2009 | Short read mapping | Optimized for 25-50 bp reads (max 1kbp); ungapped alignment only; backtracking heuristic limits to 3 mismatches | `--seedmms 3 -f --all -v 3` |
+| Bowtie2 | Yes | FM-Index (BWT) | Heuristic (multiseed + extend) | Affine/Edit | 2012 | Read mapping (w/ gapped) | Uses FM-index for seeding with SIMD-accelerated DP extension; supports gapped, local, and end-to-end alignment | `-N 1 -L 15 --all --very-sensitive` |
+| indelfree.sh | No | Multi-kmer matching | Bruteforce mode is exhaustive, while in non “Indexed” mode this can be limited by selected kmer length, query length, and number of substitutions. | Hamming | introduced to bbtools Sept. 2025 | Read mapping | BBTools suite is Java based, and will use available memory - so the peak memory reported herein (sourced from SLURM logs) does not equate with “minimal required memory” | Indexed mode: `k=8` Bruteforce: `simd` |
+| StrobeAlign | Yes | Randstrobes | Heuristic (syncmer thinning) | None, see, Issue 462 | 2022 | Read mapping | Uses hash-based linked strobes (randstrobes) with multi-context seeds (MCS) for hierarchical search | `-k 15 -N 10000 -M 200` |
+| BLAST+ | Optional | Seed-Hit-and-extend | Heuristic | E-value, bit score, alignment values (%ID, coverage etc) | 2009 | Sequence search | BLASTN-short mode uses 7-mer seeds; reports matches based on e-value (expected hits by chance given DB size) | `-max_target_seqs 1000000 -perc_identity 84 -qcov_hsp_perc 80 -dust no -ungapped -task blastn-short` |
+| MMseqs2 | Optional | K-mer prefiltering | Heuristic (3-stage cascade) | E-value, bit score, alignment values (%ID, coverage etc) | 2017 | Sequence search | Double k-mer matching → vectorized ungapped → gapped SW; optimized for many-against-many searches | `--min-seq-id 0.85 --min-aln-len 17` |
+| Sassy | No | Uses a bit-parallel algorithm based on Myers’ bitpacking to perform exhaustive approximate string matching (ASM) | Exhaustive | Edit | 2025 | Versatile pattern matching, suggested for use in CRISPR (gene-editing) off target detection and raw-read alignments | Guarantees perfect recall; explores full edit distance landscape; supports arbitrary distances; high computational cost, uses SIMD instructions (AVX2 and NEON) when available, which most modern CPUs support |  |
+| X-mapper | Yes | Gapped x-mer pyramid | Heuristic (dynamic seeds) | Edit | 2024 | Read mapping | Preprint - Dynamic-length gapped x-mers with “pyramid walking” to optimize seed specificity | `--max-penalty 0.2 --max-penalty-span 2 --snp-penalty 1 --new-indel-penalty 1.5 --extend-indel-penalty 0.5` |
+| mummer4 | Optional | 48-bit suffix array | Heuristic (MUM-based) | Edit | 2018 | Genome alignment | Identifies Maximal Unique Matches (MUMs) using enhanced suffix arrays. | `--maxmatch --nosimplify --batch=10000000` |
+
+### Table 2: Dataset characteristics {#tbl-main-2}
+
+| **Dataset Type** | **Spacers (Count)** | **Contigs (Count)** | **Notes** |
+|:-----------------|:-----------------|:-----------------|:-----------------|
+| Fully Synthetic | 100k - 500k | 5k - 100k | Generated with varying params (see Supplementary Table S4) |
+| Semi-Synthetic | ~3.8M (Real) | ~420k (Simulated) | Real iPHoP spacers, Fully synthetic contigs matching IMG/VR4 GC% and length range. |
+| Real Data (IMG/VR4) | ~3.8M (Real) | ~420k (Real "HQ") | IMG/VR4 v1.1 HQ contigs and their subsamples, lightly filtered iPHoP spacers |
+
+### Table 3: Non-planned match rate comparison (hamming ≤3) {#tbl-main-3}
+
+|   | Fully-Simulated (mean ± SD, n=4) | Semi-synthetic (real spacers) | Ratio |
+|------------------|------------------|------------------|------------------|
+| Non-planned matches (total) | 91.3 ± 64.5 | 56,273 | n/a (different search space) |
+| Per spacer per Gbp | 0.0013 ± 0.0001 | 0.0034 | 2.6× |
+| Per Gbp2 search space | 40,314 ± 2,791 | 101,270 | 2.5× |

@@ -1,6 +1,8 @@
 project:
   type: manuscript
   output-dir: ../../public/supplementary
+  render:
+    - supplementary.qmd
 
 manuscript:
   article: supplementary.qmd

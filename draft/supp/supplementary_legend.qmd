@@ -1,0 +1,165 @@
+---
+title: "Supplementary Legends for: Computational Tool Choice Impacts CRISPR Spacer-Protospacer Detection"
+author:
+  - name: Uri Neri
+    affiliations:
+      - name: DOE Joint Genome Institute
+        address: Berkeley, CA, USA
+    email: uneri@lbl.gov
+    corresponding: true
+  - name: Antonio Pedro Camargo
+    affiliations:
+      - name: DOE Joint Genome Institute
+        address: Berkeley, CA, USA
+  - name: Rick Beeloo
+    affiliations:
+      - name: Utrecht University
+        address: Padualaan 8, Utrecht, NL 3584 CH
+  - name: Brian Bushnell
+    affiliations:
+      - name: DOE Joint Genome Institute
+        address: Berkeley, CA, USA
+  - name: Simon Roux
+    affiliations:
+      - name: DOE Joint Genome Institute
+        address: Berkeley, CA, USA
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+  pdf:
+    documentclass: article
+    geometry:
+      - margin=1in
+    fig-format: pdf
+    embed-resources: true
+    keep-tex: true
+    include-in-header:
+      text: |
+        \usepackage{float}
+        \floatplacement{figure}{H}
+        \usepackage{booktabs}
+        \usepackage{colortbl}
+        \usepackage[table]{xcolor}
+        \definecolor{light-gray}{gray}{0.9}
+        \renewcommand{\arraystretch}{1.2}
+        \let\oldtabular\tabular
+        \let\oldendtabular\endtabular
+        \renewenvironment{tabular}{\small\oldtabular}{\oldendtabular}
+        \setlength{\tabcolsep}{4pt}
+    fig-pos: 'H'
+    number-sections: true
+    cite-method: biblatex
+    bibliography: ../main/references.bib
+    pdf-engine: xelatex
+    css: pdf_styles.css
+  odt: default
+  docx: default
+---
+
+# Supplementary Materials
+
+This legend-only version preserves the section structure, captions, and explanatory notes from `supplementary.qmd` while omitting embedded tables and figures. Source data remain available in `draft/supp/figures/` and `draft/supp/figures/tables/`.
+
+## Tables
+
+### Supplementary Table S1: Tool Configuration Details {#tbl-supp-tool-config}
+
+Parameters chosen for each tool to maximize recall on short spacers. BLASTn settings emphasize ungapped alignments and permissive identity/coverage to capture all valid matches; bowtie variants, minimap2, MMseqs2, mummer4, sassy, strobealign, and x_mapper entries list versions and command-line templates. Full table is available in `draft/supp/figures/tables/supp_table_S1_tool_config.tsv`.
+
+### Supplementary Table S2: IMG/VR4 Contig Dataset Statistics and Filtering Steps {#tbl-supp-contig-stats}
+
+Summary of IMG/VR4 v1.1 high-confidence viral contigs after taxonomic filtering and length cutoffs, including the final HQ benchmark subset (fraction_1). See `draft/supp/figures/tables/supp_table_S2_contig_stats.tsv` for the full table.
+
+### Supplementary Table S3: CRISPR Spacer Dataset Composition and Statistics {#tbl-supp-spacer-stats}
+
+Statistics for the iPHoP spacer dataset before and after complexity filtering, including length ranges, GC content, and removal criteria. Data are provided in `draft/supp/figures/tables/supp_table_S3_spacer_stats.tsv`.
+
+### Supplementary Table S4: Detailed Statistics for All Datasets {#tbl-supp-simulation-params}
+
+**A. Real datasets** — Counts and length/GC summaries for spacers and contigs across IMG/VR4 fractions (0.0005 through 1). 
+
+**B. Simulated datasets** — Equivalent summaries for all synthetic datasets used in the study. Full details are in `draft/supp/figures/tables/supp_table_S4_real_dataset_sequence_stats.tsv` and `supp_table_S4_simulated_dataset_sequence_stats.tsv`.
+
+### Supplementary Table S5: Simulation and job-generation configuration from `Prepare_all_jobs.ipynb` {#tbl-supp-prepare-jobs}
+
+Per-dataset group configuration for simulations and tool runs, noting search-space sizes, distance thresholds, and tool inclusion/exclusion. See `draft/supp/figures/tables/supp_table_S5_prepare_jobs.tsv` for the structured table.
+
+### Supplementary Table S6: Recall Values for Each Tool at Different Mismatch Thresholds {#tbl-supp-recall}
+
+Values are counted per spacer–contig alignment using exact distance for each metric. `n_found` tallies tool-reported positive alignments at a given distance, `n_total` is the ground-truth positive count, and recall is `n_found / n_total`. Subsections report IMG/VR4 and synthetic datasets separately. Complete values reside in `draft/supp/figures/tables/supp_table_S6_recall_values.tsv`.
+
+## Supplementary Figures
+
+### Supplementary Figure S1: IMG/VR4 tool-vs-tool comparison matrices {#fig-supp-real-matrix}
+
+Pairwise tool-comparison matrices for IMG/VR4 fraction_1 at exact hamming distances (0–3). Each cell indicates regions detected by one tool but not another; diagonals list per-tool totals. Original figure: `draft/supp/figures/performance/imgvr4_fraction1_tool_comparison_matrix.svg`.
+
+### Supplementary Figure S2: Simulated dataset recall vs spacer occurrence frequency {#fig-supp-sim-recall}
+
+High-occurrence-focused recall view for the high-insertion simulated dataset (`ns_500_nc_5000_HIGH_INSERTION_RATE`) at hamming distance ≤3. Original figure: `draft/supp/figures/performance/imgvr4_high_ins_recall_vs_occurrence.svg`.
+
+### Supplementary Figure S3: IMG/VR4 fraction_1 recall vs occurrence frequency at hamming distance ≤3 {#fig-supp-real-recall}
+
+Recall versus spacer occurrence for the real IMG/VR4 fraction_1 dataset at hamming distance ≤3. Original figure: `draft/supp/figures/performance/imgvr4_fraction1_recall_vs_occurrence.png`.
+
+### Supplementary Figure S4: Comparison of simulated vs real spacer characteristics {#fig-supp-spacer-comparison}
+
+Distributions comparing simulated and real spacer features (k-mer repeatability, entropy, base frequencies, GC, LCC). Panel A shows filtered iPHoP spacers; Panel B shows fully simulated spacers (ns_100000_nc_20000). Original figures: `figures/supp/filtered_iphop_spacers_attribute_distributions_multiplot.png` and `figures/supp/simulated_spacer_distributions.svg`.
+
+### Supplementary Figure S5: Spacer characteristic distributions by dataset {#fig-supp-spacer-distributions}
+
+Spacer and contig characteristic distributions for real (IMG/VR4) and simulated datasets, covering spacer size, mismatch counts, and occurrence rates. Outliers were removed for fraction_1 length visualization. Original figure: `figures/supp/real_data_contig_distributions.svg`.
+
+### Supplementary Figure S6: Distribution of matched spacers from fraction_1 {#fig-supp-occurrence-distribution}
+
+Distributions of matched spacers (hamming ≤3) across length, number of occurrences, and per-distance alignment counts. Original figure: `figures/supp/fraction_1_matched_spacers_distributions.png`.
+
+### Supplementary Figure S7: Peak memory scaling (real and simulated datasets) {#fig-supp-resource-memory}
+
+Peak memory usage (RSS) scaling with dataset size. Panel A: IMG/VR4 subsamples; Panel B: simulated datasets. Axes are log-scaled; tool identity encoded by color/shape. Original figure: `figures/resource_usage/resource_usage_memory_2panel.svg`.
+
+### Supplementary Figure S8: Tool recall consistency across dataset sizes {#fig-supp-sim-consistency}
+
+Per-tool recall consistency at hamming distance ≤3. Panel A: real IMG/VR4 subsamples. Panel B: synthetic datasets. Panel C: heatmap of per-tool recall across simulated runs. Original figures: `figures/performance/imgvr4_across_fractions_recall_consistency_hamming_le3.svg`, `figures/performance/simulated_cross_fraction_consistency.svg`, and `figures/performance/simulated_heatmap_dataset_consistency_hamming_le3.svg`.
+
+### Supplementary Figure S9: Per-simulation non-planned match counts (Hamming vs Edit) {#fig-supp-per-sim-background}
+
+Grouped bars for each simulation (ns_50000_nc_5000, ns_75000_nc_5000, ns_100000_nc_10000, ns_100000_nc_20000) comparing hamming and edit distance non-planned match counts at thresholds 0–5. Original figures: `figures/ns_50000_nc_5000_background_counts_foldchange.svg`, `figures/ns_75000_nc_5000_background_counts_foldchange.svg`, `figures/ns_100000_nc_10000_background_counts_foldchange.svg`, and `figures/ns_100000_nc_20000_background_counts_foldchange.svg`.
+
+## Supplementary Notes
+
+### Supplementary Note 1: Coordinate Tolerance Matching Example {#note-supp-coord-tolerance}
+
+Illustrative case from a synthetic dataset (`ns_100000_nc_10000`) where BLASTn, MMseqs2, and Sassy report slightly different coordinates for the same spacer–contig locus. BLASTn aligns positions 5003–5036 with 0 mismatches; MMseqs2 reports 5002–5036 with 1 mismatch; Sassy reports 5000–5036 with a 1 bp insertion (CIGAR 34=1I1=); the planned occurrence is 5001–5036. All represent acceptable matches at maximum hamming distance 1, motivating a 5 bp coordinate tolerance when aggregating alignments.
+
+### Supplementary Note 2: Non-planned Match Rate Analysis {#note-supp-nonplanned}
+
+#### Hamming vs edit distance: per-simulation results
+
+Per-simulation comparisons of non-planned match counts under hamming versus edit distance for four fully synthetic datasets (ns_50000_nc_5000, ns_75000_nc_5000, ns_100000_nc_10000, ns_100000_nc_20000) at thresholds 0–5. Detailed counts are in `distance_metric_analysis_v3.ipynb` and associated CSV exports.
+
+#### Search-space-normalized non-planned match rates
+
+##### Supplementary Table S7: Search-space-normalized metrics at hamming/edit distance ≤3 {#tbl-supp-normalized-threshold3}
+
+Normalized non-planned match rates (per spacer per Gbp and per Gbp$^2$) for each fully synthetic simulation. Edit distance ≤3 produces roughly 6–8× more non-planned matches than hamming ≤3. Full numeric table: `draft/supp/figures/tables/search_space_normalized_metrics_threshold3.csv`.
+
+##### Supplementary Table S8: Semi-synthetic non-planned match rates by hamming threshold {#tbl-supp-semisynthetic}
+
+Cumulative non-planned matches in the semi-synthetic dataset across hamming thresholds (0–5), with rates normalized by spacer and contig sequence space. Values are provided in `draft/supp/figures/tables/supp_table_S8_semi_synthetic_rates.csv` and the corresponding TSV.
+
+#### Caveats and interpretation
+
+Non-planned match estimates reflect compositional differences between real and simulated sequences; semi-synthetic rates (real spacers × simulated contigs) exceed fully synthetic rates. For high thresholds (≤4, ≤5) the counts are lower bounds because only heuristic tools were feasible. These rates are most informative for relative comparisons rather than absolute prediction.
+
+**Complete analysis available in:** `distance_metric_analysis_v3.ipynb`, which includes per-distance breakdowns, tool-specific validation, and detailed comparison tables.
+
+## References and Data Availability
+
+Analysis notebooks, source code, and generated data are available in the project repository: https://github.com/UriNeri/spacer_matching_bench.
+
+Key notebooks: `spacer_inspection.ipynb`, `distance_metric_analysis_v3.ipynb`, `Prepare_all_jobs.ipynb`, `Performance_simulated_v2.ipynb`, `Performance_imgvr4_v3.ipynb`.
+
+Datasets: filtered IMG/VR4 HQ contigs (fraction_1 subset), filtered iPHoP spacers, all synthetic datasets and ground truth files (Zenodo DOI links in the main text).

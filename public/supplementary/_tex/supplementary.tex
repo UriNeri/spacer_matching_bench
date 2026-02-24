@@ -1,0 +1,2794 @@
+% Options for packages loaded elsewhere
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{5}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+% Make \paragraph and \subparagraph free-standing
+\makeatletter
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+\makeatother
+
+
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+
+
+
+
+
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+
+
+ 
+\usepackage[]{biblatex}
+\addbibresource{../main/references.bib}
+
+
+\usepackage{float}
+\floatplacement{figure}{H}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage[table]{xcolor}
+\definecolor{light-gray}{gray}{0.9}
+\renewcommand{\arraystretch}{1.2}
+\let\oldtabular\tabular
+\let\oldendtabular\endtabular
+\renewenvironment{tabular}{\small\oldtabular}{\oldendtabular}
+\setlength{\tabcolsep}{4pt}
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Supplementary Material for: Computational Tool Choice Impacts CRISPR Spacer-Protospacer Detection},
+  pdfauthor={Uri Neri; Antonio Pedro Camargo; Rick Beeloo; Brian Bushnell; Simon Roux},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+
+\title{Supplementary Material for: Computational Tool Choice Impacts
+CRISPR Spacer-Protospacer Detection}
+\author{Uri Neri \and Antonio Pedro Camargo \and Rick Beeloo \and Brian
+Bushnell \and Simon Roux}
+\date{}
+\begin{document}
+\maketitle
+
+
+\section{Supplementary Materials}\label{supplementary-materials}
+
+\subsection{Tables}\label{tables}
+
+\subsubsection{Supplementary Table S1: Tool Configuration
+Details}\label{tbl-supp-tool-config}
+
+\textbf{Note on BLASTn parameters:} The parameters for BLASTn were
+specifically chosen to enable the highest possible recall for short
+spacers. We used \texttt{blastn-short} (sets word-size at 7, compared to
+11 with default blastn and 28 in megablastn), a very high number of max
+target sequences (\texttt{-max\_target\_seqs\ 1000000}, allowing up to
+1M reported alignments per query compared to default value of 500), the
+\texttt{-\/-ungapped} flag (used by CRISPRTarget, aligns with our
+hamming distance focus), and \texttt{perc\_identity=84} and
+\texttt{qcov\_hsp\_perc=80}. The ungapped flag considerably reduced
+total CPU time. The \texttt{perc\_identity} and \texttt{qcov\_hsp\_perc}
+arguments control output size - we cannot restrict blastn to a specific
+``n'' distance, so these values allow a range of distances to be
+reported. For example, 85\% identity over at least 80\% of the spacer
+allows for 3 mismatches for a 20bp spacer (20 * 0.15 = 3), but allows
+more for a 30bp spacer (30 * 0.15 = 4.5). This range exceeds our desired
+thresholds to capture all valid matches.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3750}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3750}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Tool
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Version
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Command
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+blastn & BLAST+ 2.16.0 &
+\texttt{makeblastdb\ -in\ \{contigs\_file\}\ -dbtype\ nucl\ -out\ \{output\_dir\}/contigs\_blastdb\ \&\&\ blastn\ -query\ \{spacers\_file\}\ -db\ \{output\_dir\}/contigs\_blastdb\ -max\_target\_seqs\ 1000000\ -out\ \{output\_dir\}/blastn\_output.tsv\ -perc\_identity\ 84\ -qcov\_hsp\_perc\ 80\ -dust\ no\ -ungapped\ -num\_threads\ \{threads\}\ -task\ blastn-short\ -outfmt\ "6\ qaccver\ saccver\ nident\ length\ mismatch\ qlen\ gapopen\ qstart\ qend\ sstart\ send\ evalue\ bitscore"} \\
+bowtie1 & 1.3.1 &
+\texttt{bowtie-build\ -\/-threads\ \{threads\}\ \{contigs\_file\}\ \{output\_dir\}/bt1\_contigs\_index\ \&\&\ bowtie\ -\/-threads\ \{threads\}\ -\/-seedmms\ 3\ -\/-no-unal\ -f\ -\/-all\ -v\ \{max\_mismatches\}\ -x\ \{output\_dir\}/bt1\_contigs\_index\ \{spacers\_file\}\ -S\ \{output\_dir\}/bowtie1\_output.sam} \\
+bowtie2 & 2.5.4 &
+\texttt{bowtie2-build\ -\/-large-index\ -\/-threads\ \{threads\}\ \{contigs\_file\}\ \{output\_dir\}/contigs\_bt2indx\ \&\&\ bowtie2\ -N\ 1\ -L\ 15\ -\/-all\ -\/-xeq\ -\/-very-sensitive\ -x\ \{output\_dir\}/contigs\_bt2indx\ -f\ \{spacers\_file\}\ -S\ \{output\_dir\}/bowtie2\_output.sam\ -\/-threads\ \{threads\}} \\
+indelfree\_bruteforce & BBTools 39.62 &
+\texttt{indelfree.sh\ subs=\{max\_mismatches\}\ in=\{spacers\_file\}\ ref=\{contigs\_file\}\ out=\{output\_dir\}/indelfree\_bruteforce\_output.sam\ index=f\ threads=\{threads\}\ simd} \\
+indelfree\_indexed & BBTools 39.62 &
+\texttt{indelfree.sh\ subs=\{max\_mismatches\}\ in=\{spacers\_file\}\ ref=\{contigs\_file\}\ out=\{output\_dir\}/indelfree\_indexed\_output.sam\ index=t\ threads=\{threads\}\ k=8} \\
+mmseqs2 & 18.8cc5c &
+\texttt{mkdir\ -p\ \{output\_dir\}/tmp\_spacers\ \{output\_dir\}/tmp\_contigs\ \{output\_dir\}/tmp\_mmseqs\ \{output\_dir\}/tmp\_mmseqs\_outputs\ \&\&\ mmseqs\ createdb\ \{spacers\_file\}\ \{output\_dir\}/tmp\_spacers/mmdb\ \&\&\ mmseqs\ createdb\ \{contigs\_file\}\ \{output\_dir\}/tmp\_contigs/mmdb\ \&\&\ mmseqs\ search\ \{output\_dir\}/tmp\_spacers/mmdb\ \{output\_dir\}/tmp\_contigs/mmdb\ \{output\_dir\}/tmp\_mmseqs\_outputs/mmseqs\_output\ \{output\_dir\}/tmp\_mmseqs\ -\/-min-seq-id\ 0.85\ -\/-min-aln-len\ 17\ -\/-threads\ \{threads\}\ -a\ -\/-search-type\ 3\ -v\ 1\ \&\&\ mmseqs\ convertalis\ \{output\_dir\}/tmp\_spacers/mmdb\ \{output\_dir\}/tmp\_contigs/mmdb\ \{output\_dir\}/tmp\_mmseqs\_outputs/mmseqs\_output\ \{output\_dir\}/mmseqs\_output.tsv\ -\/-format-mode\ 0\ -\/-search-type\ 4\ -\/-format-output\ query,target,nident,alnlen,mismatch,qlen,gapopen,qstart,qend,tstart,tend,evalue,bits} \\
+mummer4 & 4.0.0rc1 &
+\texttt{nucmer\ -\/-maxmatch\ -\/-nosimplify\ -\/-batch=10000000\ -\/-threads\ \{threads\}\ -\/-sam-long=\{output\_dir\}/mummer4\_output.sam\ -c\ 1\ \{contigs\_file\}\ \{spacers\_file\}} \\
+sassy & 0.1.4 &
+\texttt{sassy\ search\ -\/-alphabet\ iupac\ -\/-pattern-fasta\ \{spacers\_file\}\ -k\ \{max\_mismatches\}\ -\/-output\ \{output\_dir\}/sassy.tsv\ -\/-threads\ \{threads\}\ \{contigs\_file\}} \\
+strobealign & 0.16.1 &
+\texttt{strobealign\ -\/-eqx\ -k\ 15\ -N\ 10000\ -M\ 200\ -t\ \{threads\}\ \{contigs\_file\}\ \{spacers\_file\}\ -o\ \{output\_dir\}/strobealign\_output.sam} \\
+x\_mapper & 1.2.0 &
+\texttt{x-mapper\ -\/-reference\ \{contigs\_file\}\ -\/-queries\ \{spacers\_file\}\ -\/-out-sam\ \{output\_dir\}/x\_mapper\_output.sam\ -\/-num-threads\ \{threads\}\ -\/-max-penalty\ 0.2\ -\/-max-penalty-span\ 2\ -\/-snp-penalty\ 1\ -\/-new-indel-penalty\ 1.5\ -\/-extend-indel-penalty\ 0.5\ -Xmx28G} \\
+minimap2 & 2.30-r1287 &
+\texttt{minimap2\ -k\ 8\ -w\ 6\ -P\ -\/-eqx\ -m\ 10\ -\/-sam-hit-only\ -t\ \{threads\}\ -a\ \{contigs\_file\}\ \{spacers\_file\}\ -o\ \{output\_dir\}/minimap2\_output.sam} \\
+\end{longtable}
+
+\subsubsection{Supplementary Table S2: IMG/VR4 Contig Dataset Statistics
+and Filtering Steps}\label{tbl-supp-contig-stats}
+
+Summary of IMG/VR4 v1.1 high-confidence viral contigs after taxonomic
+filtering and length cutoff.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Step
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Operation
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Output contigs
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Notes
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & Load IMG/VR4 v1.1 high-confidence set & 5,457,198 & Initial
+high-confidence contigs \\
+2 & Remove eukaryotic virus taxa & 5,115,894 & Filtered by ICTV
+class/order/family lists in \texttt{fetch\_real\_data.ipynb} \\
+3 & Remove short contigs & 5,115,894 & Length filter: keep contigs
+\textgreater1000 bp \\
+4 & Export filtered reference & 5,115,894 &
+\texttt{filtered\_contigs.fasta} and
+\texttt{filtered\_contig\_stats.parquet} \\
+5 & Build HQ benchmark subset & 421,431 & Stratified taxonomic
+subsampling by class for fraction\_1 analyses \\
+\end{longtable}
+
+The filtered prokaryotic viral set used for sampling contains
+approximately 79 Gbp total sequence length, with contig lengths ranging
+from 1,001 to 2,473,870 bp (median 7,664 bp). The fraction\_1 subset
+used for full real-data benchmarking contains 421,431 contigs
+(approximately 1.69 Gbp).
+
+\subsubsection{Supplementary Table S3: CRISPR Spacer Dataset Composition
+and Statistics}\label{tbl-supp-spacer-stats}
+
+Detailed statistics on the iPHoP spacer dataset before and after
+complexity filtering.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Stage
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+N spacers
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Length range (bp)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Median length (bp)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+GC (\%)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Notes
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Raw iPHoP spacer set & 3,882,812 & 25-40 & 34 & 47.6 & Input dataset
+used in \texttt{spacer\_inspection.ipynb} \\
+Removed by complexity/ambiguity filtering & 55,833 & --- & --- & --- &
+Removed if \texttt{n\_frac\ \textgreater{}\ 0}, homopolymer-like base
+fraction \textgreater= 0.95 (A/C/G/T or GC), entropy \textless= 1, or
+repeated 6-mer count \textgreater= 4 \\
+Final filtered spacer set & 3,826,979 & 25-40 & 34 & 46.73 & Exported as
+\texttt{iphop\_filtered\_spacers.fna}; used in real-data runs \\
+\end{longtable}
+
+Total filtered spacer sequence length is approximately 132 Mbp.
+Distribution summaries are shown in Supplementary Figures S5 and S6.
+
+\subsubsection{Supplementary Table S4: Detailed Statistics for All
+Datasets}\label{tbl-supp-simulation-params}
+
+\textbf{A. Real datasets}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Dataset / Subset
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Type
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+N Seqs
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Total Size (bp)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Length Range (bp)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Mean Length
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+GC \%
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+all spacers & Spacers & 3,826,979 & 129,494,053 & 25-40 & 33.84 &
+47.6\% \\
+fraction 0.0005 & Contigs & 279 & 7,036,591 & 1,060-233,373 & 25,220.76
+& 48.0\% \\
+fraction 0.001 & Contigs & 421 & 9,745,671 & 1,700-246,318 & 23,148.86 &
+48.0\% \\
+fraction 0.005 & Contigs & 2,107 & 57,059,412 & 1,060-618,736 &
+27,080.88 & 47.2\% \\
+fraction 0.01 & Contigs & 4,214 & 123,668,270 & 1,060-482,156 &
+29,347.00 & 47.3\% \\
+fraction 0.05 & Contigs & 21,071 & 715,073,062 & 1,060-505,259 &
+33,936.36 & 47.4\% \\
+fraction 0.1 & Contigs & 42,143 & 1,504,536,616 & 1,060-596,785 &
+35,700.75 & 47.5\% \\
+fraction 1 & Contigs & 421,431 & 18,870,643,188 & 1,060-711,471 &
+44,777.54 & 47.5\% \\
+\end{longtable}
+
+\textbf{B. Simulated datasets}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Dataset / Subset
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Type
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+N Seqs
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Total Size (bp)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Length Range (bp)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Mean Length
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+GC \%
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ns 100000 nc 10000 & Contigs & 10,000 & 802,832,723 & 10,067-149,921 &
+80,283.27 & 49.0\% \\
+ns 100000 nc 10000 & Spacers & 100,000 & 3,201,222 & 25-40 & 32.01 &
+49.0\% \\
+ns 100000 nc 20000 & Contigs & 20,000 & 1,604,143,975 & 10,014-149,390 &
+80,207.20 & 49.0\% \\
+ns 100000 nc 20000 & Spacers & 100,000 & 3,200,186 & 25-40 & 32.00 &
+49.0\% \\
+ns 100 nc 5000 & Contigs & 5,000 & 380,461,323 & 2,621-149,596 &
+76,092.26 & 46.0\% \\
+ns 100 nc 5000 & Spacers & 100 & 3,507 & 25-45 & 35.07 & 49.4\% \\
+ns 3826979 nc 421431 real baseline & Contigs & 421,431 & 21,470,981,225
+& 2,006-100,000 & 50,947.80 & 46.0\% \\
+ns 3826979 nc 421431 real baseline & Spacers & 3,826,979 & 129,494,053 &
+25-40 & 33.84 & 47.6\% \\
+ns 500000 nc 100000 & Contigs & 100,000 & 28,002,479,279 &
+10,140-549,926 & 280,024.79 & 49.0\% \\
+ns 500000 nc 100000 & Spacers & 500,000 & 16,002,956 & 25-40 & 32.01 &
+49.0\% \\
+ns 50000 nc 5000 & Contigs & 5,000 & 402,606,570 & 11,391-149,534 &
+80,521.31 & 49.0\% \\
+ns 50000 nc 5000 & Spacers & 50,000 & 1,599,652 & 25-40 & 31.99 &
+49.1\% \\
+ns 500 nc 5000 HIGH INSERTION RATE & Contigs & 5,000 & 400,779,688 &
+11,241-149,479 & 80,155.94 & 49.0\% \\
+ns 500 nc 5000 HIGH INSERTION RATE & Spacers & 500 & 16,007 & 25-39 &
+32.01 & 48.9\% \\
+ns 75000 nc 5000 & Contigs & 5,000 & 401,074,812 & 10,244-149,609 &
+80,214.96 & 49.0\% \\
+ns 75000 nc 5000 & Spacers & 75,000 & 2,401,592 & 25-40 & 32.02 &
+49.0\% \\
+\end{longtable}
+
+\subsubsection{\texorpdfstring{Supplementary Table S5: Simulation and
+job-generation configuration from
+\texttt{Prepare\_all\_jobs.ipynb}}{Supplementary Table S5: Simulation and job-generation configuration from Prepare\_all\_jobs.ipynb}}\label{tbl-supp-prepare-jobs}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Dataset group
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Dataset(s)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Sequence generation parameters
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Tool-run parameters
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Real-data subsamples & fraction\_0.0005, 0.001, 0.005, 0.01 & Subsample
+IMG/VR4 filtered contigs by class-stratified fraction; full filtered
+iPHoP spacers & \texttt{max\_distance=5}, 38 threads \\
+Real-data subsamples & fraction\_0.05, 0.1 & Same as above &
+\texttt{max\_distance=3}, 38 threads, skip \texttt{sassy} and
+\texttt{indelfree\_bruteforce} \\
+Full real data & fraction\_1 & 421,431 HQ contigs (class-stratified),
+full filtered iPHoP spacers & \texttt{max\_distance=3}, 38 threads,
+\texttt{mem=250G}, \texttt{t=72:00:00}, skip \texttt{sassy} and
+\texttt{indelfree\_bruteforce} \\
+Semi-synthetic baseline &
+\texttt{ns\_3826979\_nc\_421431\_real\_baseline} &
+\texttt{num\_contigs=421431}, \texttt{num\_spacers=3826979}, contig
+length \texttt{2000-100000}, contig GC \texttt{46}, spacer length
+\texttt{25-50}, mismatch range \texttt{0-0}, spacer insertions
+\texttt{0-0}, reverse-complement rate \texttt{0.5} &
+\texttt{max\_distance=3}, 38 threads, \texttt{mem=250G},
+\texttt{t=72:00:00}, skip \texttt{sassy} and
+\texttt{indelfree\_bruteforce} \\
+Fully synthetic (small/medium) & \texttt{ns\_50000\_nc\_5000},
+\texttt{ns\_75000\_nc\_5000}, \texttt{ns\_100000\_nc\_10000},
+\texttt{ns\_100000\_nc\_20000}, \texttt{ns\_75000\_nc\_10000} & Typical
+settings: contig distribution normal, spacer distribution normal, spacer
+GC \texttt{49}, spacer length \texttt{25-40}, contig length
+\texttt{10000-150000}, spacer insertions \texttt{1-5}, mismatch range
+\texttt{0-5} (except selected large runs) & Mostly
+\texttt{max\_distance=5}, 38 threads \\
+High-occurrence synthetic &
+\texttt{ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE} & Spacer insertions
+\texttt{100-2500}, spacer length \texttt{25-40}, contig length
+\texttt{10000-150000}, mismatch range \texttt{0-5} &
+\texttt{max\_distance=5}, 38 threads \\
+Fully synthetic (largest) & \texttt{ns\_500000\_nc\_100000} & contig
+length up to \texttt{550000}, mismatch range \texttt{0-3} &
+\texttt{max\_distance=3}, skip \texttt{sassy} and
+\texttt{indelfree\_bruteforce} \\
+\end{longtable}
+
+\subsubsection{Supplementary Table S6: Recall Values for Each Tool at
+Different Mismatch Thresholds}\label{tbl-supp-recall}
+
+Values are counted per spacer-contig alignment (one row per
+\texttt{alignment\_idx} in the ``multimetric'' parquets in zenodo),
+using exact distance for the stated metric. \texttt{n\_found} is the
+number of positive alignments reported by the tool at that exact
+distance (classification \texttt{positive\_in\_plan} or
+\texttt{positive\_not\_in\_plan}). \texttt{n\_total} is the total number
+of positive alignments at that distance in the evaluation set. Recall is
+\texttt{n\_found\ /\ n\_total}. The \texttt{region\_idx} field in the
+source data groups multiple alignments for the same spacer-contig locus;
+counts here do not collapse by region (as they are in the manuscript).
+
+\paragraph{A. IMG/VR4 dataset}\label{a.-imgvr4-dataset}
+
+Every row lists the results for a specific mismatch threshold and tool.
+The values are for exact distance (not max), and represent the total
+number of unique spacer-contig pairs (aligning at that mismatch
+threshold). The fraction is tool\_matches divided by total\_possible.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Fraction/Simulation
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Distance
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Metric
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Tool
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+n\_found
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+n\_total
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Recall
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+fraction\_0.0005 & 0 & edit & blastn & 4371 & 4371 & 1.000 \\
+fraction\_0.0005 & 0 & edit & bowtie1 & 4371 & 4371 & 1.000 \\
+fraction\_0.0005 & 0 & edit & bowtie2 & 4371 & 4371 & 1.000 \\
+fraction\_0.0005 & 0 & edit & indelfree\_bruteforce & 4371 & 4371 &
+1.000 \\
+fraction\_0.0005 & 0 & edit & indelfree\_indexed & 4371 & 4371 &
+1.000 \\
+fraction\_0.0005 & 0 & edit & minimap2 & 7 & 4371 & 0.002 \\
+fraction\_0.0005 & 0 & edit & mmseqs2 & 4287 & 4371 & 0.981 \\
+fraction\_0.0005 & 0 & edit & mummer4 & 4371 & 4371 & 1.000 \\
+fraction\_0.0005 & 0 & edit & sassy & 4371 & 4371 & 1.000 \\
+fraction\_0.0005 & 0 & edit & strobealign & 4334 & 4371 & 0.992 \\
+fraction\_0.0005 & 0 & edit & x\_mapper & 4371 & 4371 & 1.000 \\
+fraction\_0.0005 & 1 & edit & blastn & 3213 & 3491 & 0.920 \\
+fraction\_0.0005 & 1 & edit & bowtie1 & 3456 & 3491 & 0.990 \\
+fraction\_0.0005 & 1 & edit & bowtie2 & 3491 & 3491 & 1.000 \\
+fraction\_0.0005 & 1 & edit & indelfree\_bruteforce & 3469 & 3491 &
+0.994 \\
+fraction\_0.0005 & 1 & edit & indelfree\_indexed & 3469 & 3491 &
+0.994 \\
+fraction\_0.0005 & 1 & edit & minimap2 & 0 & 3491 & 0.000 \\
+fraction\_0.0005 & 1 & edit & mmseqs2 & 3349 & 3491 & 0.959 \\
+fraction\_0.0005 & 1 & edit & mummer4 & 2618 & 3491 & 0.750 \\
+fraction\_0.0005 & 1 & edit & sassy & 3491 & 3491 & 1.000 \\
+fraction\_0.0005 & 1 & edit & strobealign & 2882 & 3491 & 0.826 \\
+fraction\_0.0005 & 1 & edit & x\_mapper & 3147 & 3491 & 0.901 \\
+fraction\_0.0005 & 2 & edit & blastn & 2195 & 3276 & 0.670 \\
+fraction\_0.0005 & 2 & edit & bowtie1 & 3166 & 3276 & 0.966 \\
+fraction\_0.0005 & 2 & edit & bowtie2 & 3245 & 3276 & 0.991 \\
+fraction\_0.0005 & 2 & edit & indelfree\_bruteforce & 3204 & 3276 &
+0.978 \\
+fraction\_0.0005 & 2 & edit & indelfree\_indexed & 3204 & 3276 &
+0.978 \\
+fraction\_0.0005 & 2 & edit & minimap2 & 0 & 3276 & 0.000 \\
+fraction\_0.0005 & 2 & edit & mmseqs2 & 2301 & 3276 & 0.702 \\
+fraction\_0.0005 & 2 & edit & mummer4 & 1200 & 3276 & 0.366 \\
+fraction\_0.0005 & 2 & edit & sassy & 3276 & 3276 & 1.000 \\
+fraction\_0.0005 & 2 & edit & strobealign & 1851 & 3276 & 0.565 \\
+fraction\_0.0005 & 2 & edit & x\_mapper & 2565 & 3276 & 0.783 \\
+fraction\_0.0005 & 3 & edit & blastn & 1330 & 3723 & 0.357 \\
+fraction\_0.0005 & 3 & edit & bowtie1 & 2986 & 3723 & 0.802 \\
+fraction\_0.0005 & 3 & edit & bowtie2 & 2687 & 3723 & 0.722 \\
+fraction\_0.0005 & 3 & edit & indelfree\_bruteforce & 3058 & 3723 &
+0.821 \\
+fraction\_0.0005 & 3 & edit & indelfree\_indexed & 3058 & 3723 &
+0.821 \\
+fraction\_0.0005 & 3 & edit & minimap2 & 0 & 3723 & 0.000 \\
+fraction\_0.0005 & 3 & edit & mmseqs2 & 874 & 3723 & 0.235 \\
+fraction\_0.0005 & 3 & edit & mummer4 & 292 & 3723 & 0.078 \\
+fraction\_0.0005 & 3 & edit & sassy & 3723 & 3723 & 1.000 \\
+fraction\_0.0005 & 3 & edit & strobealign & 805 & 3723 & 0.216 \\
+fraction\_0.0005 & 3 & edit & x\_mapper & 1787 & 3723 & 0.480 \\
+fraction\_0.001 & 0 & edit & blastn & 6741 & 6741 & 1.000 \\
+fraction\_0.001 & 0 & edit & bowtie1 & 6741 & 6741 & 1.000 \\
+fraction\_0.001 & 0 & edit & bowtie2 & 6741 & 6741 & 1.000 \\
+fraction\_0.001 & 0 & edit & indelfree\_bruteforce & 6741 & 6741 &
+1.000 \\
+fraction\_0.001 & 0 & edit & indelfree\_indexed & 6741 & 6741 & 1.000 \\
+fraction\_0.001 & 0 & edit & minimap2 & 13 & 6741 & 0.002 \\
+fraction\_0.001 & 0 & edit & mmseqs2 & 6641 & 6741 & 0.985 \\
+fraction\_0.001 & 0 & edit & mummer4 & 6741 & 6741 & 1.000 \\
+fraction\_0.001 & 0 & edit & sassy & 6741 & 6741 & 1.000 \\
+fraction\_0.001 & 0 & edit & strobealign & 6703 & 6741 & 0.994 \\
+fraction\_0.001 & 0 & edit & x\_mapper & 6741 & 6741 & 1.000 \\
+fraction\_0.001 & 1 & edit & blastn & 4724 & 5112 & 0.924 \\
+fraction\_0.001 & 1 & edit & bowtie1 & 5061 & 5112 & 0.990 \\
+fraction\_0.001 & 1 & edit & bowtie2 & 5110 & 5112 & 1.000 \\
+fraction\_0.001 & 1 & edit & indelfree\_bruteforce & 5076 & 5112 &
+0.993 \\
+fraction\_0.001 & 1 & edit & indelfree\_indexed & 5076 & 5112 & 0.993 \\
+fraction\_0.001 & 1 & edit & minimap2 & 0 & 5112 & 0.000 \\
+fraction\_0.001 & 1 & edit & mmseqs2 & 4951 & 5112 & 0.969 \\
+fraction\_0.001 & 1 & edit & mummer4 & 3851 & 5112 & 0.753 \\
+fraction\_0.001 & 1 & edit & sassy & 5112 & 5112 & 1.000 \\
+fraction\_0.001 & 1 & edit & strobealign & 4442 & 5112 & 0.869 \\
+fraction\_0.001 & 1 & edit & x\_mapper & 4687 & 5112 & 0.917 \\
+fraction\_0.001 & 2 & edit & blastn & 3164 & 4638 & 0.682 \\
+fraction\_0.001 & 2 & edit & bowtie1 & 4518 & 4638 & 0.974 \\
+fraction\_0.001 & 2 & edit & bowtie2 & 4614 & 4638 & 0.995 \\
+fraction\_0.001 & 2 & edit & indelfree\_bruteforce & 4561 & 4638 &
+0.983 \\
+fraction\_0.001 & 2 & edit & indelfree\_indexed & 4561 & 4638 & 0.983 \\
+fraction\_0.001 & 2 & edit & minimap2 & 0 & 4638 & 0.000 \\
+fraction\_0.001 & 2 & edit & mmseqs2 & 3491 & 4638 & 0.753 \\
+fraction\_0.001 & 2 & edit & mummer4 & 1703 & 4638 & 0.367 \\
+fraction\_0.001 & 2 & edit & sassy & 4638 & 4638 & 1.000 \\
+fraction\_0.001 & 2 & edit & strobealign & 2811 & 4638 & 0.606 \\
+fraction\_0.001 & 2 & edit & x\_mapper & 3678 & 4638 & 0.793 \\
+fraction\_0.001 & 3 & edit & blastn & 2041 & 5649 & 0.361 \\
+fraction\_0.001 & 3 & edit & bowtie1 & 4581 & 5649 & 0.811 \\
+fraction\_0.001 & 3 & edit & bowtie2 & 4302 & 5649 & 0.762 \\
+fraction\_0.001 & 3 & edit & indelfree\_bruteforce & 4700 & 5649 &
+0.832 \\
+fraction\_0.001 & 3 & edit & indelfree\_indexed & 4700 & 5649 & 0.832 \\
+fraction\_0.001 & 3 & edit & minimap2 & 0 & 5649 & 0.000 \\
+fraction\_0.001 & 3 & edit & mmseqs2 & 1470 & 5649 & 0.260 \\
+fraction\_0.001 & 3 & edit & mummer4 & 511 & 5649 & 0.090 \\
+fraction\_0.001 & 3 & edit & sassy & 5649 & 5649 & 1.000 \\
+fraction\_0.001 & 3 & edit & strobealign & 1375 & 5649 & 0.243 \\
+fraction\_0.001 & 3 & edit & x\_mapper & 2748 & 5649 & 0.486 \\
+fraction\_0.005 & 0 & edit & blastn & 21987 & 21987 & 1.000 \\
+fraction\_0.005 & 0 & edit & bowtie1 & 21987 & 21987 & 1.000 \\
+fraction\_0.005 & 0 & edit & bowtie2 & 21987 & 21987 & 1.000 \\
+fraction\_0.005 & 0 & edit & indelfree\_indexed & 21987 & 21987 &
+1.000 \\
+fraction\_0.005 & 0 & edit & minimap2 & 52 & 21987 & 0.002 \\
+fraction\_0.005 & 0 & edit & mmseqs2 & 21687 & 21987 & 0.986 \\
+fraction\_0.005 & 0 & edit & mummer4 & 21987 & 21987 & 1.000 \\
+fraction\_0.005 & 0 & edit & sassy & 21987 & 21987 & 1.000 \\
+fraction\_0.005 & 0 & edit & strobealign & 21754 & 21987 & 0.989 \\
+fraction\_0.005 & 0 & edit & x\_mapper & 21978 & 21987 & 1.000 \\
+fraction\_0.005 & 1 & edit & blastn & 16349 & 17580 & 0.930 \\
+fraction\_0.005 & 1 & edit & bowtie1 & 17375 & 17580 & 0.988 \\
+fraction\_0.005 & 1 & edit & bowtie2 & 17576 & 17580 & 1.000 \\
+fraction\_0.005 & 1 & edit & indelfree\_indexed & 17455 & 17580 &
+0.993 \\
+fraction\_0.005 & 1 & edit & minimap2 & 0 & 17580 & 0.000 \\
+fraction\_0.005 & 1 & edit & mmseqs2 & 16976 & 17580 & 0.966 \\
+fraction\_0.005 & 1 & edit & mummer4 & 12816 & 17580 & 0.729 \\
+fraction\_0.005 & 1 & edit & sassy & 17580 & 17580 & 1.000 \\
+fraction\_0.005 & 1 & edit & strobealign & 14843 & 17580 & 0.844 \\
+fraction\_0.005 & 1 & edit & x\_mapper & 14423 & 17580 & 0.820 \\
+fraction\_0.005 & 2 & edit & blastn & 11439 & 16648 & 0.687 \\
+fraction\_0.005 & 2 & edit & bowtie1 & 16144 & 16648 & 0.970 \\
+fraction\_0.005 & 2 & edit & bowtie2 & 16504 & 16648 & 0.991 \\
+fraction\_0.005 & 2 & edit & indelfree\_indexed & 16321 & 16648 &
+0.980 \\
+fraction\_0.005 & 2 & edit & minimap2 & 0 & 16648 & 0.000 \\
+fraction\_0.005 & 2 & edit & mmseqs2 & 11948 & 16648 & 0.718 \\
+fraction\_0.005 & 2 & edit & mummer4 & 6067 & 16648 & 0.364 \\
+fraction\_0.005 & 2 & edit & sassy & 16648 & 16648 & 1.000 \\
+fraction\_0.005 & 2 & edit & strobealign & 9428 & 16648 & 0.566 \\
+fraction\_0.005 & 2 & edit & x\_mapper & 10297 & 16648 & 0.619 \\
+fraction\_0.005 & 3 & edit & blastn & 8114 & 23556 & 0.344 \\
+fraction\_0.005 & 3 & edit & bowtie1 & 18395 & 23556 & 0.781 \\
+fraction\_0.005 & 3 & edit & bowtie2 & 16912 & 23556 & 0.718 \\
+fraction\_0.005 & 3 & edit & indelfree\_indexed & 18919 & 23556 &
+0.803 \\
+fraction\_0.005 & 3 & edit & minimap2 & 0 & 23556 & 0.000 \\
+fraction\_0.005 & 3 & edit & mmseqs2 & 5600 & 23556 & 0.238 \\
+fraction\_0.005 & 3 & edit & mummer4 & 1884 & 23556 & 0.080 \\
+fraction\_0.005 & 3 & edit & sassy & 23556 & 23556 & 1.000 \\
+fraction\_0.005 & 3 & edit & strobealign & 5065 & 23556 & 0.215 \\
+fraction\_0.005 & 3 & edit & x\_mapper & 6963 & 23556 & 0.296 \\
+fraction\_0.01 & 0 & edit & blastn & 53076 & 53076 & 1.000 \\
+fraction\_0.01 & 0 & edit & bowtie1 & 53076 & 53076 & 1.000 \\
+fraction\_0.01 & 0 & edit & bowtie2 & 53076 & 53076 & 1.000 \\
+fraction\_0.01 & 0 & edit & indelfree\_indexed & 53076 & 53076 &
+1.000 \\
+fraction\_0.01 & 0 & edit & minimap2 & 73 & 53076 & 0.001 \\
+fraction\_0.01 & 0 & edit & mmseqs2 & 52496 & 53076 & 0.989 \\
+fraction\_0.01 & 0 & edit & mummer4 & 53076 & 53076 & 1.000 \\
+fraction\_0.01 & 0 & edit & sassy & 53076 & 53076 & 1.000 \\
+fraction\_0.01 & 0 & edit & strobealign & 52440 & 53076 & 0.988 \\
+fraction\_0.01 & 0 & edit & x\_mapper & 53033 & 53076 & 0.999 \\
+fraction\_0.01 & 1 & edit & blastn & 37727 & 40519 & 0.931 \\
+fraction\_0.01 & 1 & edit & bowtie1 & 40184 & 40519 & 0.992 \\
+fraction\_0.01 & 1 & edit & bowtie2 & 40517 & 40519 & 1.000 \\
+fraction\_0.01 & 1 & edit & indelfree\_indexed & 40257 & 40519 &
+0.994 \\
+fraction\_0.01 & 1 & edit & minimap2 & 0 & 40519 & 0.000 \\
+fraction\_0.01 & 1 & edit & mmseqs2 & 39256 & 40519 & 0.969 \\
+fraction\_0.01 & 1 & edit & mummer4 & 29741 & 40519 & 0.734 \\
+fraction\_0.01 & 1 & edit & sassy & 40519 & 40519 & 1.000 \\
+fraction\_0.01 & 1 & edit & strobealign & 32629 & 40519 & 0.805 \\
+fraction\_0.01 & 1 & edit & x\_mapper & 30931 & 40519 & 0.763 \\
+fraction\_0.01 & 2 & edit & blastn & 26325 & 38352 & 0.686 \\
+fraction\_0.01 & 2 & edit & bowtie1 & 37321 & 38352 & 0.973 \\
+fraction\_0.01 & 2 & edit & bowtie2 & 38102 & 38352 & 0.993 \\
+fraction\_0.01 & 2 & edit & indelfree\_indexed & 37705 & 38352 &
+0.983 \\
+fraction\_0.01 & 2 & edit & minimap2 & 0 & 38352 & 0.000 \\
+fraction\_0.01 & 2 & edit & mmseqs2 & 27735 & 38352 & 0.723 \\
+fraction\_0.01 & 2 & edit & mummer4 & 13529 & 38352 & 0.353 \\
+fraction\_0.01 & 2 & edit & sassy & 38352 & 38352 & 1.000 \\
+fraction\_0.01 & 2 & edit & strobealign & 20240 & 38352 & 0.528 \\
+fraction\_0.01 & 2 & edit & x\_mapper & 20165 & 38352 & 0.526 \\
+fraction\_0.01 & 3 & edit & blastn & 18347 & 52946 & 0.347 \\
+fraction\_0.01 & 3 & edit & bowtie1 & 41223 & 52946 & 0.779 \\
+fraction\_0.01 & 3 & edit & bowtie2 & 38152 & 52946 & 0.721 \\
+fraction\_0.01 & 3 & edit & indelfree\_indexed & 42364 & 52946 &
+0.800 \\
+fraction\_0.01 & 3 & edit & minimap2 & 0 & 52946 & 0.000 \\
+fraction\_0.01 & 3 & edit & mmseqs2 & 12717 & 52946 & 0.240 \\
+fraction\_0.01 & 3 & edit & mummer4 & 4157 & 52946 & 0.079 \\
+fraction\_0.01 & 3 & edit & sassy & 52946 & 52946 & 1.000 \\
+fraction\_0.01 & 3 & edit & strobealign & 10441 & 52946 & 0.197 \\
+fraction\_0.01 & 3 & edit & x\_mapper & 12491 & 52946 & 0.236 \\
+fraction\_1 & 0 & hamming & blastn & 7486741 & 7486741 & 1.000 \\
+fraction\_1 & 0 & hamming & bowtie1 & 7486741 & 7486741 & 1.000 \\
+fraction\_1 & 0 & hamming & bowtie2 & 7486741 & 7486741 & 1.000 \\
+fraction\_1 & 0 & hamming & minimap2 & 7509 & 7486741 & 0.001 \\
+fraction\_1 & 0 & hamming & mmseqs2 & 7300313 & 7486741 & 0.975 \\
+fraction\_1 & 0 & hamming & mummer4 & 7486741 & 7486741 & 1.000 \\
+fraction\_1 & 0 & hamming & strobealign & 5893368 & 7486741 & 0.787 \\
+fraction\_1 & 0 & hamming & x\_mapper & 4087837 & 7486741 & 0.546 \\
+fraction\_1 & 1 & hamming & blastn & 4300028 & 5349840 & 0.804 \\
+fraction\_1 & 1 & hamming & bowtie1 & 5348252 & 5349840 & 1.000 \\
+fraction\_1 & 1 & hamming & bowtie2 & 5348360 & 5349840 & 1.000 \\
+fraction\_1 & 1 & hamming & minimap2 & 0 & 5349840 & 0.000 \\
+fraction\_1 & 1 & hamming & mmseqs2 & 4576693 & 5349840 & 0.855 \\
+fraction\_1 & 1 & hamming & mummer4 & 3574831 & 5349840 & 0.668 \\
+fraction\_1 & 1 & hamming & strobealign & 1865559 & 5349840 & 0.349 \\
+fraction\_1 & 1 & hamming & x\_mapper & 1382061 & 5349840 & 0.258 \\
+fraction\_1 & 2 & hamming & blastn & 3295366 & 5191692 & 0.635 \\
+fraction\_1 & 2 & hamming & bowtie1 & 4840011 & 5191692 & 0.932 \\
+fraction\_1 & 2 & hamming & bowtie2 & 4827887 & 5191692 & 0.930 \\
+fraction\_1 & 2 & hamming & minimap2 & 0 & 5191692 & 0.000 \\
+fraction\_1 & 2 & hamming & mmseqs2 & 3160802 & 5191692 & 0.609 \\
+fraction\_1 & 2 & hamming & mummer4 & 1819317 & 5191692 & 0.350 \\
+fraction\_1 & 2 & hamming & strobealign & 610239 & 5191692 & 0.118 \\
+fraction\_1 & 2 & hamming & x\_mapper & 503854 & 5191692 & 0.097 \\
+fraction\_1 & 3 & hamming & blastn & 3253234 & 6584617 & 0.494 \\
+fraction\_1 & 3 & hamming & bowtie1 & 5640628 & 6584617 & 0.857 \\
+fraction\_1 & 3 & hamming & bowtie2 & 4996518 & 6584617 & 0.759 \\
+fraction\_1 & 3 & hamming & minimap2 & 0 & 6584617 & 0.000 \\
+fraction\_1 & 3 & hamming & mmseqs2 & 2072104 & 6584617 & 0.315 \\
+fraction\_1 & 3 & hamming & mummer4 & 778217 & 6584617 & 0.118 \\
+fraction\_1 & 3 & hamming & strobealign & 181230 & 6584617 & 0.028 \\
+fraction\_1 & 3 & hamming & x\_mapper & 134350 & 6584617 & 0.020 \\
+\end{longtable}
+
+\paragraph{B. Synthetic dataset}\label{b.-synthetic-dataset}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Fraction/Simulation
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Distance
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Metric
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Tool
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+n\_found
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+n\_total
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Recall
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ns\_100000\_nc\_10000 & 0 & edit & blastn & 50393 & 50393 & 1.000 \\
+ns\_100000\_nc\_10000 & 0 & edit & bowtie1 & 50393 & 50393 & 1.000 \\
+ns\_100000\_nc\_10000 & 0 & edit & bowtie2 & 50393 & 50393 & 1.000 \\
+ns\_100000\_nc\_10000 & 0 & edit & indelfree\_bruteforce & 50393 & 50393
+& 1.000 \\
+ns\_100000\_nc\_10000 & 0 & edit & indelfree\_indexed & 50393 & 50393 &
+1.000 \\
+ns\_100000\_nc\_10000 & 0 & edit & minimap2 & 45 & 50393 & 0.001 \\
+ns\_100000\_nc\_10000 & 0 & edit & mmseqs2 & 50237 & 50393 & 0.997 \\
+ns\_100000\_nc\_10000 & 0 & edit & mummer4 & 50393 & 50393 & 1.000 \\
+ns\_100000\_nc\_10000 & 0 & edit & sassy & 50393 & 50393 & 1.000 \\
+ns\_100000\_nc\_10000 & 0 & edit & strobealign & 49732 & 50393 &
+0.987 \\
+ns\_100000\_nc\_10000 & 0 & edit & x\_mapper & 50159 & 50393 & 0.995 \\
+ns\_100000\_nc\_10000 & 1 & edit & blastn & 40655 & 54891 & 0.741 \\
+ns\_100000\_nc\_10000 & 1 & edit & bowtie1 & 50199 & 54891 & 0.915 \\
+ns\_100000\_nc\_10000 & 1 & edit & bowtie2 & 50210 & 54891 & 0.915 \\
+ns\_100000\_nc\_10000 & 1 & edit & indelfree\_bruteforce & 50199 & 54891
+& 0.915 \\
+ns\_100000\_nc\_10000 & 1 & edit & indelfree\_indexed & 50199 & 54891 &
+0.915 \\
+ns\_100000\_nc\_10000 & 1 & edit & mmseqs2 & 44806 & 54891 & 0.816 \\
+ns\_100000\_nc\_10000 & 1 & edit & mummer4 & 31028 & 54891 & 0.565 \\
+ns\_100000\_nc\_10000 & 1 & edit & sassy & 50325 & 54891 & 0.917 \\
+ns\_100000\_nc\_10000 & 1 & edit & strobealign & 37368 & 54891 &
+0.681 \\
+ns\_100000\_nc\_10000 & 1 & edit & x\_mapper & 24769 & 54891 & 0.451 \\
+ns\_100000\_nc\_10000 & 2 & edit & blastn & 34597 & 63663 & 0.543 \\
+ns\_100000\_nc\_10000 & 2 & edit & bowtie1 & 49873 & 63663 & 0.783 \\
+ns\_100000\_nc\_10000 & 2 & edit & bowtie2 & 49857 & 63663 & 0.783 \\
+ns\_100000\_nc\_10000 & 2 & edit & indelfree\_bruteforce & 49875 & 63663
+& 0.783 \\
+ns\_100000\_nc\_10000 & 2 & edit & indelfree\_indexed & 49875 & 63663 &
+0.783 \\
+ns\_100000\_nc\_10000 & 2 & edit & mmseqs2 & 32941 & 63663 & 0.517 \\
+ns\_100000\_nc\_10000 & 2 & edit & mummer4 & 14945 & 63663 & 0.235 \\
+ns\_100000\_nc\_10000 & 2 & edit & sassy & 50180 & 63663 & 0.788 \\
+ns\_100000\_nc\_10000 & 2 & edit & strobealign & 21326 & 63663 &
+0.335 \\
+ns\_100000\_nc\_10000 & 2 & edit & x\_mapper & 10942 & 63663 & 0.172 \\
+ns\_100000\_nc\_10000 & 3 & edit & blastn & 30879 & 74834 & 0.413 \\
+ns\_100000\_nc\_10000 & 3 & edit & bowtie1 & 49653 & 74834 & 0.664 \\
+ns\_100000\_nc\_10000 & 3 & edit & bowtie2 & 45156 & 74834 & 0.603 \\
+ns\_100000\_nc\_10000 & 3 & edit & indelfree\_bruteforce & 49993 & 74834
+& 0.668 \\
+ns\_100000\_nc\_10000 & 3 & edit & indelfree\_indexed & 49993 & 74834 &
+0.668 \\
+ns\_100000\_nc\_10000 & 3 & edit & mmseqs2 & 18510 & 74834 & 0.247 \\
+ns\_100000\_nc\_10000 & 3 & edit & mummer4 & 5855 & 74834 & 0.078 \\
+ns\_100000\_nc\_10000 & 3 & edit & sassy & 51274 & 74834 & 0.685 \\
+ns\_100000\_nc\_10000 & 3 & edit & strobealign & 8823 & 74834 & 0.118 \\
+ns\_100000\_nc\_10000 & 3 & edit & x\_mapper & 3923 & 74834 & 0.052 \\
+ns\_100000\_nc\_10000 & 4 & edit & blastn & 29083 & 102345 & 0.284 \\
+ns\_100000\_nc\_10000 & 4 & edit & bowtie2 & 219 & 102345 & 0.002 \\
+ns\_100000\_nc\_10000 & 4 & edit & indelfree\_bruteforce & 52114 &
+102345 & 0.509 \\
+ns\_100000\_nc\_10000 & 4 & edit & indelfree\_indexed & 52101 & 102345 &
+0.509 \\
+ns\_100000\_nc\_10000 & 4 & edit & mmseqs2 & 9456 & 102345 & 0.092 \\
+ns\_100000\_nc\_10000 & 4 & edit & mummer4 & 434 & 102345 & 0.004 \\
+ns\_100000\_nc\_10000 & 4 & edit & sassy & 71853 & 102345 & 0.702 \\
+ns\_100000\_nc\_10000 & 4 & edit & strobealign & 2042 & 102345 &
+0.020 \\
+ns\_100000\_nc\_10000 & 4 & edit & x\_mapper & 1252 & 102345 & 0.012 \\
+ns\_100000\_nc\_10000 & 5 & edit & blastn & 23827 & 544086 & 0.044 \\
+ns\_100000\_nc\_10000 & 5 & edit & indelfree\_bruteforce & 68700 &
+544086 & 0.126 \\
+ns\_100000\_nc\_10000 & 5 & edit & indelfree\_indexed & 68027 & 544086 &
+0.125 \\
+ns\_100000\_nc\_10000 & 5 & edit & mmseqs2 & 3610 & 544086 & 0.007 \\
+ns\_100000\_nc\_10000 & 5 & edit & mummer4 & 13 & 544086 & 0.000 \\
+ns\_100000\_nc\_10000 & 5 & edit & sassy & 511134 & 544086 & 0.939 \\
+ns\_100000\_nc\_10000 & 5 & edit & strobealign & 155 & 544086 & 0.000 \\
+ns\_100000\_nc\_10000 & 5 & edit & x\_mapper & 460 & 544086 & 0.001 \\
+ns\_100000\_nc\_10000 & 0 & hamming & blastn & 50393 & 50393 & 1.000 \\
+ns\_100000\_nc\_10000 & 0 & hamming & bowtie1 & 50393 & 50393 & 1.000 \\
+ns\_100000\_nc\_10000 & 0 & hamming & bowtie2 & 50393 & 50393 & 1.000 \\
+ns\_100000\_nc\_10000 & 0 & hamming & indelfree\_bruteforce & 50393 &
+50393 & 1.000 \\
+ns\_100000\_nc\_10000 & 0 & hamming & indelfree\_indexed & 50393 & 50393
+& 1.000 \\
+ns\_100000\_nc\_10000 & 0 & hamming & minimap2 & 45 & 50393 & 0.001 \\
+ns\_100000\_nc\_10000 & 0 & hamming & mmseqs2 & 50237 & 50393 & 0.997 \\
+ns\_100000\_nc\_10000 & 0 & hamming & mummer4 & 50393 & 50393 & 1.000 \\
+ns\_100000\_nc\_10000 & 0 & hamming & sassy & 50393 & 50393 & 1.000 \\
+ns\_100000\_nc\_10000 & 0 & hamming & strobealign & 49732 & 50393 &
+0.987 \\
+ns\_100000\_nc\_10000 & 0 & hamming & x\_mapper & 50159 & 50393 &
+0.995 \\
+ns\_100000\_nc\_10000 & 1 & hamming & blastn & 40655 & 53380 & 0.762 \\
+ns\_100000\_nc\_10000 & 1 & hamming & bowtie1 & 50199 & 53380 & 0.940 \\
+ns\_100000\_nc\_10000 & 1 & hamming & bowtie2 & 50199 & 53380 & 0.940 \\
+ns\_100000\_nc\_10000 & 1 & hamming & indelfree\_bruteforce & 50199 &
+53380 & 0.940 \\
+ns\_100000\_nc\_10000 & 1 & hamming & indelfree\_indexed & 50199 & 53380
+& 0.940 \\
+ns\_100000\_nc\_10000 & 1 & hamming & mmseqs2 & 44396 & 53380 & 0.832 \\
+ns\_100000\_nc\_10000 & 1 & hamming & mummer4 & 31011 & 53380 & 0.581 \\
+ns\_100000\_nc\_10000 & 1 & hamming & sassy & 49184 & 53380 & 0.921 \\
+ns\_100000\_nc\_10000 & 1 & hamming & strobealign & 37367 & 53380 &
+0.700 \\
+ns\_100000\_nc\_10000 & 1 & hamming & x\_mapper & 24767 & 53380 &
+0.464 \\
+ns\_100000\_nc\_10000 & 2 & hamming & blastn & 34448 & 60981 & 0.565 \\
+ns\_100000\_nc\_10000 & 2 & hamming & bowtie1 & 49809 & 60981 & 0.817 \\
+ns\_100000\_nc\_10000 & 2 & hamming & bowtie2 & 49692 & 60981 & 0.815 \\
+ns\_100000\_nc\_10000 & 2 & hamming & indelfree\_bruteforce & 49809 &
+60981 & 0.817 \\
+ns\_100000\_nc\_10000 & 2 & hamming & indelfree\_indexed & 49809 & 60981
+& 0.817 \\
+ns\_100000\_nc\_10000 & 2 & hamming & mmseqs2 & 31822 & 60981 & 0.522 \\
+ns\_100000\_nc\_10000 & 2 & hamming & mummer4 & 14786 & 60981 & 0.242 \\
+ns\_100000\_nc\_10000 & 2 & hamming & sassy & 48720 & 60981 & 0.799 \\
+ns\_100000\_nc\_10000 & 2 & hamming & strobealign & 21316 & 60981 &
+0.350 \\
+ns\_100000\_nc\_10000 & 2 & hamming & x\_mapper & 10923 & 60981 &
+0.179 \\
+ns\_100000\_nc\_10000 & 3 & hamming & blastn & 30414 & 71296 & 0.427 \\
+ns\_100000\_nc\_10000 & 3 & hamming & bowtie1 & 49717 & 71296 & 0.697 \\
+ns\_100000\_nc\_10000 & 3 & hamming & bowtie2 & 45107 & 71296 & 0.633 \\
+ns\_100000\_nc\_10000 & 3 & hamming & indelfree\_bruteforce & 49717 &
+71296 & 0.697 \\
+ns\_100000\_nc\_10000 & 3 & hamming & indelfree\_indexed & 49717 & 71296
+& 0.697 \\
+ns\_100000\_nc\_10000 & 3 & hamming & mmseqs2 & 18129 & 71296 & 0.254 \\
+ns\_100000\_nc\_10000 & 3 & hamming & mummer4 & 5741 & 71296 & 0.081 \\
+ns\_100000\_nc\_10000 & 3 & hamming & sassy & 48630 & 71296 & 0.682 \\
+ns\_100000\_nc\_10000 & 3 & hamming & strobealign & 8822 & 71296 &
+0.124 \\
+ns\_100000\_nc\_10000 & 3 & hamming & x\_mapper & 3908 & 71296 &
+0.055 \\
+ns\_100000\_nc\_10000 & 4 & hamming & blastn & 27950 & 79017 & 0.354 \\
+ns\_100000\_nc\_10000 & 4 & hamming & bowtie2 & 331 & 79017 & 0.004 \\
+ns\_100000\_nc\_10000 & 4 & hamming & indelfree\_bruteforce & 51389 &
+79017 & 0.650 \\
+ns\_100000\_nc\_10000 & 4 & hamming & indelfree\_indexed & 51380 & 79017
+& 0.650 \\
+ns\_100000\_nc\_10000 & 4 & hamming & mmseqs2 & 9501 & 79017 & 0.120 \\
+ns\_100000\_nc\_10000 & 4 & hamming & mummer4 & 463 & 79017 & 0.006 \\
+ns\_100000\_nc\_10000 & 4 & hamming & sassy & 49795 & 79017 & 0.630 \\
+ns\_100000\_nc\_10000 & 4 & hamming & strobealign & 2049 & 79017 &
+0.026 \\
+ns\_100000\_nc\_10000 & 4 & hamming & x\_mapper & 1254 & 79017 &
+0.016 \\
+ns\_100000\_nc\_10000 & 5 & hamming & blastn & 21489 & 97256 & 0.221 \\
+ns\_100000\_nc\_10000 & 5 & hamming & bowtie2 & 95 & 97256 & 0.001 \\
+ns\_100000\_nc\_10000 & 5 & hamming & indelfree\_bruteforce & 69767 &
+97256 & 0.717 \\
+ns\_100000\_nc\_10000 & 5 & hamming & indelfree\_indexed & 69090 & 97256
+& 0.710 \\
+ns\_100000\_nc\_10000 & 5 & hamming & mmseqs2 & 4238 & 97256 & 0.044 \\
+ns\_100000\_nc\_10000 & 5 & hamming & mummer4 & 23 & 97256 & 0.000 \\
+ns\_100000\_nc\_10000 & 5 & hamming & sassy & 65899 & 97256 & 0.678 \\
+ns\_100000\_nc\_10000 & 5 & hamming & strobealign & 159 & 97256 &
+0.002 \\
+ns\_100000\_nc\_10000 & 5 & hamming & x\_mapper & 475 & 97256 & 0.005 \\
+ns\_100000\_nc\_20000 & 0 & edit & blastn & 74758 & 74758 & 1.000 \\
+ns\_100000\_nc\_20000 & 0 & edit & bowtie1 & 74758 & 74758 & 1.000 \\
+ns\_100000\_nc\_20000 & 0 & edit & bowtie2 & 74758 & 74758 & 1.000 \\
+ns\_100000\_nc\_20000 & 0 & edit & indelfree\_bruteforce & 74758 & 74758
+& 1.000 \\
+ns\_100000\_nc\_20000 & 0 & edit & indelfree\_indexed & 74758 & 74758 &
+1.000 \\
+ns\_100000\_nc\_20000 & 0 & edit & minimap2 & 92 & 74758 & 0.001 \\
+ns\_100000\_nc\_20000 & 0 & edit & mmseqs2 & 74519 & 74758 & 0.997 \\
+ns\_100000\_nc\_20000 & 0 & edit & mummer4 & 74758 & 74758 & 1.000 \\
+ns\_100000\_nc\_20000 & 0 & edit & sassy & 74758 & 74758 & 1.000 \\
+ns\_100000\_nc\_20000 & 0 & edit & strobealign & 73490 & 74758 &
+0.983 \\
+ns\_100000\_nc\_20000 & 0 & edit & x\_mapper & 73993 & 74758 & 0.990 \\
+ns\_100000\_nc\_20000 & 1 & edit & blastn & 61186 & 82512 & 0.742 \\
+ns\_100000\_nc\_20000 & 1 & edit & bowtie1 & 75347 & 82512 & 0.913 \\
+ns\_100000\_nc\_20000 & 1 & edit & bowtie2 & 75371 & 82512 & 0.913 \\
+ns\_100000\_nc\_20000 & 1 & edit & indelfree\_bruteforce & 75347 & 82512
+& 0.913 \\
+ns\_100000\_nc\_20000 & 1 & edit & indelfree\_indexed & 75347 & 82512 &
+0.913 \\
+ns\_100000\_nc\_20000 & 1 & edit & mmseqs2 & 67112 & 82512 & 0.813 \\
+ns\_100000\_nc\_20000 & 1 & edit & mummer4 & 46259 & 82512 & 0.561 \\
+ns\_100000\_nc\_20000 & 1 & edit & sassy & 75531 & 82512 & 0.915 \\
+ns\_100000\_nc\_20000 & 1 & edit & strobealign & 51532 & 82512 &
+0.625 \\
+ns\_100000\_nc\_20000 & 1 & edit & x\_mapper & 32941 & 82512 & 0.399 \\
+ns\_100000\_nc\_20000 & 2 & edit & blastn & 51583 & 95366 & 0.541 \\
+ns\_100000\_nc\_20000 & 2 & edit & bowtie1 & 74711 & 95366 & 0.783 \\
+ns\_100000\_nc\_20000 & 2 & edit & bowtie2 & 74623 & 95366 & 0.782 \\
+ns\_100000\_nc\_20000 & 2 & edit & indelfree\_bruteforce & 74711 & 95366
+& 0.783 \\
+ns\_100000\_nc\_20000 & 2 & edit & indelfree\_indexed & 74711 & 95366 &
+0.783 \\
+ns\_100000\_nc\_20000 & 2 & edit & mmseqs2 & 49064 & 95366 & 0.514 \\
+ns\_100000\_nc\_20000 & 2 & edit & mummer4 & 22594 & 95366 & 0.237 \\
+ns\_100000\_nc\_20000 & 2 & edit & sassy & 75144 & 95366 & 0.788 \\
+ns\_100000\_nc\_20000 & 2 & edit & strobealign & 27883 & 95366 &
+0.292 \\
+ns\_100000\_nc\_20000 & 2 & edit & x\_mapper & 13472 & 95366 & 0.141 \\
+ns\_100000\_nc\_20000 & 3 & edit & blastn & 46655 & 112339 & 0.415 \\
+ns\_100000\_nc\_20000 & 3 & edit & bowtie1 & 75432 & 112339 & 0.671 \\
+ns\_100000\_nc\_20000 & 3 & edit & bowtie2 & 68585 & 112339 & 0.611 \\
+ns\_100000\_nc\_20000 & 3 & edit & indelfree\_bruteforce & 75464 &
+112339 & 0.672 \\
+ns\_100000\_nc\_20000 & 3 & edit & indelfree\_indexed & 75464 & 112339 &
+0.672 \\
+ns\_100000\_nc\_20000 & 3 & edit & mmseqs2 & 28067 & 112339 & 0.250 \\
+ns\_100000\_nc\_20000 & 3 & edit & mummer4 & 9070 & 112339 & 0.081 \\
+ns\_100000\_nc\_20000 & 3 & edit & sassy & 76396 & 112339 & 0.680 \\
+ns\_100000\_nc\_20000 & 3 & edit & strobealign & 11589 & 112339 &
+0.103 \\
+ns\_100000\_nc\_20000 & 3 & edit & x\_mapper & 3586 & 112339 & 0.032 \\
+ns\_100000\_nc\_20000 & 4 & edit & blastn & 21389 & 69625 & 0.307 \\
+ns\_100000\_nc\_20000 & 4 & edit & indelfree\_bruteforce & 3621 & 69625
+& 0.052 \\
+ns\_100000\_nc\_20000 & 4 & edit & indelfree\_indexed & 3609 & 69625 &
+0.052 \\
+ns\_100000\_nc\_20000 & 4 & edit & mmseqs2 & 8921 & 69625 & 0.128 \\
+ns\_100000\_nc\_20000 & 4 & edit & mummer4 & 3 & 69625 & 0.000 \\
+ns\_100000\_nc\_20000 & 4 & edit & sassy & 41142 & 69625 & 0.591 \\
+ns\_100000\_nc\_20000 & 4 & edit & strobealign & 1 & 69625 & 0.000 \\
+ns\_100000\_nc\_20000 & 4 & edit & x\_mapper & 13 & 69625 & 0.000 \\
+ns\_100000\_nc\_20000 & 5 & edit & blastn & 18273 & 941140 & 0.019 \\
+ns\_100000\_nc\_20000 & 5 & edit & indelfree\_bruteforce & 38318 &
+941140 & 0.041 \\
+ns\_100000\_nc\_20000 & 5 & edit & indelfree\_indexed & 37153 & 941140 &
+0.039 \\
+ns\_100000\_nc\_20000 & 5 & edit & mmseqs2 & 2404 & 941140 & 0.003 \\
+ns\_100000\_nc\_20000 & 5 & edit & sassy & 914758 & 941140 & 0.972 \\
+ns\_100000\_nc\_20000 & 5 & edit & x\_mapper & 28 & 941140 & 0.000 \\
+ns\_100000\_nc\_20000 & 0 & hamming & blastn & 74758 & 74758 & 1.000 \\
+ns\_100000\_nc\_20000 & 0 & hamming & bowtie1 & 74758 & 74758 & 1.000 \\
+ns\_100000\_nc\_20000 & 0 & hamming & bowtie2 & 74758 & 74758 & 1.000 \\
+ns\_100000\_nc\_20000 & 0 & hamming & indelfree\_bruteforce & 74758 &
+74758 & 1.000 \\
+ns\_100000\_nc\_20000 & 0 & hamming & indelfree\_indexed & 74758 & 74758
+& 1.000 \\
+ns\_100000\_nc\_20000 & 0 & hamming & minimap2 & 92 & 74758 & 0.001 \\
+ns\_100000\_nc\_20000 & 0 & hamming & mmseqs2 & 74519 & 74758 & 0.997 \\
+ns\_100000\_nc\_20000 & 0 & hamming & mummer4 & 74758 & 74758 & 1.000 \\
+ns\_100000\_nc\_20000 & 0 & hamming & sassy & 74758 & 74758 & 1.000 \\
+ns\_100000\_nc\_20000 & 0 & hamming & strobealign & 73490 & 74758 &
+0.983 \\
+ns\_100000\_nc\_20000 & 0 & hamming & x\_mapper & 73993 & 74758 &
+0.990 \\
+ns\_100000\_nc\_20000 & 1 & hamming & blastn & 61186 & 80116 & 0.764 \\
+ns\_100000\_nc\_20000 & 1 & hamming & bowtie1 & 75347 & 80116 & 0.940 \\
+ns\_100000\_nc\_20000 & 1 & hamming & bowtie2 & 75347 & 80116 & 0.940 \\
+ns\_100000\_nc\_20000 & 1 & hamming & indelfree\_bruteforce & 75347 &
+80116 & 0.940 \\
+ns\_100000\_nc\_20000 & 1 & hamming & indelfree\_indexed & 75347 & 80116
+& 0.940 \\
+ns\_100000\_nc\_20000 & 1 & hamming & mmseqs2 & 66470 & 80116 & 0.830 \\
+ns\_100000\_nc\_20000 & 1 & hamming & mummer4 & 46209 & 80116 & 0.577 \\
+ns\_100000\_nc\_20000 & 1 & hamming & sassy & 73723 & 80116 & 0.920 \\
+ns\_100000\_nc\_20000 & 1 & hamming & strobealign & 51532 & 80116 &
+0.643 \\
+ns\_100000\_nc\_20000 & 1 & hamming & x\_mapper & 32937 & 80116 &
+0.411 \\
+ns\_100000\_nc\_20000 & 2 & hamming & blastn & 51400 & 91610 & 0.561 \\
+ns\_100000\_nc\_20000 & 2 & hamming & bowtie1 & 74612 & 91610 & 0.814 \\
+ns\_100000\_nc\_20000 & 2 & hamming & bowtie2 & 74438 & 91610 & 0.813 \\
+ns\_100000\_nc\_20000 & 2 & hamming & indelfree\_bruteforce & 74612 &
+91610 & 0.814 \\
+ns\_100000\_nc\_20000 & 2 & hamming & indelfree\_indexed & 74612 & 91610
+& 0.814 \\
+ns\_100000\_nc\_20000 & 2 & hamming & mmseqs2 & 47530 & 91610 & 0.519 \\
+ns\_100000\_nc\_20000 & 2 & hamming & mummer4 & 22407 & 91610 & 0.245 \\
+ns\_100000\_nc\_20000 & 2 & hamming & sassy & 73034 & 91610 & 0.797 \\
+ns\_100000\_nc\_20000 & 2 & hamming & strobealign & 27869 & 91610 &
+0.304 \\
+ns\_100000\_nc\_20000 & 2 & hamming & x\_mapper & 13455 & 91610 &
+0.147 \\
+ns\_100000\_nc\_20000 & 3 & hamming & blastn & 46061 & 108401 & 0.425 \\
+ns\_100000\_nc\_20000 & 3 & hamming & bowtie1 & 75531 & 108401 &
+0.697 \\
+ns\_100000\_nc\_20000 & 3 & hamming & bowtie2 & 68620 & 108401 &
+0.633 \\
+ns\_100000\_nc\_20000 & 3 & hamming & indelfree\_bruteforce & 75531 &
+108401 & 0.697 \\
+ns\_100000\_nc\_20000 & 3 & hamming & indelfree\_indexed & 75531 &
+108401 & 0.697 \\
+ns\_100000\_nc\_20000 & 3 & hamming & mmseqs2 & 27654 & 108401 &
+0.255 \\
+ns\_100000\_nc\_20000 & 3 & hamming & mummer4 & 8962 & 108401 & 0.083 \\
+ns\_100000\_nc\_20000 & 3 & hamming & sassy & 73647 & 108401 & 0.679 \\
+ns\_100000\_nc\_20000 & 3 & hamming & strobealign & 11603 & 108401 &
+0.107 \\
+ns\_100000\_nc\_20000 & 3 & hamming & x\_mapper & 3598 & 108401 &
+0.033 \\
+ns\_100000\_nc\_20000 & 4 & hamming & blastn & 20136 & 35095 & 0.574 \\
+ns\_100000\_nc\_20000 & 4 & hamming & bowtie2 & 109 & 35095 & 0.003 \\
+ns\_100000\_nc\_20000 & 4 & hamming & indelfree\_bruteforce & 2910 &
+35095 & 0.083 \\
+ns\_100000\_nc\_20000 & 4 & hamming & indelfree\_indexed & 2905 & 35095
+& 0.083 \\
+ns\_100000\_nc\_20000 & 4 & hamming & mmseqs2 & 9283 & 35095 & 0.265 \\
+ns\_100000\_nc\_20000 & 4 & hamming & mummer4 & 26 & 35095 & 0.001 \\
+ns\_100000\_nc\_20000 & 4 & hamming & sassy & 7616 & 35095 & 0.217 \\
+ns\_100000\_nc\_20000 & 4 & hamming & strobealign & 1 & 35095 & 0.000 \\
+ns\_100000\_nc\_20000 & 4 & hamming & x\_mapper & 11 & 35095 & 0.000 \\
+ns\_100000\_nc\_20000 & 5 & hamming & blastn & 16256 & 59330 & 0.274 \\
+ns\_100000\_nc\_20000 & 5 & hamming & bowtie2 & 48 & 59330 & 0.001 \\
+ns\_100000\_nc\_20000 & 5 & hamming & indelfree\_bruteforce & 39061 &
+59330 & 0.658 \\
+ns\_100000\_nc\_20000 & 5 & hamming & indelfree\_indexed & 37889 & 59330
+& 0.639 \\
+ns\_100000\_nc\_20000 & 5 & hamming & mmseqs2 & 3121 & 59330 & 0.053 \\
+ns\_100000\_nc\_20000 & 5 & hamming & mummer4 & 3 & 59330 & 0.000 \\
+ns\_100000\_nc\_20000 & 5 & hamming & sassy & 34112 & 59330 & 0.575 \\
+ns\_100000\_nc\_20000 & 5 & hamming & x\_mapper & 28 & 59330 & 0.000 \\
+ns\_100\_nc\_5000 & 0 & edit & blastn & 30 & 30 & 1.000 \\
+ns\_100\_nc\_5000 & 0 & edit & bowtie1 & 30 & 30 & 1.000 \\
+ns\_100\_nc\_5000 & 0 & edit & bowtie2 & 30 & 30 & 1.000 \\
+ns\_100\_nc\_5000 & 0 & edit & indelfree\_bruteforce & 30 & 30 &
+1.000 \\
+ns\_100\_nc\_5000 & 0 & edit & indelfree\_indexed & 30 & 30 & 1.000 \\
+ns\_100\_nc\_5000 & 0 & edit & mmseqs2 & 30 & 30 & 1.000 \\
+ns\_100\_nc\_5000 & 0 & edit & sassy & 30 & 30 & 1.000 \\
+ns\_100\_nc\_5000 & 0 & edit & x\_mapper & 30 & 30 & 1.000 \\
+ns\_100\_nc\_5000 & 1 & edit & blastn & 20 & 22 & 0.909 \\
+ns\_100\_nc\_5000 & 1 & edit & bowtie1 & 22 & 22 & 1.000 \\
+ns\_100\_nc\_5000 & 1 & edit & bowtie2 & 22 & 22 & 1.000 \\
+ns\_100\_nc\_5000 & 1 & edit & indelfree\_bruteforce & 22 & 22 &
+1.000 \\
+ns\_100\_nc\_5000 & 1 & edit & indelfree\_indexed & 22 & 22 & 1.000 \\
+ns\_100\_nc\_5000 & 1 & edit & mmseqs2 & 20 & 22 & 0.909 \\
+ns\_100\_nc\_5000 & 1 & edit & sassy & 22 & 22 & 1.000 \\
+ns\_100\_nc\_5000 & 1 & edit & x\_mapper & 12 & 22 & 0.545 \\
+ns\_100\_nc\_5000 & 2 & edit & blastn & 36 & 56 & 0.643 \\
+ns\_100\_nc\_5000 & 2 & edit & bowtie1 & 45 & 56 & 0.804 \\
+ns\_100\_nc\_5000 & 2 & edit & bowtie2 & 45 & 56 & 0.804 \\
+ns\_100\_nc\_5000 & 2 & edit & indelfree\_bruteforce & 45 & 56 &
+0.804 \\
+ns\_100\_nc\_5000 & 2 & edit & indelfree\_indexed & 45 & 56 & 0.804 \\
+ns\_100\_nc\_5000 & 2 & edit & mmseqs2 & 31 & 56 & 0.554 \\
+ns\_100\_nc\_5000 & 2 & edit & sassy & 45 & 56 & 0.804 \\
+ns\_100\_nc\_5000 & 2 & edit & x\_mapper & 12 & 56 & 0.214 \\
+ns\_100\_nc\_5000 & 3 & edit & blastn & 20 & 48 & 0.417 \\
+ns\_100\_nc\_5000 & 3 & edit & bowtie1 & 33 & 48 & 0.688 \\
+ns\_100\_nc\_5000 & 3 & edit & bowtie2 & 24 & 48 & 0.500 \\
+ns\_100\_nc\_5000 & 3 & edit & indelfree\_bruteforce & 33 & 48 &
+0.688 \\
+ns\_100\_nc\_5000 & 3 & edit & indelfree\_indexed & 33 & 48 & 0.688 \\
+ns\_100\_nc\_5000 & 3 & edit & mmseqs2 & 14 & 48 & 0.292 \\
+ns\_100\_nc\_5000 & 3 & edit & sassy & 34 & 48 & 0.708 \\
+ns\_100\_nc\_5000 & 3 & edit & x\_mapper & 7 & 48 & 0.146 \\
+ns\_100\_nc\_5000 & 4 & edit & blastn & 11 & 88 & 0.125 \\
+ns\_100\_nc\_5000 & 4 & edit & bowtie2 & 7 & 88 & 0.080 \\
+ns\_100\_nc\_5000 & 4 & edit & indelfree\_bruteforce & 31 & 88 &
+0.352 \\
+ns\_100\_nc\_5000 & 4 & edit & indelfree\_indexed & 31 & 88 & 0.352 \\
+ns\_100\_nc\_5000 & 4 & edit & mmseqs2 & 10 & 88 & 0.114 \\
+ns\_100\_nc\_5000 & 4 & edit & sassy & 76 & 88 & 0.864 \\
+ns\_100\_nc\_5000 & 4 & edit & x\_mapper & 3 & 88 & 0.034 \\
+ns\_100\_nc\_5000 & 5 & edit & blastn & 22 & 1048 & 0.021 \\
+ns\_100\_nc\_5000 & 5 & edit & indelfree\_bruteforce & 77 & 1048 &
+0.073 \\
+ns\_100\_nc\_5000 & 5 & edit & indelfree\_indexed & 75 & 1048 & 0.072 \\
+ns\_100\_nc\_5000 & 5 & edit & mmseqs2 & 5 & 1048 & 0.005 \\
+ns\_100\_nc\_5000 & 5 & edit & sassy & 1016 & 1048 & 0.969 \\
+ns\_100\_nc\_5000 & 0 & hamming & blastn & 30 & 30 & 1.000 \\
+ns\_100\_nc\_5000 & 0 & hamming & bowtie1 & 30 & 30 & 1.000 \\
+ns\_100\_nc\_5000 & 0 & hamming & bowtie2 & 30 & 30 & 1.000 \\
+ns\_100\_nc\_5000 & 0 & hamming & indelfree\_bruteforce & 30 & 30 &
+1.000 \\
+ns\_100\_nc\_5000 & 0 & hamming & indelfree\_indexed & 30 & 30 &
+1.000 \\
+ns\_100\_nc\_5000 & 0 & hamming & mmseqs2 & 30 & 30 & 1.000 \\
+ns\_100\_nc\_5000 & 0 & hamming & sassy & 30 & 30 & 1.000 \\
+ns\_100\_nc\_5000 & 0 & hamming & x\_mapper & 30 & 30 & 1.000 \\
+ns\_100\_nc\_5000 & 1 & hamming & blastn & 20 & 22 & 0.909 \\
+ns\_100\_nc\_5000 & 1 & hamming & bowtie1 & 22 & 22 & 1.000 \\
+ns\_100\_nc\_5000 & 1 & hamming & bowtie2 & 22 & 22 & 1.000 \\
+ns\_100\_nc\_5000 & 1 & hamming & indelfree\_bruteforce & 22 & 22 &
+1.000 \\
+ns\_100\_nc\_5000 & 1 & hamming & indelfree\_indexed & 22 & 22 &
+1.000 \\
+ns\_100\_nc\_5000 & 1 & hamming & mmseqs2 & 20 & 22 & 0.909 \\
+ns\_100\_nc\_5000 & 1 & hamming & sassy & 22 & 22 & 1.000 \\
+ns\_100\_nc\_5000 & 1 & hamming & x\_mapper & 12 & 22 & 0.545 \\
+ns\_100\_nc\_5000 & 2 & hamming & blastn & 36 & 52 & 0.692 \\
+ns\_100\_nc\_5000 & 2 & hamming & bowtie1 & 45 & 52 & 0.865 \\
+ns\_100\_nc\_5000 & 2 & hamming & bowtie2 & 45 & 52 & 0.865 \\
+ns\_100\_nc\_5000 & 2 & hamming & indelfree\_bruteforce & 45 & 52 &
+0.865 \\
+ns\_100\_nc\_5000 & 2 & hamming & indelfree\_indexed & 45 & 52 &
+0.865 \\
+ns\_100\_nc\_5000 & 2 & hamming & mmseqs2 & 29 & 52 & 0.558 \\
+ns\_100\_nc\_5000 & 2 & hamming & sassy & 43 & 52 & 0.827 \\
+ns\_100\_nc\_5000 & 2 & hamming & x\_mapper & 12 & 52 & 0.231 \\
+ns\_100\_nc\_5000 & 3 & hamming & blastn & 20 & 47 & 0.426 \\
+ns\_100\_nc\_5000 & 3 & hamming & bowtie1 & 33 & 47 & 0.702 \\
+ns\_100\_nc\_5000 & 3 & hamming & bowtie2 & 24 & 47 & 0.511 \\
+ns\_100\_nc\_5000 & 3 & hamming & indelfree\_bruteforce & 33 & 47 &
+0.702 \\
+ns\_100\_nc\_5000 & 3 & hamming & indelfree\_indexed & 33 & 47 &
+0.702 \\
+ns\_100\_nc\_5000 & 3 & hamming & mmseqs2 & 16 & 47 & 0.340 \\
+ns\_100\_nc\_5000 & 3 & hamming & sassy & 31 & 47 & 0.660 \\
+ns\_100\_nc\_5000 & 3 & hamming & x\_mapper & 7 & 47 & 0.149 \\
+ns\_100\_nc\_5000 & 4 & hamming & blastn & 11 & 41 & 0.268 \\
+ns\_100\_nc\_5000 & 4 & hamming & bowtie2 & 7 & 41 & 0.171 \\
+ns\_100\_nc\_5000 & 4 & hamming & indelfree\_bruteforce & 29 & 41 &
+0.707 \\
+ns\_100\_nc\_5000 & 4 & hamming & indelfree\_indexed & 29 & 41 &
+0.707 \\
+ns\_100\_nc\_5000 & 4 & hamming & mmseqs2 & 8 & 41 & 0.195 \\
+ns\_100\_nc\_5000 & 4 & hamming & sassy & 31 & 41 & 0.756 \\
+ns\_100\_nc\_5000 & 4 & hamming & x\_mapper & 3 & 41 & 0.073 \\
+ns\_100\_nc\_5000 & 5 & hamming & blastn & 20 & 100 & 0.200 \\
+ns\_100\_nc\_5000 & 5 & hamming & indelfree\_bruteforce & 79 & 100 &
+0.790 \\
+ns\_100\_nc\_5000 & 5 & hamming & indelfree\_indexed & 77 & 100 &
+0.770 \\
+ns\_100\_nc\_5000 & 5 & hamming & mmseqs2 & 7 & 100 & 0.070 \\
+ns\_100\_nc\_5000 & 5 & hamming & sassy & 68 & 100 & 0.680 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 0 & edit & blastn & 1 & 1 &
+1.000 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 0 & edit & bowtie1 & 1 & 1 &
+1.000 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 0 & edit & bowtie2 & 1 & 1 &
+1.000 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 0 & edit & indelfree\_indexed
+& 1 & 1 & 1.000 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 0 & edit & mmseqs2 & 1 & 1 &
+1.000 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 0 & edit & mummer4 & 1 & 1 &
+1.000 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 1 & edit & blastn & 11 & 101 &
+0.109 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 1 & edit & bowtie1 & 46 & 101
+& 0.455 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 1 & edit & bowtie2 & 97 & 101
+& 0.960 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 1 & edit & indelfree\_indexed
+& 31 & 101 & 0.307 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 1 & edit & mmseqs2 & 10 & 101
+& 0.099 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 1 & edit & mummer4 & 28 & 101
+& 0.277 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 1 & edit & strobealign & 6 &
+101 & 0.059 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 1 & edit & x\_mapper & 9 & 101
+& 0.089 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 2 & edit & blastn & 324 & 6135
+& 0.053 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 2 & edit & bowtie1 & 2293 &
+6135 & 0.374 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 2 & edit & bowtie2 & 5800 &
+6135 & 0.945 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 2 & edit & indelfree\_indexed
+& 1434 & 6135 & 0.234 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 2 & edit & mmseqs2 & 85 & 6135
+& 0.014 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 2 & edit & mummer4 & 185 &
+6135 & 0.030 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 2 & edit & strobealign & 60 &
+6135 & 0.010 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 2 & edit & x\_mapper & 163 &
+6135 & 0.027 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 3 & edit & blastn & 3212 &
+55965 & 0.057 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 3 & edit & bowtie1 & 52048 &
+55965 & 0.930 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 3 & edit & bowtie2 & 6805 &
+55965 & 0.122 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 3 & edit & indelfree\_indexed
+& 32326 & 55965 & 0.578 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 3 & edit & mmseqs2 & 202 &
+55965 & 0.004 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 3 & edit & mummer4 & 377 &
+55965 & 0.007 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 3 & edit & strobealign & 104 &
+55965 & 0.002 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 3 & edit & x\_mapper & 1134 &
+55965 & 0.020 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 4 & edit & blastn & 13976 &
+19579 & 0.714 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 4 & edit & bowtie2 & 1 & 19579
+& 0.000 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 4 & edit & indelfree\_indexed
+& 4 & 19579 & 0.000 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 4 & edit & mmseqs2 & 215 &
+19579 & 0.011 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 4 & edit & mummer4 & 52 &
+19579 & 0.003 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 4 & edit & strobealign & 14 &
+19579 & 0.001 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 4 & edit & x\_mapper & 5336 &
+19579 & 0.273 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 5 & edit & blastn & 45644 &
+59900 & 0.762 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 5 & edit & mmseqs2 & 169 &
+59900 & 0.003 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 5 & edit & mummer4 & 1 & 59900
+& 0.000 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 5 & edit & strobealign & 3 &
+59900 & 0.000 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 5 & edit & x\_mapper & 14106 &
+59900 & 0.235 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 0 & hamming & blastn & 1 & 1 &
+1.000 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 0 & hamming & bowtie1 & 1 & 1
+& 1.000 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 0 & hamming & bowtie2 & 1 & 1
+& 1.000 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 0 & hamming &
+indelfree\_indexed & 1 & 1 & 1.000 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 0 & hamming & mmseqs2 & 1 & 1
+& 1.000 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 0 & hamming & mummer4 & 1 & 1
+& 1.000 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 1 & hamming & blastn & 11 & 48
+& 0.229 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 1 & hamming & bowtie1 & 46 &
+48 & 0.958 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 1 & hamming & bowtie2 & 46 &
+48 & 0.958 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 1 & hamming &
+indelfree\_indexed & 31 & 48 & 0.646 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 1 & hamming & mmseqs2 & 9 & 48
+& 0.188 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 1 & hamming & mummer4 & 15 &
+48 & 0.312 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 1 & hamming & strobealign & 6
+& 48 & 0.125 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 1 & hamming & x\_mapper & 6 &
+48 & 0.125 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 2 & hamming & blastn & 316 &
+2305 & 0.137 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 2 & hamming & bowtie1 & 2170 &
+2305 & 0.941 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 2 & hamming & bowtie2 & 2124 &
+2305 & 0.921 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 2 & hamming &
+indelfree\_indexed & 1353 & 2305 & 0.587 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 2 & hamming & mmseqs2 & 77 &
+2305 & 0.033 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 2 & hamming & mummer4 & 95 &
+2305 & 0.041 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 2 & hamming & strobealign & 56
+& 2305 & 0.024 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 2 & hamming & x\_mapper & 133
+& 2305 & 0.058 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 3 & hamming & blastn & 3086 &
+53919 & 0.057 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 3 & hamming & bowtie1 & 52171
+& 53919 & 0.968 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 3 & hamming & bowtie2 & 5282 &
+53919 & 0.098 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 3 & hamming &
+indelfree\_indexed & 32407 & 53919 & 0.601 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 3 & hamming & mmseqs2 & 192 &
+53919 & 0.004 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 3 & hamming & mummer4 & 186 &
+53919 & 0.003 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 3 & hamming & strobealign &
+100 & 53919 & 0.002 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 3 & hamming & x\_mapper & 830
+& 53919 & 0.015 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 4 & hamming & blastn & 11675 &
+15859 & 0.736 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 4 & hamming & bowtie2 & 273 &
+15859 & 0.017 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 4 & hamming &
+indelfree\_indexed & 4 & 15859 & 0.000 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 4 & hamming & mmseqs2 & 183 &
+15859 & 0.012 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 4 & hamming & mummer4 & 41 &
+15859 & 0.003 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 4 & hamming & strobealign & 13
+& 15859 & 0.001 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 4 & hamming & x\_mapper & 3701
+& 15859 & 0.233 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 5 & hamming & blastn & 28199 &
+41182 & 0.685 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 5 & hamming & bowtie2 & 555 &
+41182 & 0.013 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 5 & hamming & mmseqs2 & 161 &
+41182 & 0.004 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 5 & hamming & mummer4 & 27 &
+41182 & 0.001 \\
+ns\_3826979\_nc\_421431\_real\_baseline & 5 & hamming & x\_mapper &
+12280 & 41182 & 0.298 \\
+ns\_500000\_nc\_100000 & 0 & edit & blastn & 374003 & 374003 & 1.000 \\
+ns\_500000\_nc\_100000 & 0 & edit & bowtie1 & 374003 & 374003 & 1.000 \\
+ns\_500000\_nc\_100000 & 0 & edit & bowtie2 & 374003 & 374003 & 1.000 \\
+ns\_500000\_nc\_100000 & 0 & edit & indelfree\_indexed & 374003 & 374003
+& 1.000 \\
+ns\_500000\_nc\_100000 & 0 & edit & minimap2 & 345 & 374003 & 0.001 \\
+ns\_500000\_nc\_100000 & 0 & edit & mmseqs2 & 372696 & 374003 & 0.997 \\
+ns\_500000\_nc\_100000 & 0 & edit & mummer4 & 374003 & 374003 & 1.000 \\
+ns\_500000\_nc\_100000 & 0 & edit & strobealign & 349066 & 374003 &
+0.933 \\
+ns\_500000\_nc\_100000 & 1 & edit & blastn & 304580 & 402073 & 0.758 \\
+ns\_500000\_nc\_100000 & 1 & edit & bowtie1 & 375136 & 402073 & 0.933 \\
+ns\_500000\_nc\_100000 & 1 & edit & bowtie2 & 375282 & 402073 & 0.933 \\
+ns\_500000\_nc\_100000 & 1 & edit & indelfree\_indexed & 375136 & 402073
+& 0.933 \\
+ns\_500000\_nc\_100000 & 1 & edit & mmseqs2 & 334553 & 402073 & 0.832 \\
+ns\_500000\_nc\_100000 & 1 & edit & mummer4 & 231562 & 402073 & 0.576 \\
+ns\_500000\_nc\_100000 & 1 & edit & strobealign & 135486 & 402073 &
+0.337 \\
+ns\_500000\_nc\_100000 & 2 & edit & blastn & 259631 & 461711 & 0.562 \\
+ns\_500000\_nc\_100000 & 2 & edit & bowtie1 & 375951 & 461711 & 0.814 \\
+ns\_500000\_nc\_100000 & 2 & edit & bowtie2 & 377021 & 461711 & 0.817 \\
+ns\_500000\_nc\_100000 & 2 & edit & indelfree\_indexed & 375951 & 461711
+& 0.814 \\
+ns\_500000\_nc\_100000 & 2 & edit & mmseqs2 & 241017 & 461711 & 0.522 \\
+ns\_500000\_nc\_100000 & 2 & edit & mummer4 & 112392 & 461711 & 0.243 \\
+ns\_500000\_nc\_100000 & 2 & edit & strobealign & 38808 & 461711 &
+0.084 \\
+ns\_500000\_nc\_100000 & 3 & edit & blastn & 236102 & 534772 & 0.442 \\
+ns\_500000\_nc\_100000 & 3 & edit & bowtie1 & 388464 & 534772 & 0.726 \\
+ns\_500000\_nc\_100000 & 3 & edit & bowtie2 & 344571 & 534772 & 0.644 \\
+ns\_500000\_nc\_100000 & 3 & edit & indelfree\_indexed & 388464 & 534772
+& 0.726 \\
+ns\_500000\_nc\_100000 & 3 & edit & mmseqs2 & 119599 & 534772 & 0.224 \\
+ns\_500000\_nc\_100000 & 3 & edit & mummer4 & 45357 & 534772 & 0.085 \\
+ns\_500000\_nc\_100000 & 3 & edit & strobealign & 7391 & 534772 &
+0.014 \\
+ns\_500000\_nc\_100000 & 4 & edit & blastn & 123239 & 145864 & 0.845 \\
+ns\_500000\_nc\_100000 & 4 & edit & bowtie2 & 2 & 145864 & 0.000 \\
+ns\_500000\_nc\_100000 & 4 & edit & mmseqs2 & 32346 & 145864 & 0.222 \\
+ns\_500000\_nc\_100000 & 4 & edit & mummer4 & 22 & 145864 & 0.000 \\
+ns\_500000\_nc\_100000 & 4 & edit & strobealign & 2 & 145864 & 0.000 \\
+ns\_500000\_nc\_100000 & 5 & edit & blastn & 140734 & 145187 & 0.969 \\
+ns\_500000\_nc\_100000 & 5 & edit & mmseqs2 & 7907 & 145187 & 0.054 \\
+ns\_500000\_nc\_100000 & 5 & edit & mummer4 & 2 & 145187 & 0.000 \\
+ns\_500000\_nc\_100000 & 0 & hamming & blastn & 374003 & 374003 &
+1.000 \\
+ns\_500000\_nc\_100000 & 0 & hamming & bowtie1 & 374003 & 374003 &
+1.000 \\
+ns\_500000\_nc\_100000 & 0 & hamming & bowtie2 & 374003 & 374003 &
+1.000 \\
+ns\_500000\_nc\_100000 & 0 & hamming & indelfree\_indexed & 374003 &
+374003 & 1.000 \\
+ns\_500000\_nc\_100000 & 0 & hamming & minimap2 & 345 & 374003 &
+0.001 \\
+ns\_500000\_nc\_100000 & 0 & hamming & mmseqs2 & 372696 & 374003 &
+0.997 \\
+ns\_500000\_nc\_100000 & 0 & hamming & mummer4 & 374003 & 374003 &
+1.000 \\
+ns\_500000\_nc\_100000 & 0 & hamming & strobealign & 349066 & 374003 &
+0.933 \\
+ns\_500000\_nc\_100000 & 1 & hamming & blastn & 304576 & 398710 &
+0.764 \\
+ns\_500000\_nc\_100000 & 1 & hamming & bowtie1 & 375136 & 398710 &
+0.941 \\
+ns\_500000\_nc\_100000 & 1 & hamming & bowtie2 & 375136 & 398710 &
+0.941 \\
+ns\_500000\_nc\_100000 & 1 & hamming & indelfree\_indexed & 375136 &
+398710 & 0.941 \\
+ns\_500000\_nc\_100000 & 1 & hamming & mmseqs2 & 331446 & 398710 &
+0.831 \\
+ns\_500000\_nc\_100000 & 1 & hamming & mummer4 & 231354 & 398710 &
+0.580 \\
+ns\_500000\_nc\_100000 & 1 & hamming & strobealign & 135485 & 398710 &
+0.340 \\
+ns\_500000\_nc\_100000 & 2 & hamming & blastn & 258690 & 452616 &
+0.572 \\
+ns\_500000\_nc\_100000 & 2 & hamming & bowtie1 & 375466 & 452616 &
+0.830 \\
+ns\_500000\_nc\_100000 & 2 & hamming & bowtie2 & 375070 & 452616 &
+0.829 \\
+ns\_500000\_nc\_100000 & 2 & hamming & indelfree\_indexed & 375466 &
+452616 & 0.830 \\
+ns\_500000\_nc\_100000 & 2 & hamming & mmseqs2 & 234650 & 452616 &
+0.518 \\
+ns\_500000\_nc\_100000 & 2 & hamming & mummer4 & 111399 & 452616 &
+0.246 \\
+ns\_500000\_nc\_100000 & 2 & hamming & strobealign & 38789 & 452616 &
+0.086 \\
+ns\_500000\_nc\_100000 & 3 & hamming & blastn & 232662 & 530594 &
+0.438 \\
+ns\_500000\_nc\_100000 & 3 & hamming & bowtie1 & 388949 & 530594 &
+0.733 \\
+ns\_500000\_nc\_100000 & 3 & hamming & bowtie2 & 344259 & 530594 &
+0.649 \\
+ns\_500000\_nc\_100000 & 3 & hamming & indelfree\_indexed & 388949 &
+530594 & 0.733 \\
+ns\_500000\_nc\_100000 & 3 & hamming & mmseqs2 & 119471 & 530594 &
+0.225 \\
+ns\_500000\_nc\_100000 & 3 & hamming & mummer4 & 44531 & 530594 &
+0.084 \\
+ns\_500000\_nc\_100000 & 3 & hamming & strobealign & 7409 & 530594 &
+0.014 \\
+ns\_500000\_nc\_100000 & 4 & hamming & blastn & 114382 & 140204 &
+0.816 \\
+ns\_500000\_nc\_100000 & 4 & hamming & bowtie2 & 653 & 140204 & 0.005 \\
+ns\_500000\_nc\_100000 & 4 & hamming & mmseqs2 & 34907 & 140204 &
+0.249 \\
+ns\_500000\_nc\_100000 & 4 & hamming & mummer4 & 142 & 140204 & 0.001 \\
+ns\_500000\_nc\_100000 & 4 & hamming & strobealign & 2 & 140204 &
+0.000 \\
+ns\_500000\_nc\_100000 & 5 & hamming & blastn & 110876 & 117208 &
+0.946 \\
+ns\_500000\_nc\_100000 & 5 & hamming & bowtie2 & 386 & 117208 & 0.003 \\
+ns\_500000\_nc\_100000 & 5 & hamming & mmseqs2 & 9389 & 117208 &
+0.080 \\
+ns\_500000\_nc\_100000 & 5 & hamming & mummer4 & 27 & 117208 & 0.000 \\
+ns\_50000\_nc\_5000 & 0 & edit & blastn & 24794 & 24794 & 1.000 \\
+ns\_50000\_nc\_5000 & 0 & edit & bowtie1 & 24794 & 24794 & 1.000 \\
+ns\_50000\_nc\_5000 & 0 & edit & bowtie2 & 24794 & 24794 & 1.000 \\
+ns\_50000\_nc\_5000 & 0 & edit & indelfree\_bruteforce & 24794 & 24794 &
+1.000 \\
+ns\_50000\_nc\_5000 & 0 & edit & indelfree\_indexed & 24794 & 24794 &
+1.000 \\
+ns\_50000\_nc\_5000 & 0 & edit & minimap2 & 23 & 24794 & 0.001 \\
+ns\_50000\_nc\_5000 & 0 & edit & mmseqs2 & 24708 & 24794 & 0.997 \\
+ns\_50000\_nc\_5000 & 0 & edit & mummer4 & 24794 & 24794 & 1.000 \\
+ns\_50000\_nc\_5000 & 0 & edit & sassy & 24794 & 24794 & 1.000 \\
+ns\_50000\_nc\_5000 & 0 & edit & strobealign & 24469 & 24794 & 0.987 \\
+ns\_50000\_nc\_5000 & 0 & edit & x\_mapper & 24741 & 24794 & 0.998 \\
+ns\_50000\_nc\_5000 & 1 & edit & blastn & 20401 & 27375 & 0.745 \\
+ns\_50000\_nc\_5000 & 1 & edit & bowtie1 & 25027 & 27375 & 0.914 \\
+ns\_50000\_nc\_5000 & 1 & edit & bowtie2 & 25036 & 27375 & 0.915 \\
+ns\_50000\_nc\_5000 & 1 & edit & indelfree\_bruteforce & 25027 & 27375 &
+0.914 \\
+ns\_50000\_nc\_5000 & 1 & edit & indelfree\_indexed & 25027 & 27375 &
+0.914 \\
+ns\_50000\_nc\_5000 & 1 & edit & mmseqs2 & 22412 & 27375 & 0.819 \\
+ns\_50000\_nc\_5000 & 1 & edit & mummer4 & 15564 & 27375 & 0.569 \\
+ns\_50000\_nc\_5000 & 1 & edit & sassy & 25079 & 27375 & 0.916 \\
+ns\_50000\_nc\_5000 & 1 & edit & strobealign & 18661 & 27375 & 0.682 \\
+ns\_50000\_nc\_5000 & 1 & edit & x\_mapper & 13084 & 27375 & 0.478 \\
+ns\_50000\_nc\_5000 & 2 & edit & blastn & 17301 & 32010 & 0.540 \\
+ns\_50000\_nc\_5000 & 2 & edit & bowtie1 & 25081 & 32010 & 0.784 \\
+ns\_50000\_nc\_5000 & 2 & edit & bowtie2 & 25067 & 32010 & 0.783 \\
+ns\_50000\_nc\_5000 & 2 & edit & indelfree\_bruteforce & 25081 & 32010 &
+0.784 \\
+ns\_50000\_nc\_5000 & 2 & edit & indelfree\_indexed & 25081 & 32010 &
+0.784 \\
+ns\_50000\_nc\_5000 & 2 & edit & mmseqs2 & 16419 & 32010 & 0.513 \\
+ns\_50000\_nc\_5000 & 2 & edit & mummer4 & 7535 & 32010 & 0.235 \\
+ns\_50000\_nc\_5000 & 2 & edit & sassy & 25240 & 32010 & 0.789 \\
+ns\_50000\_nc\_5000 & 2 & edit & strobealign & 10733 & 32010 & 0.335 \\
+ns\_50000\_nc\_5000 & 2 & edit & x\_mapper & 6519 & 32010 & 0.204 \\
+ns\_50000\_nc\_5000 & 3 & edit & blastn & 15362 & 37371 & 0.411 \\
+ns\_50000\_nc\_5000 & 3 & edit & bowtie1 & 24918 & 37371 & 0.667 \\
+ns\_50000\_nc\_5000 & 3 & edit & bowtie2 & 22707 & 37371 & 0.608 \\
+ns\_50000\_nc\_5000 & 3 & edit & indelfree\_bruteforce & 25084 & 37371 &
+0.671 \\
+ns\_50000\_nc\_5000 & 3 & edit & indelfree\_indexed & 25084 & 37371 &
+0.671 \\
+ns\_50000\_nc\_5000 & 3 & edit & mmseqs2 & 9326 & 37371 & 0.250 \\
+ns\_50000\_nc\_5000 & 3 & edit & mummer4 & 3003 & 37371 & 0.080 \\
+ns\_50000\_nc\_5000 & 3 & edit & sassy & 25522 & 37371 & 0.683 \\
+ns\_50000\_nc\_5000 & 3 & edit & strobealign & 4593 & 37371 & 0.123 \\
+ns\_50000\_nc\_5000 & 3 & edit & x\_mapper & 2401 & 37371 & 0.064 \\
+ns\_50000\_nc\_5000 & 4 & edit & blastn & 14560 & 46390 & 0.314 \\
+ns\_50000\_nc\_5000 & 4 & edit & bowtie2 & 95 & 46390 & 0.002 \\
+ns\_50000\_nc\_5000 & 4 & edit & indelfree\_bruteforce & 25808 & 46390 &
+0.556 \\
+ns\_50000\_nc\_5000 & 4 & edit & indelfree\_indexed & 25802 & 46390 &
+0.556 \\
+ns\_50000\_nc\_5000 & 4 & edit & mmseqs2 & 4942 & 46390 & 0.107 \\
+ns\_50000\_nc\_5000 & 4 & edit & mummer4 & 214 & 46390 & 0.005 \\
+ns\_50000\_nc\_5000 & 4 & edit & sassy & 31133 & 46390 & 0.671 \\
+ns\_50000\_nc\_5000 & 4 & edit & strobealign & 1060 & 46390 & 0.023 \\
+ns\_50000\_nc\_5000 & 4 & edit & x\_mapper & 775 & 46390 & 0.017 \\
+ns\_50000\_nc\_5000 & 5 & edit & blastn & 12016 & 154940 & 0.078 \\
+ns\_50000\_nc\_5000 & 5 & edit & indelfree\_bruteforce & 29297 & 154940
+& 0.189 \\
+ns\_50000\_nc\_5000 & 5 & edit & indelfree\_indexed & 29109 & 154940 &
+0.188 \\
+ns\_50000\_nc\_5000 & 5 & edit & mmseqs2 & 1891 & 154940 & 0.012 \\
+ns\_50000\_nc\_5000 & 5 & edit & mummer4 & 8 & 154940 & 0.000 \\
+ns\_50000\_nc\_5000 & 5 & edit & sassy & 139124 & 154940 & 0.898 \\
+ns\_50000\_nc\_5000 & 5 & edit & strobealign & 90 & 154940 & 0.001 \\
+ns\_50000\_nc\_5000 & 5 & edit & x\_mapper & 273 & 154940 & 0.002 \\
+ns\_50000\_nc\_5000 & 0 & hamming & blastn & 24794 & 24794 & 1.000 \\
+ns\_50000\_nc\_5000 & 0 & hamming & bowtie1 & 24794 & 24794 & 1.000 \\
+ns\_50000\_nc\_5000 & 0 & hamming & bowtie2 & 24794 & 24794 & 1.000 \\
+ns\_50000\_nc\_5000 & 0 & hamming & indelfree\_bruteforce & 24794 &
+24794 & 1.000 \\
+ns\_50000\_nc\_5000 & 0 & hamming & indelfree\_indexed & 24794 & 24794 &
+1.000 \\
+ns\_50000\_nc\_5000 & 0 & hamming & minimap2 & 23 & 24794 & 0.001 \\
+ns\_50000\_nc\_5000 & 0 & hamming & mmseqs2 & 24708 & 24794 & 0.997 \\
+ns\_50000\_nc\_5000 & 0 & hamming & mummer4 & 24794 & 24794 & 1.000 \\
+ns\_50000\_nc\_5000 & 0 & hamming & sassy & 24794 & 24794 & 1.000 \\
+ns\_50000\_nc\_5000 & 0 & hamming & strobealign & 24469 & 24794 &
+0.987 \\
+ns\_50000\_nc\_5000 & 0 & hamming & x\_mapper & 24741 & 24794 & 0.998 \\
+ns\_50000\_nc\_5000 & 1 & hamming & blastn & 20401 & 26580 & 0.768 \\
+ns\_50000\_nc\_5000 & 1 & hamming & bowtie1 & 25027 & 26580 & 0.942 \\
+ns\_50000\_nc\_5000 & 1 & hamming & bowtie2 & 25027 & 26580 & 0.942 \\
+ns\_50000\_nc\_5000 & 1 & hamming & indelfree\_bruteforce & 25027 &
+26580 & 0.942 \\
+ns\_50000\_nc\_5000 & 1 & hamming & indelfree\_indexed & 25027 & 26580 &
+0.942 \\
+ns\_50000\_nc\_5000 & 1 & hamming & mmseqs2 & 22216 & 26580 & 0.836 \\
+ns\_50000\_nc\_5000 & 1 & hamming & mummer4 & 15543 & 26580 & 0.585 \\
+ns\_50000\_nc\_5000 & 1 & hamming & sassy & 24467 & 26580 & 0.921 \\
+ns\_50000\_nc\_5000 & 1 & hamming & strobealign & 18661 & 26580 &
+0.702 \\
+ns\_50000\_nc\_5000 & 1 & hamming & x\_mapper & 13079 & 26580 & 0.492 \\
+ns\_50000\_nc\_5000 & 2 & hamming & blastn & 17226 & 30709 & 0.561 \\
+ns\_50000\_nc\_5000 & 2 & hamming & bowtie1 & 25050 & 30709 & 0.816 \\
+ns\_50000\_nc\_5000 & 2 & hamming & bowtie2 & 25008 & 30709 & 0.814 \\
+ns\_50000\_nc\_5000 & 2 & hamming & indelfree\_bruteforce & 25050 &
+30709 & 0.816 \\
+ns\_50000\_nc\_5000 & 2 & hamming & indelfree\_indexed & 25050 & 30709 &
+0.816 \\
+ns\_50000\_nc\_5000 & 2 & hamming & mmseqs2 & 15894 & 30709 & 0.518 \\
+ns\_50000\_nc\_5000 & 2 & hamming & mummer4 & 7462 & 30709 & 0.243 \\
+ns\_50000\_nc\_5000 & 2 & hamming & sassy & 24512 & 30709 & 0.798 \\
+ns\_50000\_nc\_5000 & 2 & hamming & strobealign & 10730 & 30709 &
+0.349 \\
+ns\_50000\_nc\_5000 & 2 & hamming & x\_mapper & 6505 & 30709 & 0.212 \\
+ns\_50000\_nc\_5000 & 3 & hamming & blastn & 15094 & 35677 & 0.423 \\
+ns\_50000\_nc\_5000 & 3 & hamming & bowtie1 & 24949 & 35677 & 0.699 \\
+ns\_50000\_nc\_5000 & 3 & hamming & bowtie2 & 22689 & 35677 & 0.636 \\
+ns\_50000\_nc\_5000 & 3 & hamming & indelfree\_bruteforce & 24949 &
+35677 & 0.699 \\
+ns\_50000\_nc\_5000 & 3 & hamming & indelfree\_indexed & 24949 & 35677 &
+0.699 \\
+ns\_50000\_nc\_5000 & 3 & hamming & mmseqs2 & 9085 & 35677 & 0.255 \\
+ns\_50000\_nc\_5000 & 3 & hamming & mummer4 & 2933 & 35677 & 0.082 \\
+ns\_50000\_nc\_5000 & 3 & hamming & sassy & 24379 & 35677 & 0.683 \\
+ns\_50000\_nc\_5000 & 3 & hamming & strobealign & 4591 & 35677 &
+0.129 \\
+ns\_50000\_nc\_5000 & 3 & hamming & x\_mapper & 2395 & 35677 & 0.067 \\
+ns\_50000\_nc\_5000 & 4 & hamming & blastn & 13938 & 39393 & 0.354 \\
+ns\_50000\_nc\_5000 & 4 & hamming & bowtie2 & 143 & 39393 & 0.004 \\
+ns\_50000\_nc\_5000 & 4 & hamming & indelfree\_bruteforce & 25554 &
+39393 & 0.649 \\
+ns\_50000\_nc\_5000 & 4 & hamming & indelfree\_indexed & 25549 & 39393 &
+0.649 \\
+ns\_50000\_nc\_5000 & 4 & hamming & mmseqs2 & 4896 & 39393 & 0.124 \\
+ns\_50000\_nc\_5000 & 4 & hamming & mummer4 & 227 & 39393 & 0.006 \\
+ns\_50000\_nc\_5000 & 4 & hamming & sassy & 24873 & 39393 & 0.631 \\
+ns\_50000\_nc\_5000 & 4 & hamming & strobealign & 1062 & 39393 &
+0.027 \\
+ns\_50000\_nc\_5000 & 4 & hamming & x\_mapper & 778 & 39393 & 0.020 \\
+ns\_50000\_nc\_5000 & 5 & hamming & blastn & 10858 & 43594 & 0.249 \\
+ns\_50000\_nc\_5000 & 5 & hamming & bowtie2 & 34 & 43594 & 0.001 \\
+ns\_50000\_nc\_5000 & 5 & hamming & indelfree\_bruteforce & 29717 &
+43594 & 0.682 \\
+ns\_50000\_nc\_5000 & 5 & hamming & indelfree\_indexed & 29528 & 43594 &
+0.677 \\
+ns\_50000\_nc\_5000 & 5 & hamming & mmseqs2 & 2242 & 43594 & 0.051 \\
+ns\_50000\_nc\_5000 & 5 & hamming & mummer4 & 9 & 43594 & 0.000 \\
+ns\_50000\_nc\_5000 & 5 & hamming & sassy & 28530 & 43594 & 0.654 \\
+ns\_50000\_nc\_5000 & 5 & hamming & strobealign & 93 & 43594 & 0.002 \\
+ns\_50000\_nc\_5000 & 5 & hamming & x\_mapper & 288 & 43594 & 0.007 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & edit & blastn & 104817 &
+104817 & 1.000 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & edit & bowtie1 & 104817 &
+104817 & 1.000 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & edit & bowtie2 & 104817 &
+104817 & 1.000 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & edit &
+indelfree\_bruteforce & 104817 & 104817 & 1.000 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & edit & indelfree\_indexed
+& 104817 & 104817 & 1.000 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & edit & mmseqs2 & 102984 &
+104817 & 0.983 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & edit & mummer4 & 104817 &
+104817 & 1.000 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & edit & sassy & 104817 &
+104817 & 1.000 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & edit & strobealign &
+67040 & 104817 & 0.640 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & edit & x\_mapper & 17184
+& 104817 & 0.164 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & edit & blastn & 85929 &
+114070 & 0.753 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & edit & bowtie1 & 104853 &
+114070 & 0.919 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & edit & bowtie2 & 104853 &
+114070 & 0.919 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & edit &
+indelfree\_bruteforce & 104853 & 114070 & 0.919 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & edit & indelfree\_indexed
+& 104853 & 114070 & 0.919 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & edit & mmseqs2 & 78927 &
+114070 & 0.692 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & edit & mummer4 & 67178 &
+114070 & 0.589 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & edit & sassy & 105363 &
+114070 & 0.924 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & edit & strobealign &
+10114 & 114070 & 0.089 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & edit & x\_mapper & 4538 &
+114070 & 0.040 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & edit & blastn & 70575 &
+134564 & 0.524 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & edit & bowtie1 & 104879 &
+134564 & 0.779 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & edit & bowtie2 & 105069 &
+134564 & 0.781 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & edit &
+indelfree\_bruteforce & 104879 & 134564 & 0.779 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & edit & indelfree\_indexed
+& 104879 & 134564 & 0.779 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & edit & mmseqs2 & 29741 &
+134564 & 0.221 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & edit & mummer4 & 31106 &
+134564 & 0.231 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & edit & sassy & 105051 &
+134564 & 0.781 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & edit & strobealign & 1600
+& 134564 & 0.012 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & edit & x\_mapper & 1224 &
+134564 & 0.009 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & edit & blastn & 65189 &
+151548 & 0.430 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & edit & bowtie1 & 104793 &
+151548 & 0.691 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & edit & bowtie2 & 95824 &
+151548 & 0.632 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & edit &
+indelfree\_bruteforce & 105741 & 151548 & 0.698 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & edit & indelfree\_indexed
+& 105741 & 151548 & 0.698 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & edit & mmseqs2 & 11718 &
+151548 & 0.077 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & edit & mummer4 & 16857 &
+151548 & 0.111 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & edit & sassy & 106486 &
+151548 & 0.703 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & edit & strobealign & 151
+& 151548 & 0.001 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 4 & edit & blastn & 61345 &
+165498 & 0.371 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 4 & edit & bowtie2 & 393 &
+165498 & 0.002 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 4 & edit &
+indelfree\_bruteforce & 105081 & 165498 & 0.635 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 4 & edit & indelfree\_indexed
+& 105080 & 165498 & 0.635 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 4 & edit & mmseqs2 & 5090 &
+165498 & 0.031 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 4 & edit & mummer4 & 7445 &
+165498 & 0.045 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 4 & edit & sassy & 107772 &
+165498 & 0.651 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 5 & edit & blastn & 51390 &
+167179 & 0.307 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 5 & edit &
+indelfree\_bruteforce & 104223 & 167179 & 0.623 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 5 & edit & indelfree\_indexed
+& 103972 & 167179 & 0.622 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 5 & edit & mmseqs2 & 1429 &
+167179 & 0.009 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 5 & edit & mummer4 & 1780 &
+167179 & 0.011 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 5 & edit & sassy & 106805 &
+167179 & 0.639 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & hamming & blastn & 104817
+& 104817 & 1.000 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & hamming & bowtie1 &
+104817 & 104817 & 1.000 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & hamming & bowtie2 &
+104817 & 104817 & 1.000 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & hamming &
+indelfree\_bruteforce & 104817 & 104817 & 1.000 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & hamming &
+indelfree\_indexed & 104817 & 104817 & 1.000 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & hamming & mmseqs2 &
+102984 & 104817 & 0.983 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & hamming & mummer4 &
+104817 & 104817 & 1.000 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & hamming & sassy & 104817
+& 104817 & 1.000 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & hamming & strobealign &
+67040 & 104817 & 0.640 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 0 & hamming & x\_mapper &
+17184 & 104817 & 0.164 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & hamming & blastn & 85929
+& 110856 & 0.775 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & hamming & bowtie1 &
+104853 & 110856 & 0.946 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & hamming & bowtie2 &
+104853 & 110856 & 0.946 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & hamming &
+indelfree\_bruteforce & 104853 & 110856 & 0.946 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & hamming &
+indelfree\_indexed & 104853 & 110856 & 0.946 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & hamming & mmseqs2 & 78212
+& 110856 & 0.706 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & hamming & mummer4 & 67171
+& 110856 & 0.606 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & hamming & sassy & 102749
+& 110856 & 0.927 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & hamming & strobealign &
+10114 & 110856 & 0.091 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 1 & hamming & x\_mapper &
+4538 & 110856 & 0.041 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & hamming & blastn & 70366
+& 130166 & 0.541 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & hamming & bowtie1 &
+104879 & 130166 & 0.806 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & hamming & bowtie2 &
+104835 & 130166 & 0.805 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & hamming &
+indelfree\_bruteforce & 104879 & 130166 & 0.806 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & hamming &
+indelfree\_indexed & 104879 & 130166 & 0.806 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & hamming & mmseqs2 & 28450
+& 130166 & 0.219 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & hamming & mummer4 & 30880
+& 130166 & 0.237 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & hamming & sassy & 102215
+& 130166 & 0.785 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & hamming & strobealign &
+1600 & 130166 & 0.012 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 2 & hamming & x\_mapper &
+1224 & 130166 & 0.009 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & hamming & blastn & 64023
+& 146256 & 0.438 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & hamming & bowtie1 &
+104793 & 146256 & 0.717 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & hamming & bowtie2 & 95520
+& 146256 & 0.653 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & hamming &
+indelfree\_bruteforce & 104793 & 146256 & 0.717 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & hamming &
+indelfree\_indexed & 104793 & 146256 & 0.717 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & hamming & mmseqs2 & 12135
+& 146256 & 0.083 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & hamming & mummer4 & 16606
+& 146256 & 0.114 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & hamming & sassy & 102284
+& 146256 & 0.699 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 3 & hamming & strobealign &
+151 & 146256 & 0.001 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 4 & hamming & blastn & 58922
+& 157761 & 0.373 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 4 & hamming & bowtie2 & 574 &
+157761 & 0.004 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 4 & hamming &
+indelfree\_bruteforce & 105144 & 157761 & 0.666 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 4 & hamming &
+indelfree\_indexed & 105144 & 157761 & 0.666 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 4 & hamming & mmseqs2 & 5826
+& 157761 & 0.037 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 4 & hamming & mummer4 & 6829
+& 157761 & 0.043 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 4 & hamming & sassy & 101912
+& 157761 & 0.646 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 5 & hamming & blastn & 46971
+& 159669 & 0.294 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 5 & hamming & bowtie2 & 356 &
+159669 & 0.002 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 5 & hamming &
+indelfree\_bruteforce & 105108 & 159669 & 0.658 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 5 & hamming &
+indelfree\_indexed & 104856 & 159669 & 0.657 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 5 & hamming & mmseqs2 & 1734
+& 159669 & 0.011 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 5 & hamming & mummer4 & 1307
+& 159669 & 0.008 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & 5 & hamming & sassy & 103158
+& 159669 & 0.646 \\
+ns\_75000\_nc\_5000 & 0 & edit & blastn & 37749 & 37749 & 1.000 \\
+ns\_75000\_nc\_5000 & 0 & edit & bowtie1 & 37749 & 37749 & 1.000 \\
+ns\_75000\_nc\_5000 & 0 & edit & bowtie2 & 37749 & 37749 & 1.000 \\
+ns\_75000\_nc\_5000 & 0 & edit & indelfree\_bruteforce & 37749 & 37749 &
+1.000 \\
+ns\_75000\_nc\_5000 & 0 & edit & indelfree\_indexed & 37749 & 37749 &
+1.000 \\
+ns\_75000\_nc\_5000 & 0 & edit & minimap2 & 46 & 37749 & 0.001 \\
+ns\_75000\_nc\_5000 & 0 & edit & mmseqs2 & 37625 & 37749 & 0.997 \\
+ns\_75000\_nc\_5000 & 0 & edit & mummer4 & 37749 & 37749 & 1.000 \\
+ns\_75000\_nc\_5000 & 0 & edit & sassy & 37749 & 37749 & 1.000 \\
+ns\_75000\_nc\_5000 & 0 & edit & strobealign & 37250 & 37749 & 0.987 \\
+ns\_75000\_nc\_5000 & 0 & edit & x\_mapper & 37677 & 37749 & 0.998 \\
+ns\_75000\_nc\_5000 & 1 & edit & blastn & 30587 & 41184 & 0.743 \\
+ns\_75000\_nc\_5000 & 1 & edit & bowtie1 & 37597 & 41184 & 0.913 \\
+ns\_75000\_nc\_5000 & 1 & edit & bowtie2 & 37608 & 41184 & 0.913 \\
+ns\_75000\_nc\_5000 & 1 & edit & indelfree\_bruteforce & 37597 & 41184 &
+0.913 \\
+ns\_75000\_nc\_5000 & 1 & edit & indelfree\_indexed & 37597 & 41184 &
+0.913 \\
+ns\_75000\_nc\_5000 & 1 & edit & mmseqs2 & 33566 & 41184 & 0.815 \\
+ns\_75000\_nc\_5000 & 1 & edit & mummer4 & 23200 & 41184 & 0.563 \\
+ns\_75000\_nc\_5000 & 1 & edit & sassy & 37680 & 41184 & 0.915 \\
+ns\_75000\_nc\_5000 & 1 & edit & strobealign & 28038 & 41184 & 0.681 \\
+ns\_75000\_nc\_5000 & 1 & edit & x\_mapper & 19999 & 41184 & 0.486 \\
+ns\_75000\_nc\_5000 & 2 & edit & blastn & 25622 & 47801 & 0.536 \\
+ns\_75000\_nc\_5000 & 2 & edit & bowtie1 & 37488 & 47801 & 0.784 \\
+ns\_75000\_nc\_5000 & 2 & edit & bowtie2 & 37467 & 47801 & 0.784 \\
+ns\_75000\_nc\_5000 & 2 & edit & indelfree\_bruteforce & 37488 & 47801 &
+0.784 \\
+ns\_75000\_nc\_5000 & 2 & edit & indelfree\_indexed & 37488 & 47801 &
+0.784 \\
+ns\_75000\_nc\_5000 & 2 & edit & mmseqs2 & 24672 & 47801 & 0.516 \\
+ns\_75000\_nc\_5000 & 2 & edit & mummer4 & 11190 & 47801 & 0.234 \\
+ns\_75000\_nc\_5000 & 2 & edit & sassy & 37720 & 47801 & 0.789 \\
+ns\_75000\_nc\_5000 & 2 & edit & strobealign & 16043 & 47801 & 0.336 \\
+ns\_75000\_nc\_5000 & 2 & edit & x\_mapper & 9797 & 47801 & 0.205 \\
+ns\_75000\_nc\_5000 & 3 & edit & blastn & 23305 & 56388 & 0.413 \\
+ns\_75000\_nc\_5000 & 3 & edit & bowtie1 & 37288 & 56388 & 0.661 \\
+ns\_75000\_nc\_5000 & 3 & edit & bowtie2 & 33991 & 56388 & 0.603 \\
+ns\_75000\_nc\_5000 & 3 & edit & indelfree\_bruteforce & 37471 & 56388 &
+0.665 \\
+ns\_75000\_nc\_5000 & 3 & edit & indelfree\_indexed & 37471 & 56388 &
+0.665 \\
+ns\_75000\_nc\_5000 & 3 & edit & mmseqs2 & 14147 & 56388 & 0.251 \\
+ns\_75000\_nc\_5000 & 3 & edit & mummer4 & 4386 & 56388 & 0.078 \\
+ns\_75000\_nc\_5000 & 3 & edit & sassy & 38213 & 56388 & 0.678 \\
+ns\_75000\_nc\_5000 & 3 & edit & strobealign & 6684 & 56388 & 0.119 \\
+ns\_75000\_nc\_5000 & 3 & edit & x\_mapper & 3684 & 56388 & 0.065 \\
+ns\_75000\_nc\_5000 & 4 & edit & blastn & 21684 & 69095 & 0.314 \\
+ns\_75000\_nc\_5000 & 4 & edit & bowtie2 & 153 & 69095 & 0.002 \\
+ns\_75000\_nc\_5000 & 4 & edit & indelfree\_bruteforce & 38340 & 69095 &
+0.555 \\
+ns\_75000\_nc\_5000 & 4 & edit & indelfree\_indexed & 38326 & 69095 &
+0.555 \\
+ns\_75000\_nc\_5000 & 4 & edit & mmseqs2 & 7359 & 69095 & 0.107 \\
+ns\_75000\_nc\_5000 & 4 & edit & mummer4 & 313 & 69095 & 0.005 \\
+ns\_75000\_nc\_5000 & 4 & edit & sassy & 46198 & 69095 & 0.669 \\
+ns\_75000\_nc\_5000 & 4 & edit & strobealign & 1604 & 69095 & 0.023 \\
+ns\_75000\_nc\_5000 & 4 & edit & x\_mapper & 1142 & 69095 & 0.017 \\
+ns\_75000\_nc\_5000 & 5 & edit & blastn & 18148 & 230913 & 0.079 \\
+ns\_75000\_nc\_5000 & 5 & edit & indelfree\_bruteforce & 44419 & 230913
+& 0.192 \\
+ns\_75000\_nc\_5000 & 5 & edit & indelfree\_indexed & 44109 & 230913 &
+0.191 \\
+ns\_75000\_nc\_5000 & 5 & edit & mmseqs2 & 2915 & 230913 & 0.013 \\
+ns\_75000\_nc\_5000 & 5 & edit & mummer4 & 7 & 230913 & 0.000 \\
+ns\_75000\_nc\_5000 & 5 & edit & sassy & 206911 & 230913 & 0.896 \\
+ns\_75000\_nc\_5000 & 5 & edit & strobealign & 130 & 230913 & 0.001 \\
+ns\_75000\_nc\_5000 & 5 & edit & x\_mapper & 391 & 230913 & 0.002 \\
+ns\_75000\_nc\_5000 & 0 & hamming & blastn & 37749 & 37749 & 1.000 \\
+ns\_75000\_nc\_5000 & 0 & hamming & bowtie1 & 37749 & 37749 & 1.000 \\
+ns\_75000\_nc\_5000 & 0 & hamming & bowtie2 & 37749 & 37749 & 1.000 \\
+ns\_75000\_nc\_5000 & 0 & hamming & indelfree\_bruteforce & 37749 &
+37749 & 1.000 \\
+ns\_75000\_nc\_5000 & 0 & hamming & indelfree\_indexed & 37749 & 37749 &
+1.000 \\
+ns\_75000\_nc\_5000 & 0 & hamming & minimap2 & 46 & 37749 & 0.001 \\
+ns\_75000\_nc\_5000 & 0 & hamming & mmseqs2 & 37625 & 37749 & 0.997 \\
+ns\_75000\_nc\_5000 & 0 & hamming & mummer4 & 37749 & 37749 & 1.000 \\
+ns\_75000\_nc\_5000 & 0 & hamming & sassy & 37749 & 37749 & 1.000 \\
+ns\_75000\_nc\_5000 & 0 & hamming & strobealign & 37250 & 37749 &
+0.987 \\
+ns\_75000\_nc\_5000 & 0 & hamming & x\_mapper & 37677 & 37749 & 0.998 \\
+ns\_75000\_nc\_5000 & 1 & hamming & blastn & 30587 & 40038 & 0.764 \\
+ns\_75000\_nc\_5000 & 1 & hamming & bowtie1 & 37597 & 40038 & 0.939 \\
+ns\_75000\_nc\_5000 & 1 & hamming & bowtie2 & 37597 & 40038 & 0.939 \\
+ns\_75000\_nc\_5000 & 1 & hamming & indelfree\_bruteforce & 37597 &
+40038 & 0.939 \\
+ns\_75000\_nc\_5000 & 1 & hamming & indelfree\_indexed & 37597 & 40038 &
+0.939 \\
+ns\_75000\_nc\_5000 & 1 & hamming & mmseqs2 & 33244 & 40038 & 0.830 \\
+ns\_75000\_nc\_5000 & 1 & hamming & mummer4 & 23179 & 40038 & 0.579 \\
+ns\_75000\_nc\_5000 & 1 & hamming & sassy & 36835 & 40038 & 0.920 \\
+ns\_75000\_nc\_5000 & 1 & hamming & strobealign & 28038 & 40038 &
+0.700 \\
+ns\_75000\_nc\_5000 & 1 & hamming & x\_mapper & 19998 & 40038 & 0.499 \\
+ns\_75000\_nc\_5000 & 2 & hamming & blastn & 25537 & 45848 & 0.557 \\
+ns\_75000\_nc\_5000 & 2 & hamming & bowtie1 & 37440 & 45848 & 0.817 \\
+ns\_75000\_nc\_5000 & 2 & hamming & bowtie2 & 37369 & 45848 & 0.815 \\
+ns\_75000\_nc\_5000 & 2 & hamming & indelfree\_bruteforce & 37440 &
+45848 & 0.817 \\
+ns\_75000\_nc\_5000 & 2 & hamming & indelfree\_indexed & 37440 & 45848 &
+0.817 \\
+ns\_75000\_nc\_5000 & 2 & hamming & mmseqs2 & 23882 & 45848 & 0.521 \\
+ns\_75000\_nc\_5000 & 2 & hamming & mummer4 & 11093 & 45848 & 0.242 \\
+ns\_75000\_nc\_5000 & 2 & hamming & sassy & 36597 & 45848 & 0.798 \\
+ns\_75000\_nc\_5000 & 2 & hamming & strobealign & 16034 & 45848 &
+0.350 \\
+ns\_75000\_nc\_5000 & 2 & hamming & x\_mapper & 9780 & 45848 & 0.213 \\
+ns\_75000\_nc\_5000 & 3 & hamming & blastn & 22922 & 53789 & 0.426 \\
+ns\_75000\_nc\_5000 & 3 & hamming & bowtie1 & 37336 & 53789 & 0.694 \\
+ns\_75000\_nc\_5000 & 3 & hamming & bowtie2 & 33946 & 53789 & 0.631 \\
+ns\_75000\_nc\_5000 & 3 & hamming & indelfree\_bruteforce & 37336 &
+53789 & 0.694 \\
+ns\_75000\_nc\_5000 & 3 & hamming & indelfree\_indexed & 37336 & 53789 &
+0.694 \\
+ns\_75000\_nc\_5000 & 3 & hamming & mmseqs2 & 13759 & 53789 & 0.256 \\
+ns\_75000\_nc\_5000 & 3 & hamming & mummer4 & 4302 & 53789 & 0.080 \\
+ns\_75000\_nc\_5000 & 3 & hamming & sassy & 36445 & 53789 & 0.678 \\
+ns\_75000\_nc\_5000 & 3 & hamming & strobealign & 6684 & 53789 &
+0.124 \\
+ns\_75000\_nc\_5000 & 3 & hamming & x\_mapper & 3675 & 53789 & 0.068 \\
+ns\_75000\_nc\_5000 & 4 & hamming & blastn & 20783 & 58871 & 0.353 \\
+ns\_75000\_nc\_5000 & 4 & hamming & bowtie2 & 243 & 58871 & 0.004 \\
+ns\_75000\_nc\_5000 & 4 & hamming & indelfree\_bruteforce & 37904 &
+58871 & 0.644 \\
+ns\_75000\_nc\_5000 & 4 & hamming & indelfree\_indexed & 37898 & 58871 &
+0.644 \\
+ns\_75000\_nc\_5000 & 4 & hamming & mmseqs2 & 7362 & 58871 & 0.125 \\
+ns\_75000\_nc\_5000 & 4 & hamming & mummer4 & 330 & 58871 & 0.006 \\
+ns\_75000\_nc\_5000 & 4 & hamming & sassy & 36959 & 58871 & 0.628 \\
+ns\_75000\_nc\_5000 & 4 & hamming & strobealign & 1610 & 58871 &
+0.027 \\
+ns\_75000\_nc\_5000 & 4 & hamming & x\_mapper & 1140 & 58871 & 0.019 \\
+ns\_75000\_nc\_5000 & 5 & hamming & blastn & 16383 & 65820 & 0.249 \\
+ns\_75000\_nc\_5000 & 5 & hamming & bowtie2 & 53 & 65820 & 0.001 \\
+ns\_75000\_nc\_5000 & 5 & hamming & indelfree\_bruteforce & 45038 &
+65820 & 0.684 \\
+ns\_75000\_nc\_5000 & 5 & hamming & indelfree\_indexed & 44720 & 65820 &
+0.679 \\
+ns\_75000\_nc\_5000 & 5 & hamming & mmseqs2 & 3419 & 65820 & 0.052 \\
+ns\_75000\_nc\_5000 & 5 & hamming & mummer4 & 12 & 65820 & 0.000 \\
+ns\_75000\_nc\_5000 & 5 & hamming & sassy & 43018 & 65820 & 0.654 \\
+ns\_75000\_nc\_5000 & 5 & hamming & strobealign & 132 & 65820 & 0.002 \\
+ns\_75000\_nc\_5000 & 5 & hamming & x\_mapper & 413 & 65820 & 0.006 \\
+\end{longtable}
+
+\subsubsection{Supplementary Table S9: Computational Resource
+Usage}\label{tbl-supp-resource-usage}
+
+Detailed resource usage metrics for all completed tool runs on both real
+(IMG/VR4 subsampled) and simulated datasets. For each tool-dataset
+combination, we report total CPU time (hours), wall-clock time (hours),
+peak memory usage (GB), SLURM job ID, and allocated CPU cores. All tools
+were allocated 64 threads and 512 GB RAM on identical hardware (dual AMD
+EPYC 7543, see Methods the Reproducibility section in the main text).\\
+The fraction\_X datasets represent subsampled fractions of IMG/VR4 HQ
+contigs, while ns\_X\_nc\_Y datasets are synthetic benchmarks. The
+ns\_3826979\_nc\_421431\_real\_baseline dataset is semi-synthetic, where
+real spacers are searched against simulated contigs matched to IMG/VR4
+characteristics.
+
+\paragraph{A. Real data (IMG/VR4 subsampled fractions) --- completed
+jobs}\label{a.-real-data-imgvr4-subsampled-fractions-completed-jobs}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 14\tabcolsep) * \real{0.1250}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Tool
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Fraction
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Job ID
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+CPU Time (h)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Wall Time (h)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Peak Mem (GB)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+CPUs
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Max Distance
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+blastn & 0.0005 & 20697879 & 6.60 & 0.55 & 0.61 & 38 & perc\_id=84\% \\
+blastn & 0.001 & 20697880 & 9.02 & 0.55 & 0.63 & 38 & perc\_id=84\% \\
+blastn & 0.005 & 20697881 & 44.79 & 3.19 & 0.68 & 38 & perc\_id=84\% \\
+blastn & 0.01 & 20697882 & 94.72 & 9.00 & 0.70 & 38 & perc\_id=84\% \\
+blastn & 0.05 & 20697883 & 556.64 & 28.77 & 1.31 & 38 & perc\_id=84\% \\
+blastn & 0.1 & 20697884 & 1135.98 & 146.80 & 2.82 & 38 &
+perc\_id=84\% \\
+bowtie1 & 0.0005 & 20668861 & 0.04 & 0.04 & 0.18 & 38 & 3 \\
+bowtie1 & 0.001 & 20668609 & 0.04 & 0.04 & 0.50 & 38 & 3 \\
+bowtie1 & 0.005 & 20668621 & 0.09 & 0.09 & 0.83 & 38 & 3 \\
+bowtie1 & 0.01 & 20668633 & 0.11 & 0.11 & 1.22 & 38 & 3 \\
+bowtie1 & 0.05 & 20668645 & 4.07 & 0.32 & 4.15 & 38 & 3 \\
+bowtie1 & 0.1 & 20668655 & 10.27 & 1.50 & 8.02 & 38 & 3 \\
+bowtie1 & 1.0 & 20668665 & 117.29 & 14.33 & 146.37 & 38 & 3 \\
+bowtie2 & 0.0005 & 20668433 & 0.06 & 0.06 & 1.05 & 38 & N/A \\
+bowtie2 & 0.001 & 20668610 & 0.06 & 0.06 & 0.78 & 38 & N/A \\
+bowtie2 & 0.005 & 20668622 & 0.16 & 0.16 & 1.10 & 38 & N/A \\
+bowtie2 & 0.01 & 20668634 & 2.88 & 0.39 & 1.84 & 38 & N/A \\
+bowtie2 & 0.05 & 20668646 & 13.63 & 1.46 & 6.28 & 38 & N/A \\
+bowtie2 & 0.1 & 20668656 & 30.74 & 3.40 & 11.62 & 38 & N/A \\
+bowtie2 & 1.0 & 20668666 & 994.87 & 115.92 & 151.48 & 38 & N/A \\
+indelfree\_bruteforce & 0.0005 & 20668599 & 197.77 & 26.75 & 22.04 & 38
+& N/A \\
+indelfree\_bruteforce & 0.001 & 20668611 & 371.13 & 41.72 & 27.82 & 38 &
+N/A \\
+indelfree\_indexed & 0.0005 & 20668600 & 2.72 & 0.47 & 20.31 & 38 &
+N/A \\
+indelfree\_indexed & 0.001 & 20668612 & 4.06 & 0.69 & 27.88 & 38 &
+N/A \\
+indelfree\_indexed & 0.005 & 20668624 & 20.73 & 2.54 & 28.42 & 38 &
+N/A \\
+indelfree\_indexed & 0.01 & 20668636 & 44.38 & 6.04 & 31.41 & 38 &
+N/A \\
+indelfree\_indexed & 0.05 & 20668647 & 185.84 & 18.43 & 35.83 & 38 &
+N/A \\
+indelfree\_indexed & 0.1 & 20668657 & 418.20 & 51.18 & 40.76 & 38 &
+N/A \\
+minimap2 & 0.0005 & 20668602 & 0.03 & 0.03 & 0.76 & 38 & N/A \\
+minimap2 & 0.001 & 20668614 & 0.04 & 0.04 & 0.76 & 38 & N/A \\
+minimap2 & 0.005 & 20668626 & 0.15 & 0.15 & 1.12 & 38 & N/A \\
+minimap2 & 0.01 & 20668638 & 2.61 & 0.63 & 1.65 & 38 & N/A \\
+minimap2 & 0.05 & 20668649 & 15.64 & 0.92 & 5.15 & 38 & N/A \\
+minimap2 & 0.1 & 20668659 & 34.19 & 7.72 & 9.85 & 38 & N/A \\
+minimap2 & 1.0 & 20668669 & 517.35 & 48.13 & 90.69 & 38 & N/A \\
+mmseqs2 & 0.0005 & 20668603 & 0.07 & 0.07 & 9.99 & 38 &
+min-seq-id=85\% \\
+mmseqs2 & 0.001 & 20668615 & 0.07 & 0.07 & 9.98 & 38 &
+min-seq-id=85\% \\
+mmseqs2 & 0.005 & 20668627 & 0.07 & 0.07 & 10.33 & 38 &
+min-seq-id=85\% \\
+mmseqs2 & 0.01 & 20668639 & 0.07 & 0.07 & 10.75 & 38 &
+min-seq-id=85\% \\
+mmseqs2 & 0.05 & 20668650 & 0.07 & 0.07 & 15.30 & 38 &
+min-seq-id=85\% \\
+mmseqs2 & 0.1 & 20668660 & 0.13 & 0.13 & 22.84 & 38 & min-seq-id=85\% \\
+mmseqs2 & 1.0 & 20668670 & 5.37 & 0.73 & 141.76 & 38 &
+min-seq-id=85\% \\
+mummer4 & 0.0005 & 20668604 & 0.01 & 0.01 & 0.39 & 38 & N/A \\
+mummer4 & 0.001 & 20668616 & 0.01 & 0.01 & 0.12 & 38 & N/A \\
+mummer4 & 0.005 & 20668628 & 0.03 & 0.03 & 0.26 & 38 & N/A \\
+mummer4 & 0.01 & 20668640 & 0.08 & 0.08 & 0.28 & 38 & N/A \\
+mummer4 & 0.05 & 20668651 & 0.26 & 0.26 & 0.43 & 38 & N/A \\
+mummer4 & 0.1 & 20668661 & 4.64 & 0.86 & 2.31 & 38 & N/A \\
+mummer4 & 1.0 & 20668671 & 47.88 & 9.33 & 9.02 & 38 & N/A \\
+sassy & 0.0005 & 20668605 & 26.24 & 2.75 & 2.95 & 38 & N/A \\
+sassy & 0.001 & 20668617 & 37.25 & 4.66 & 3.14 & 38 & N/A \\
+sassy & 0.005 & 20668629 & 212.28 & 25.47 & 10.43 & 38 & N/A \\
+sassy & 0.01 & 20668641 & 439.60 & 65.63 & 27.94 & 38 & N/A \\
+strobealign & 0.0005 & 20668606 & 0.01 & 0.01 & 0.63 & 38 & N/A \\
+strobealign & 0.001 & 20668618 & 0.00 & 0.00 & 0.67 & 38 & N/A \\
+strobealign & 0.005 & 20668630 & 0.01 & 0.01 & 2.02 & 38 & N/A \\
+strobealign & 0.01 & 20668642 & 0.02 & 0.02 & 3.55 & 38 & N/A \\
+strobealign & 0.05 & 20668652 & 0.03 & 0.03 & 11.72 & 38 & N/A \\
+strobealign & 0.1 & 20668662 & 0.08 & 0.08 & 21.29 & 38 & N/A \\
+strobealign & 1.0 & 20668672 & 0.32 & 0.32 & 116.67 & 38 & N/A \\
+x\_mapper & 0.0005 & 20668607 & 0.02 & 0.02 & 6.04 & 38 & N/A \\
+x\_mapper & 0.001 & 20668619 & 0.03 & 0.03 & 6.07 & 38 & N/A \\
+x\_mapper & 0.005 & 20668631 & 0.06 & 0.06 & 4.18 & 38 & N/A \\
+x\_mapper & 0.01 & 20668643 & 0.06 & 0.06 & 7.35 & 38 & N/A \\
+x\_mapper & 0.05 & 20668653 & 0.43 & 0.43 & 10.75 & 38 & N/A \\
+x\_mapper & 0.1 & 20668663 & 3.36 & 1.11 & 10.86 & 38 & N/A \\
+x\_mapper & 1.0 & 20695756 & 45.50 & 12.42 & 244.28 & 38 & N/A \\
+\end{longtable}
+
+\paragraph{B. Simulated datasets --- completed
+jobs}\label{b.-simulated-datasets-completed-jobs}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 24\tabcolsep) * \real{0.0769}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 24\tabcolsep) * \real{0.0769}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 24\tabcolsep) * \real{0.0769}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 24\tabcolsep) * \real{0.0769}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 24\tabcolsep) * \real{0.0769}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 24\tabcolsep) * \real{0.0769}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 24\tabcolsep) * \real{0.0769}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 24\tabcolsep) * \real{0.0769}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 24\tabcolsep) * \real{0.0769}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 24\tabcolsep) * \real{0.0769}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 24\tabcolsep) * \real{0.0769}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 24\tabcolsep) * \real{0.0769}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 24\tabcolsep) * \real{0.0769}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Dataset
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Tool
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Job ID
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Search Space
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+N Spacers
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+N Contigs
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Spacer Mbp
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Contig Mbp
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+CPU Time (h)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Wall Time (h)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Peak Mem (GB)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+CPUs
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Max Distance
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ns\_100000\_nc\_10000 & blastn & 20697887 & 1000000000 & 100000 & 10000
+& 3.20 & 802.83 & 12.99 & 1.11 & 1.14 & 38 & perc\_id=84\% \\
+ns\_100000\_nc\_10000 & bowtie1 & 20704670 & 1000000000 & 100000 & 10000
+& 3.20 & 802.83 & 7.09 & 0.45 & 5.69 & 38 & 3 \\
+ns\_100000\_nc\_10000 & bowtie2 & 20697890 & 1000000000 & 100000 & 10000
+& 3.20 & 802.83 & 3.83 & 0.48 & 6.52 & 38 & N/A \\
+ns\_100000\_nc\_10000 & indelfree\_bruteforce & 20697892 & 1000000000 &
+100000 & 10000 & 3.20 & 802.83 & 653.95 & 51.71 & 105.35 & 38 & 5 \\
+ns\_100000\_nc\_10000 & indelfree\_indexed & 20697894 & 1000000000 &
+100000 & 10000 & 3.20 & 802.83 & 6.24 & 0.26 & 39.30 & 38 & 5 \\
+ns\_100000\_nc\_10000 & minimap2 & 20697895 & 1000000000 & 100000 &
+10000 & 3.20 & 802.83 & 0.07 & 0.07 & 5.33 & 38 & N/A \\
+ns\_100000\_nc\_10000 & mmseqs2 & 20697897 & 1000000000 & 100000 & 10000
+& 3.20 & 802.83 & 0.06 & 0.06 & 14.13 & 38 & min-seq-id=85\% \\
+ns\_100000\_nc\_10000 & mummer4 & 20697898 & 1000000000 & 100000 & 10000
+& 3.20 & 802.83 & 0.08 & 0.08 & 0.27 & 38 & N/A \\
+ns\_100000\_nc\_10000 & sassy & 20697900 & 1000000000 & 100000 & 10000 &
+3.20 & 802.83 & 68.36 & 7.42 & 0.12 & 38 & 5 \\
+ns\_100000\_nc\_10000 & strobealign & 20697902 & 1000000000 & 100000 &
+10000 & 3.20 & 802.83 & 0.01 & 0.01 & 3.80 & 38 & N/A \\
+ns\_100000\_nc\_10000 & x\_mapper & 20697903 & 1000000000 & 100000 &
+10000 & 3.20 & 802.83 & 0.08 & 0.08 & 21.95 & 38 & N/A \\
+ns\_100000\_nc\_20000 & blastn & 20697905 & 2000000000 & 100000 & 20000
+& 3.20 & 1604.14 & 25.74 & 1.14 & 2.13 & 38 & perc\_id=84\% \\
+ns\_100000\_nc\_20000 & bowtie1 & 20704671 & 2000000000 & 100000 & 20000
+& 3.20 & 1604.14 & 6.92 & 0.70 & 8.13 & 38 & 3 \\
+ns\_100000\_nc\_20000 & bowtie2 & 20697908 & 2000000000 & 100000 & 20000
+& 3.20 & 1604.14 & 7.41 & 0.76 & 12.21 & 38 & N/A \\
+ns\_100000\_nc\_20000 & indelfree\_bruteforce & 20697909 & 2000000000 &
+100000 & 20000 & 3.20 & 1604.14 & 2948.61 & 137.93 & 32.38 & 38 & 5 \\
+ns\_100000\_nc\_20000 & indelfree\_indexed & 20697910 & 2000000000 &
+100000 & 20000 & 3.20 & 1604.14 & 13.02 & 1.55 & 29.51 & 38 & 5 \\
+ns\_100000\_nc\_20000 & minimap2 & 20697911 & 2000000000 & 100000 &
+20000 & 3.20 & 1604.14 & 0.05 & 0.05 & 9.98 & 38 & N/A \\
+ns\_100000\_nc\_20000 & mmseqs2 & 20697912 & 2000000000 & 100000 & 20000
+& 3.20 & 1604.14 & 0.04 & 0.04 & 20.16 & 38 & min-seq-id=85\% \\
+ns\_100000\_nc\_20000 & mummer4 & 20697913 & 2000000000 & 100000 & 20000
+& 3.20 & 1604.14 & 0.16 & 0.16 & 0.28 & 38 & N/A \\
+ns\_100000\_nc\_20000 & sassy & 20697914 & 2000000000 & 100000 & 20000 &
+3.20 & 1604.14 & 141.30 & 5.74 & 0.15 & 38 & 5 \\
+ns\_100000\_nc\_20000 & strobealign & 20697915 & 2000000000 & 100000 &
+20000 & 3.20 & 1604.14 & 0.02 & 0.02 & 7.58 & 38 & N/A \\
+ns\_100000\_nc\_20000 & x\_mapper & 20697916 & 2000000000 & 100000 &
+20000 & 3.20 & 1604.14 & 2.16 & 0.42 & 29.34 & 38 & N/A \\
+ns\_3826979\_nc\_421431\_real\_baseline & bowtie1 & 20693675 &
+1612807586949 & 3826979 & 421431 & 129.49 & 4291.11 & 109.49 & 10.43 &
+182.05 & 38 & 3 \\
+ns\_3826979\_nc\_421431\_real\_baseline & bowtie2 & 20697538 &
+1612807586949 & 3826979 & 421431 & 129.49 & 4291.11 & 618.22 & 49.78 &
+164.30 & 38 & N/A \\
+ns\_3826979\_nc\_421431\_real\_baseline & minimap2 & 20697704 &
+1612807586949 & 3826979 & 421431 & 129.49 & 4291.11 & 451.04 & 27.94 &
+77.42 & 38 & N/A \\
+ns\_3826979\_nc\_421431\_real\_baseline & mmseqs2 & 20697705 &
+1612807586949 & 3826979 & 421431 & 129.49 & 4291.11 & 6.55 & 0.72 &
+172.10 & 38 & min-seq-id=85\% \\
+ns\_3826979\_nc\_421431\_real\_baseline & mummer4 & 20804503 &
+1612807586949 & 3826979 & 421431 & 129.49 & 4291.11 & 72.12 & 12.51 &
+20.54 & 38 & N/A \\
+ns\_3826979\_nc\_421431\_real\_baseline & strobealign & 20697709 &
+1612807586949 & 3826979 & 421431 & 129.49 & 4291.11 & 0.23 & 0.23 &
+93.29 & 38 & N/A \\
+ns\_3826979\_nc\_421431\_real\_baseline & x\_mapper & 20695761 &
+1612807586949 & 3826979 & 421431 & 129.49 & 4291.11 & 32.10 & 2.87 &
+229.82 & 38 & N/A \\
+ns\_500000\_nc\_100000 & blastn & 20697917 & 50000000000 & 500000 &
+100000 & 16.00 & 2232.68 & 2578.12 & 208.46 & 33.08 & 38 &
+perc\_id=84\% \\
+ns\_500000\_nc\_100000 & bowtie1 & 20704672 & 50000000000 & 500000 &
+100000 & 16.00 & 2232.68 & 131.26 & 24.04 & 207.01 & 38 & 3 \\
+ns\_500000\_nc\_100000 & bowtie2 & 20697919 & 50000000000 & 500000 &
+100000 & 16.00 & 2232.68 & 210.24 & 26.82 & 208.15 & 38 & N/A \\
+ns\_500000\_nc\_100000 & indelfree\_indexed & 20697920 & 50000000000 &
+500000 & 100000 & 16.00 & 2232.68 & 414.51 & 40.23 & 70.63 & 38 & 3 \\
+ns\_500000\_nc\_100000 & minimap2 & 20697921 & 50000000000 & 500000 &
+100000 & 16.00 & 2232.68 & 70.34 & 3.22 & 89.59 & 38 & N/A \\
+ns\_500000\_nc\_100000 & mmseqs2 & 20697922 & 50000000000 & 500000 &
+100000 & 16.00 & 2232.68 & 8.30 & 1.23 & 217.16 & 38 &
+min-seq-id=85\% \\
+ns\_500000\_nc\_100000 & mummer4 & 20697923 & 50000000000 & 500000 &
+100000 & 16.00 & 2232.68 & 14.59 & 3.26 & 1.89 & 38 & N/A \\
+ns\_500000\_nc\_100000 & strobealign & 20697924 & 50000000000 & 500000 &
+100000 & 16.00 & 2232.68 & 0.23 & 0.23 & 141.83 & 38 & N/A \\
+ns\_50000\_nc\_5000 & blastn & 20697926 & 250000000 & 50000 & 5000 &
+1.60 & 402.61 & 3.35 & 0.18 & 0.70 & 38 & perc\_id=84\% \\
+ns\_50000\_nc\_5000 & bowtie1 & 20704673 & 250000000 & 50000 & 5000 &
+1.60 & 402.61 & 3.71 & 0.21 & 3.29 & 38 & 3 \\
+ns\_50000\_nc\_5000 & bowtie2 & 20697928 & 250000000 & 50000 & 5000 &
+1.60 & 402.61 & 0.19 & 0.19 & 3.77 & 38 & N/A \\
+ns\_50000\_nc\_5000 & indelfree\_bruteforce & 20697929 & 250000000 &
+50000 & 5000 & 1.60 & 402.61 & 251.32 & 10.48 & 85.46 & 38 & 5 \\
+ns\_50000\_nc\_5000 & indelfree\_indexed & 20697930 & 250000000 & 50000
+& 5000 & 1.60 & 402.61 & 0.10 & 0.10 & 66.20 & 38 & 5 \\
+ns\_50000\_nc\_5000 & minimap2 & 20697931 & 250000000 & 50000 & 5000 &
+1.60 & 402.61 & 0.01 & 0.01 & 2.64 & 38 & N/A \\
+ns\_50000\_nc\_5000 & mmseqs2 & 20697932 & 250000000 & 50000 & 5000 &
+1.60 & 402.61 & 0.02 & 0.02 & 11.29 & 38 & min-seq-id=85\% \\
+ns\_50000\_nc\_5000 & mummer4 & 20697933 & 250000000 & 50000 & 5000 &
+1.60 & 402.61 & 0.04 & 0.04 & 0.26 & 38 & N/A \\
+ns\_50000\_nc\_5000 & sassy & 20697934 & 250000000 & 50000 & 5000 & 1.60
+& 402.61 & 18.18 & 1.06 & 0.06 & 38 & 5 \\
+ns\_50000\_nc\_5000 & strobealign & 20697935 & 250000000 & 50000 & 5000
+& 1.60 & 402.61 & 0.00 & 0.00 & 2.27 & 38 & N/A \\
+ns\_50000\_nc\_5000 & x\_mapper & 20697936 & 250000000 & 50000 & 5000 &
+1.60 & 402.61 & 0.04 & 0.04 & 15.75 & 38 & N/A \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & blastn & 20697868 & 2500000 &
+500 & 5000 & 0.02 & 400.78 & 0.02 & 0.02 & 1.46 & 38 & perc\_id=84\% \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & bowtie1 & 20704675 & 2500000
+& 500 & 5000 & 0.02 & 400.78 & 2.99 & 0.21 & 3.64 & 38 & 3 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & bowtie2 & 20697870 & 2500000
+& 500 & 5000 & 0.02 & 400.78 & 0.18 & 0.18 & 4.09 & 38 & N/A \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & indelfree\_bruteforce &
+20697871 & 2500000 & 500 & 5000 & 0.02 & 400.78 & 0.18 & 0.18 & 27.47 &
+38 & 5 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & indelfree\_indexed & 20697872
+& 2500000 & 500 & 5000 & 0.02 & 400.78 & 0.02 & 0.02 & 7.56 & 38 & 5 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & minimap2 & 20697873 & 2500000
+& 500 & 5000 & 0.02 & 400.78 & 0.01 & 0.01 & 2.69 & 38 & N/A \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & mmseqs2 & 20697874 & 2500000
+& 500 & 5000 & 0.02 & 400.78 & 0.04 & 0.04 & 11.21 & 38 &
+min-seq-id=85\% \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & mummer4 & 20697875 & 2500000
+& 500 & 5000 & 0.02 & 400.78 & 0.07 & 0.07 & 0.28 & 38 & N/A \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & sassy & 20697876 & 2500000 &
+500 & 5000 & 0.02 & 400.78 & 0.03 & 0.03 & 0.09 & 38 & 5 \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & strobealign & 20697877 &
+2500000 & 500 & 5000 & 0.02 & 400.78 & 0.00 & 0.00 & 1.85 & 38 & N/A \\
+ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE & x\_mapper & 20697878 &
+2500000 & 500 & 5000 & 0.02 & 400.78 & 0.07 & 0.07 & 13.16 & 38 & N/A \\
+ns\_75000\_nc\_5000 & blastn & 20697937 & 375000000 & 75000 & 5000 &
+2.40 & 401.07 & 4.88 & 0.30 & 0.69 & 38 & perc\_id=84\% \\
+ns\_75000\_nc\_5000 & bowtie1 & 20704674 & 375000000 & 75000 & 5000 &
+2.40 & 401.07 & 3.01 & 0.20 & 3.67 & 38 & 3 \\
+ns\_75000\_nc\_5000 & bowtie2 & 20697939 & 375000000 & 75000 & 5000 &
+2.40 & 401.07 & 0.18 & 0.18 & 3.72 & 38 & N/A \\
+ns\_75000\_nc\_5000 & indelfree\_bruteforce & 20697940 & 375000000 &
+75000 & 5000 & 2.40 & 401.07 & 407.00 & 16.98 & 85.47 & 38 & 5 \\
+ns\_75000\_nc\_5000 & indelfree\_indexed & 20697941 & 375000000 & 75000
+& 5000 & 2.40 & 401.07 & 2.54 & 0.14 & 85.13 & 38 & 5 \\
+ns\_75000\_nc\_5000 & minimap2 & 20697942 & 375000000 & 75000 & 5000 &
+2.40 & 401.07 & 0.02 & 0.02 & 2.63 & 38 & N/A \\
+ns\_75000\_nc\_5000 & mmseqs2 & 20697943 & 375000000 & 75000 & 5000 &
+2.40 & 401.07 & 0.02 & 0.02 & 11.44 & 38 & min-seq-id=85\% \\
+ns\_75000\_nc\_5000 & mummer4 & 20697944 & 375000000 & 75000 & 5000 &
+2.40 & 401.07 & 0.04 & 0.04 & 0.26 & 38 & N/A \\
+ns\_75000\_nc\_5000 & sassy & 20697945 & 375000000 & 75000 & 5000 & 2.40
+& 401.07 & 25.83 & 1.36 & 0.08 & 38 & 5 \\
+ns\_75000\_nc\_5000 & strobealign & 20697946 & 375000000 & 75000 & 5000
+& 2.40 & 401.07 & 0.01 & 0.01 & 2.31 & 38 & N/A \\
+\end{longtable}
+
+\paragraph{C. Timed-out / failed jobs}\label{c.-timed-out-failed-jobs}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.3284}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1493}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1343}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1493}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.0896}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1493}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Tool
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Fraction
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Status
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Job ID
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+CPUs
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Time (h)
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+indelfree\_bruteforce & 0.005 & TIMEOUT & 20668623 & 38 & 216.01 \\
+indelfree\_bruteforce & 0.01 & TIMEOUT & 20668635 & 38 & 216.03 \\
+indelfree\_indexed & 1.0 & TIMEOUT & 20668667 & 38 & 216.00 \\
+\end{longtable}
+
+\subsection{Supplementary Figures}\label{supplementary-figures}
+
+\subsubsection{Supplementary Figure S1: IMG/VR4 tool-vs-tool comparison
+matrices}\label{fig-supp-real-matrix}
+
+Pairwise tool-comparison matrices for the IMG/VR4 fraction\_1 dataset at
+exact hamming distance values. Each sub-panel corresponds to a specific
+hamming distance (0, 1, 2, 3). Cell \((i,j)\) shows the number of unique
+spacer-contig aligned regions detected by tool \(i\) (row) but not by
+tool \(j\) (column) at that exact distance. The diagonal cells (where
+\(i=j\)) show the total number of unique spacer-contig aligned regions
+detected by each tool at that distance.
+
+\pandocbounded{\includegraphics[keepaspectratio]{supplementary_files/mediabag/supp_figures/FigureS1_supp_imgvr4_fraction1_tool_comparison_matrix.pdf}}
+
+\subsubsection{Supplementary Figure S2: Simulated dataset recall vs
+spacer occurrence frequency}\label{fig-supp-sim-recall}
+
+High-occurrence-focused recall view (detection fraction) for the
+high-insertion simulated dataset
+(\texttt{ns\_500\_nc\_5000\_HIGH\_INSERTION\_RATE}) at hamming distance
+≤3.
+
+\pandocbounded{\includegraphics[keepaspectratio]{supplementary_files/mediabag/supp_figures/FigureS2_supp_imgvr4_high_ins_recall_vs_occurrence.pdf}}
+
+\subsubsection{Supplementary Figure S3: IMG/VR4 fraction\_1 recall vs
+occurrence frequency at hamming distance ≤3}\label{fig-supp-real-recall}
+
+High-occurrence-focused recall view for the real IMG/VR4 fraction\_1
+dataset at hamming distance ≤3.
+
+\pandocbounded{\includegraphics[keepaspectratio]{supp_figures/FigureS3_supp_imgvr4_fraction1_recall_vs_occurrence.png}}
+
+\subsubsection{Supplementary Figure S4: Comparison of simulated vs real
+spacer characteristics}\label{fig-supp-spacer-comparison}
+
+Distributions of spacer sequence features comparing simulated and real
+datasets, demonstrating that synthetic sequences approximate real data
+characteristics. Features analyzed include k-mer repeatability, Shannon
+entropy, base frequencies, GC content, and Local Composition Complexity
+(LCC, see https://doi.org/10.1038/npg.els.0005260 and
+https://github.com/biopython/biopython/blob/e451db211bdd855a5d0f1f6bba18985ffee12696/Bio/SeqUtils/lcc.py\#L120
+for details).
+
+\textbf{A.} Filtered iPHoP spacer set:
+
+\pandocbounded{\includegraphics[keepaspectratio]{supp_figures/FigureS4A_supp_filtered_iphop_spacers_attribute_distributions_multiplot.png}}
+
+\textbf{B.} Fully simulated spacer set (dataset: ns\_100000\_nc\_20000):
+
+\pandocbounded{\includegraphics[keepaspectratio]{supplementary_files/mediabag/supp_figures/FigureS4B_supp_simulated_spacer_distributions.pdf}}
+
+\subsubsection{Supplementary Figure S5: Spacer characteristic
+distributions by dataset}\label{fig-supp-spacer-distributions}
+
+Distributions of spacers characteristics for both real (IMG/VR4) and
+simulated datasets.\\
+(A) Spacer size (length in bp)\\
+(B) Mismatches observed in spacer alignments\\
+(C) Spacer occurrence rate.
+
+\paragraph{1. IMG/VR4 dataset (contig-side
+distributions)}\label{imgvr4-dataset-contig-side-distributions}
+
+Note: we removed outliers to enable plotting for the length (top left
+panel), see fraction\_1 in Table S4 above.
+
+\pandocbounded{\includegraphics[keepaspectratio]{supplementary_files/mediabag/supp_figures/FigureS5_supp_real_data_contig_distributions.pdf}}
+
+\subsubsection{Supplementary Figure S6: Distribution of matched spacers
+from fraction\_1}\label{fig-supp-occurrence-distribution}
+
+Distributions derived from the aggregate of all unique valid
+tool-reported alignments at hamming distance ≤3, from the results when
+scanning fraction\_1 with the iPHoP spacer set. \textbf{A.} Length (bp)
+distribution of matched spacers. \textbf{B.} Total number of spacer
+occurrences (both axes are log-scaled), i.e.~how many distinct contig
+regions each spacer aligned to. \textbf{C.} Number of reported unique
+alignments at each exact hamming distance value.
+
+\pandocbounded{\includegraphics[keepaspectratio]{supp_figures/FigureS6_supp_fraction_1_matched_spacers_distributions.png}}
+
+\subsubsection{Supplementary Figure S7: Peak memory scaling (real and
+simulated datasets)}\label{fig-supp-resource-memory}
+
+Peak memory usage (RSS, as reported by SLURM) scaling with dataset size.
+\textbf{A.} Real IMG/VR4 subsampled datasets (fractions 0.001-1.0).
+\textbf{B.} Simulated datasets with varying spacer and contig counts.
+Axes are log-scaled; tool identity is encoded by marker shape and color
+(see Table 1 in the main text for tool details).
+
+\pandocbounded{\includegraphics[keepaspectratio]{supplementary_files/mediabag/supp_figures/FigureS7_supp_resource_usage_memory_2panel.pdf}}
+
+\subsubsection{Supplementary Figure S8: Tool recall consistency across
+dataset sizes}\label{fig-supp-sim-consistency}
+
+Per-tool recall consistency at hamming distance ≤3. Upper panel:
+per-tool mean recall with error bars indicating standard deviation.
+
+\textbf{A.} Real IMG/VR4 subsampled datasets.
+
+\pandocbounded{\includegraphics[keepaspectratio]{supplementary_files/mediabag/supp_figures/FigureS8A_supp_imgvr4_across_fractions_recall_consistency_hamming_le3.pdf}}
+
+\textbf{B.} Fully synthetic datasets.
+
+\pandocbounded{\includegraphics[keepaspectratio]{supplementary_files/mediabag/supp_figures/FigureS8B_supp_simulated_cross_fraction_consistency.pdf}}
+
+\textbf{C.} Per-simulation (exact) recall values. Heatmap of per-tool
+recall values across simulated datasets at hamming distance ≤3. Rows
+correspond to tools and columns correspond to analyses runs.
+
+\pandocbounded{\includegraphics[keepaspectratio]{supplementary_files/mediabag/supp_figures/FigureS8C_supp_simulated_heatmap_dataset_consistency_hamming_le3.pdf}}
+
+\subsection{Supplementary Notes}\label{supplementary-notes}
+
+\subsubsection{Supplementary Note 1: Coordinate Tolerance Matching
+Example}\label{note-supp-coord-tolerance}
+
+To illustrate the necessity for coordinate tolerance matching, consider
+the following case from one of the synthetic dataset
+(ns\_100000\_nc\_10000) where three different tools detected the same
+ground truth region, but reported it with slightly different
+coordinates:
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 18\tabcolsep) * \real{0.1000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 18\tabcolsep) * \real{0.1000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 18\tabcolsep) * \real{0.1000}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 18\tabcolsep) * \real{0.1000}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 18\tabcolsep) * \real{0.1000}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 18\tabcolsep) * \real{0.1000}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 18\tabcolsep) * \real{0.1000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 18\tabcolsep) * \real{0.1000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 18\tabcolsep) * \real{0.1000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 18\tabcolsep) * \real{0.1000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Source
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Spacer ID
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Contig ID
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Query Start
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Query End
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Target Start
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Target End
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Strand
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Mismatches/Cost (tool-reported)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Notes
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Ground Truth & 1c47e31b\_spacer\_10034 & 1c47e31b\_contig\_1828 & - & -
+& 5001 & 5036 & reverse & 1 & \\
+BLASTn & 1c47e31b\_spacer\_10034 & 1c47e31b\_contig\_1828 & 1 & 34 &
+5036 & 5003 & reverse & 0 & \\
+MMseqs2 & 1c47e31b\_spacer\_10034 & 1c47e31b\_contig\_1828 & 1 & 35 &
+5036 & 5002 & reverse & 1 & \\
+Sassy & 1c47e31b\_spacer\_10034 & 1c47e31b\_contig\_1828 & - & - & 5000
+& 5036 & reverse & 1 & CIGAR: 34=1I1= \\
+\end{longtable}
+
+In this example, BLASTn reports the ungapped alignment at contig
+positions 5003-5036 (0 reported mismatches), MMseqs2 reports 5002-5036
+(1 reported mismatch over the terminal base), and Sassy reports
+5000-5036 (1 reported insertion, suggesting the position 5000 in the
+contig matches that of the last position in the spacer). The ground
+truth planned occurrence was at 5001-5036. Despite these coordinate
+variations, all three tools detected the same biological match.
+\textbf{Critically}, all three tools report alignments that are
+acceptable matches to the ground truth occurrence, under a maximum
+hamming distance of 1.
+
+This example demonstrates why a 5bp coordinate tolerance is necessary
+when aggregating results across tools to avoid double-counting
+essentially identical matches while accounting for valid algorithmic
+differences in gap versus substitution placement at alignment
+boundaries.
+
+\subsubsection{Supplementary Note 2: Non-planned Match Rate
+Analysis}\label{note-supp-nonplanned}
+
+\paragraph{Hamming vs edit distance: per-simulation
+results}\label{hamming-vs-edit-distance-per-simulation-results}
+
+For each of the four fully synthetic simulations (ns\_50000\_nc\_5000,
+ns\_75000\_nc\_5000, ns\_100000\_nc\_10000, ns\_100000\_nc\_20000), we
+compared non-planned match counts under hamming distance (substitutions
+only) and edit distance (allowing indels) at thresholds 0 through 5.
+
+\subparagraph{Supplementary Figure S9: Per-simulation non-planned match
+counts (Hamming vs Edit)}\label{fig-supp-per-sim-background}
+
+Each panel below shows one simulation. Grouped bars compare hamming
+(blue) and edit (orange) distance non-planned match counts at each
+threshold (0--5, log scale). Annotations above each bar indicate exact
+counts.
+
+A. ns\_50000\_nc\_5000: 50,000 spacers (1.6 Mbp), 5,000 contigs (403
+Mbp)
+
+\pandocbounded{\includegraphics[keepaspectratio]{supplementary_files/mediabag/supp_figures/FigureS9A_supp_ns_50000_nc_5000_background_counts_foldchange.pdf}}
+
+B. ns\_75000\_nc\_5000: 75,000 spacers (2.4 Mbp), 5,000 contigs (401
+Mbp)
+
+\pandocbounded{\includegraphics[keepaspectratio]{supplementary_files/mediabag/supp_figures/FigureS9B_supp_ns_75000_nc_5000_background_counts_foldchange.pdf}}
+
+C. ns\_100000\_nc\_10000: 100,000 spacers (3.2 Mbp), 10,000 contigs (803
+Mbp)
+
+\pandocbounded{\includegraphics[keepaspectratio]{supplementary_files/mediabag/supp_figures/FigureS9C_supp_ns_100000_nc_10000_background_counts_foldchange.pdf}}
+
+D. ns\_100000\_nc\_20000: 100,000 spacers (3.2 Mbp), 20,000 contigs (1.6
+Gbp)
+
+\pandocbounded{\includegraphics[keepaspectratio]{supplementary_files/mediabag/supp_figures/FigureS9D_supp_ns_100000_nc_20000_background_counts_foldchange.pdf}}
+
+\paragraph{Search-space-normalized non-planned match
+rates}\label{search-space-normalized-non-planned-match-rates}
+
+\subparagraph{Supplementary Table S7: Search-space-normalized metrics at
+hamming/edit distance ≤3}\label{tbl-supp-normalized-threshold3}
+
+The table below summarizes the normalized non-planned match rates at
+distance threshold ≤3 for each simulation, extracted from the full
+dataset in \texttt{search\_space\_normalized\_metrics.csv}. The
+threshold ≤3 subset is also available as
+\texttt{search\_space\_normalized\_metrics\_threshold3.csv}.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1429}}@{}}
+\caption{Non-planned match rates at distance threshold ≤3 for each fully
+synthetic simulation. The per Gbp\(^2\) metric is consistent across
+simulations for both hamming (approximately 40,000) and edit
+(approximately 270,000--290,000) distance, confirming that this metric
+appropriately normalizes for search space size. Edit distance ≤3
+produces approximately 6--8 fold more non-planned matches than hamming
+distance ≤3.}\tabularnewline
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Simulation
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Metric
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+n\_spacers
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+contig\_bp (Gbp)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Non-planned
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Per spacer per Gbp
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Per Gbp\(^2\)
+\end{minipage} \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Simulation
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Metric
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+n\_spacers
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+contig\_bp (Gbp)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Non-planned
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Per spacer per Gbp
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Per Gbp\(^2\)
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ns\_50000\_nc\_5000 & Hamming & 50,000 & 0.40 & 26 & 0.0013 & 40,371 \\
+ns\_50000\_nc\_5000 & Edit & 50,000 & 0.40 & 173 & 0.0086 & 268,621 \\
+ns\_75000\_nc\_5000 & Hamming & 75,000 & 0.40 & 39 & 0.0013 & 40,489 \\
+ns\_75000\_nc\_5000 & Edit & 75,000 & 0.40 & 280 & 0.0093 & 290,692 \\
+ns\_100000\_nc\_10000 & Hamming & 100,000 & 0.80 & 113 & 0.0014 &
+43,968 \\
+ns\_100000\_nc\_10000 & Edit & 100,000 & 0.80 & 722 & 0.0090 &
+280,929 \\
+ns\_100000\_nc\_20000 & Hamming & 100,000 & 1.60 & 187 & 0.0012 &
+36,427 \\
+ns\_100000\_nc\_20000 & Edit & 100,000 & 1.60 & 1,393 & 0.0087 &
+271,352 \\
+\end{longtable}
+
+\subparagraph{Supplementary Table S8: Semi-synthetic non-planned match
+rates by hamming threshold}\label{tbl-supp-semisynthetic}
+
+\begin{longtable}[]{@{}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2603}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2877}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2740}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1781}}@{}}
+\caption{Non-planned matches in the semi-synthetic dataset (3,826,979
+real spacers × 421,431 simulated contigs, 0 planned spacer
+``injections'') at cumulative hamming distance thresholds. The per
+Gbp\(^2\) rate at hamming ≤3 (101,270) is higher than observed in the
+fully synthetic datasets (approximately 40,000), which is expected given
+differences in sequence composition between real and simulated spacers
+(e.g., non-uniform k-mer distribution, biological sequence features).
+Values at thresholds ≤4 and ≤5 are \textbf{lower bounds} as only
+heuristic tools were used. \{\#tbl-supp-semisynthetic-rates\} The
+comparison of normalized non-planned match rates between the
+semi-synthetic dataset and the mean across fully synthetic simulations
+at hamming distance ≤3 is presented in the main text (Table 3 in the
+main text).}\tabularnewline
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedleft
+Hamming threshold
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Non-planned matches
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Per spacer per Gbp
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Per Gbp\(^2\)
+\end{minipage} \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedleft
+Hamming threshold
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Non-planned matches
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Per spacer per Gbp
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Per Gbp\(^2\)
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+0 & 1 & 6.1 × 10\(^{-8}\) & 1.80 \\
+≤1 & 49 & 3.0 × 10\(^{-6}\) & 88.2 \\
+≤2 & 2,354 & 1.4 × 10\(^{-4}\) & 4,236 \\
+≤3 & 56,273 & 3.4 × 10\(^{-3}\) & 101,270 \\
+≤4 & 72,132 & 4.4 × 10\(^{-3}\) & 129,810 \\
+≤5 & 113,314 & 6.9 × 10\(^{-3}\) & 203,922 \\
+\end{longtable}
+
+\paragraph{Caveats and interpretation}\label{caveats-and-interpretation}
+
+These non-planned match rate estimates should be interpreted
+qualitatively rather than as exact predictive values. Real spacer
+sequences have compositional features (conserved motifs, non-random
+k-mer structure, locus-specific GC variation) not fully captured by
+simulated sequences, as illustrated by the approximately 2.5-fold
+difference between semi-synthetic and fully synthetic rates. Simulated
+contigs, while matched to IMG/VR4 in GC content and length
+distributions, lack additional structural features of real viral genomes
+(coding density, gene arrangement, horizontal transfer footprints) that
+may influence match frequencies. For the semi-synthetic dataset, only
+heuristic tools were computationally feasible, so the reported counts
+represent lower bounds on the true non-planned match frequency. These
+estimates are most informative for relative comparisons (hamming vs edit
+distance, threshold effects, and scaling with search space size); for
+absolute prediction of non-planned match counts in a given analysis,
+they should be treated as order-of-magnitude guides.
+
+\textbf{Complete analysis available in:}
+\texttt{distance\_metric\_analysis\_v3.ipynb} notebook in project
+repository, including per-distance breakdowns, tool-specific validation
+analyses, and detailed comparison tables.
+
+\subsection{References and Data
+Availability}\label{references-and-data-availability}
+
+All analysis notebooks, source code, and generated data are available in
+the project repository at:
+\href{https://github.com/UriNeri/spacer_matching_bench}{github.com/UriNeri/spacer\_matching\_bench}.
+
+Key analysis notebooks referenced in supplementary materials: -
+\texttt{spacer\_inspection.ipynb}: Complexity filtering, spacer feature
+analysis, simulated vs real comparison -
+\texttt{distance\_metric\_analysis.ipynb}: Non-planned match rate
+analysis, coordinate tolerance examples, hamming vs edit distance
+comparison - \texttt{Prepare\_all\_jobs.ipynb}: Simulation parameter
+definitions, dataset generation commands -
+\texttt{Performance\_simulated\_v2.ipynb}: Per-tool performance metrics
+on simulated datasets - \texttt{Performance\_imgvr4\_v3.ipynb}: Per-tool
+performance metrics on real IMG/VR4 datasets
+
+Dataset availability: - Filtered IMG/VR4 HQ contig subset (421,431
+contigs, \textasciitilde18.9 Gbp): {[}Zenodo DOI{]} - Filtered iPHoP
+spacer dataset (3,826,979 spacers, 132 Mbp): {[}Zenodo DOI{]} - All
+synthetic datasets and ground truth files: \autocite{zenodo_doi}
+
+
+\printbibliography
+
+
+
+\end{document}

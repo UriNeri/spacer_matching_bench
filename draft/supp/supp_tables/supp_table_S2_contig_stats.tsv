@@ -1,0 +1,6 @@
+ Step 	 Operation 	 Output contigs 	 Notes 
+ 1 	 Load IMG/VR4 v1.1 high-confidence set 	 5,457,198 	 Initial high-confidence contigs 
+ 2 	 Remove eukaryotic virus taxa 	 5,115,894 	 Filtered by ICTV class/order/family lists in `fetch_real_data.ipynb` 
+ 3 	 Remove short contigs 	 5,115,894 	 Length filter: keep contigs \>1000 bp 
+ 4 	 Export filtered reference 	 5,115,894 	 `filtered_contigs.fasta` and `filtered_contig_stats.parquet` 
+ 5 	 Build HQ benchmark subset 	 421,431 	 Stratified taxonomic subsampling by class for fraction_1 analyses 

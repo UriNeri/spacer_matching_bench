@@ -1,0 +1,4 @@
+ **Dataset Type** 	 **Spacers (Count)** 	 **Contigs (Count)** 	 **Notes** 
+ Fully Synthetic 	 100k - 500k 	 5k - 100k 	 Generated with varying params (see Supplementary Table S4) 
+ Semi-Synthetic 	 ~3.8M (Real) 	 ~420k (Simulated) 	 Real iPHoP spacers, Fully synthetic contigs matching IMG/VR4 GC% and length range. 
+ Real Data (IMG/VR4) 	 ~3.8M (Real) 	" ~420k (Real ""HQ"") "	 IMG/VR4 v1.1 HQ contigs and their subsamples, lightly filtered iPHoP spacers 
