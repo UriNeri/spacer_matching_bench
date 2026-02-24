@@ -1156,8 +1156,8 @@ search tools is too computationally prohibitive), we either reduced the
 threshold the range (1-3) if possible. For the full set (fraction\_1,
 the semi-synthetic set, and the largest of the simulated runs) we
 resorted to using the aggregation of the non exhaustive tools (namely
-Bowtie1 and blastn) results as proxy. Complete analysis and methodology
-details are provided in Supplementary Note 2.
+Bowtie1 and blastn) results as proxy. See Supplementary Tables S7 an S8
+for more details.
 
 \subsection{Computational Resource and Runtime
 Tracking}\label{sec-resource-tracking}
@@ -1296,12 +1296,12 @@ event counts.
 
 \centering{
 
-\pandocbounded{\includegraphics[keepaspectratio]{index_files/mediabag/main_figures/Figure1_main_search_space_background_normalization.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{main_figures/Figure1_main_search_space_background_normalization.png}}
 
 }
 
-\caption{\label{fig-background-normalization}Figure~1: Non-planned
-alignment (``background'') frequency: mean ± SD across 4 fully synthetic
+\caption{\label{fig-background-normalization}Non-planned alignment
+(``background'') frequency: mean ± SD across 4 fully synthetic
 simulations (50,000-100,000 spacers × 5,000-20,000 contigs). (A)
 Absolute count of non-planned matches at each distance threshold (0-5).
 (B) Non-planned matches normalized per spacer per Gbp of target
@@ -1311,8 +1311,7 @@ search space (spacer-bp × contig-bp). Blue bars: hamming distance
 indels). Error bars: standard deviation across simulations. At hamming
 ≤3, the per Gbp\^{}2 rate is approximately 40,000, while at edit ≤3 the
 rate is approximately 270,000-290,000 (a 6-8 fold increase). Full
-per-simulation breakdowns are provided in Supplementary Note 2 and
-Supplementary Figure S9.}
+per-simulation breakdowns are provided in Supplementary Figure S9.}
 
 \end{figure}%
 
@@ -1341,9 +1340,9 @@ Absolute counts are not directly comparable due to different search
 space sizes. Normalized metrics show the semi-synthetic dataset has
 approximately 2.5× higher non-planned match rates, likely reflecting
 biological sequence composition features in real spacers not fully
-captured by simulated sequences (see Supplementary Note 2 for detailed
-methodology, per-threshold breakdowns, and
-caveats).}\label{tbl-semisynthetic-hamming3}\tabularnewline
+captured by simulated sequences (see Supplementary Table S7 and S8 for
+the per-threshold
+breakdowns).}\label{tbl-semisynthetic-hamming3}\tabularnewline
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
@@ -1370,15 +1369,15 @@ Ratio
 \endlastfoot
 Non-planned matches (total) & 91.3 ± 64.5 & 56,273 & n/a (different
 search space) \\
-Per spacer per Gbp & 0.0013 ± 0.0001 & 0.0034 & 2.6× \\
-Per Gbp2 search space & 40,314 ± 2,791 & 101,270 & 2.5× \\
+Per spacer per Gbp & 0.0013 ± 0.0001 & 0.00068 & 0.53× \\
+Per Gbp2 search space & 40,314 ± 2,669 & 20,239 & 0.50× \\
 \end{longtable}
 
-The approximately 2.5-fold higher normalized rates in the semi-synthetic
+The approximately 0.5-fold lower normalized rates in the semi-synthetic
 dataset relative to fully synthetic simulations may stem from the real
 spacer sequences having compositional features (conserved motifs,
-non-uniform k-mer distributions, locus-specific GC variation) that
-increase chance similarity. Therefore, these values should be
+non-uniform k-mer distributions, locus-specific GC variation) that alter
+the rate of chance similarity. Therefore, these values should be
 interpreted as qualitative indicators of relative (between edit vs
 hamming and at increasing thresholds) background alignment rather than
 exact predictive rates, as the simulated contigs only capture basic
@@ -1402,11 +1401,11 @@ thresholds}\label{sec-distance-performance}
 
 }
 
-\caption{\label{fig-tool-performance}Figure 2: Tool recall (detection
-fraction of unique valid aligned regions) across distance thresholds.
-The upper row shows IMG/VR4 (fractions) results and bottom row shows
-synthetic datasets; columns compare hamming and edit distance analyses.
-An asterisk ``*'' is noted after tools that did failed or timed out, and
+\caption{\label{fig-tool-performance}Tool recall (detection fraction of
+unique valid aligned regions) across distance thresholds. The upper row
+shows IMG/VR4 (fractions) results and bottom row shows synthetic
+datasets; columns compare hamming and edit distance analyses. An
+asterisk ``*'' is noted after tools that did failed or timed out, and
 the total number of successful runs (subsampled fraction for the IMG/VR
 sets, and independent measurements for the simulated set) are noted in
 brackets after each tool'name, and the value in each cell is the mean of
@@ -1505,10 +1504,10 @@ CRISPR spacer and viral databases continue growing rapidly.
 
 }
 
-\caption{\label{fig-resource-usage}Figure 3: Total CPU time scaling with
-dataset size (log-log scale). (A.) Real IMG/VR4 subsampled datasets
-(fractions 0.001-1.0, approximately 10 Mbp to 18.9 Gbp target sequence).
-(B.) Simulated datasets with varying numbers of spacers and contigs (see
+\caption{\label{fig-resource-usage}Total CPU time scaling with dataset
+size (log-log scale). (A.) Real IMG/VR4 subsampled datasets (fractions
+0.001-1.0, approximately 10 Mbp to 18.9 Gbp target sequence). (B.)
+Simulated datasets with varying numbers of spacers and contigs (see
 Supplementary Table S4 for dataset details). Marker shape and color
 encode tool identity. Note, x-axis ``jitter'' was applied to avoid
 overlapping marker positions. BLASTn runtime for fraction\_1 was

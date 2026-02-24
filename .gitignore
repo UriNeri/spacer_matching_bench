@@ -235,3 +235,5 @@ results/test2
 results/simulated/simulation_dataset_stats.csv
 results/simulated/simulation_dataset_stats.parquet
 draft/main/_freeze
+
+.nfs*

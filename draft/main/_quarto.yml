@@ -1,6 +1,8 @@
 project:
   type: manuscript
   output-dir: ../../public
+  pre-render:
+    - mkdir -p index_files/figure-html
 
 manuscript:
   article: index.qmd

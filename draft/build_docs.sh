@@ -12,11 +12,8 @@ cd ../supp
 #     rsvg-convert  --format png --keep-aspect-ratio --dpi-x 396 --dpi-y 396 --output "$no_ext".png $svg_file
 # done
 
-# merge the header only file with the rawmd.not_md into the supplementary.qmd
+# supplementary material now lives in supplementary_legend.qmd
 quarto render 
 cd ../
-# python build_supplementary_pdf.py
-
-# cp ./draft_main_manuscript.docx ../public/index.docx
 
 exit
