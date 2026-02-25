@@ -1,7 +1,7 @@
 
 # Benchmarking protospacer identification tools
 Scripts, code, and data for the manuscript: "Tool Choice _drastically_ Impacts CRISPR Spacer-Protospacer Detection"   
-Raw data files available in zenodo: [https://zenodo.org/doi/10.5281/zenodo.15171878](https://zenodo.org/doi/10.5281/zenodo.15171878).  
+Raw data files available in zenodo: [10.5281/zenodo.15171877](https://doi.org/10.5281/zenodo.15171877).
 This benchmark is a companion project to the [SpacerDB](https://spacers.jgi.doe.gov/) and the [SpacerExtractor](https://code.jgi.doe.gov/SRoux/spacerextractor) tools.  
 
 ## Overview
