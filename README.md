@@ -20,7 +20,7 @@ For a complete list, see the [tool_versions.csv](tool_configs/tool_versions.csv)
 5. [StrobeAlign](https://github.com/ksahlin/StrobeAlign)
 6. [BLASTN-short](https://blast.ncbi.nlm.nih.gov/doc/blast-help/downloadblastdata.html)
 7. [MMseqs2](https://github.com/soedinglab/MMseqs2)
-8. [sassy](https://github.com/ragnargk/sassy)
+8. [sassy](https://github.com/RagnarGrootKoerkamp/sassy)
 9. [nucmer](https://github.com/mummer4/mummer)
 
 ## Installation
