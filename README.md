@@ -211,7 +211,9 @@ See existing tool configs for examples when adding new tools.
 
 ## Citation
 
-If you use this tool in your research, please cite:
+If you use this tool in your research, or use it in a scientific context, please cite:  
+* Uri Neri, Antonio Pedro Camargo, Brian Bushnell, Rick Beeloo, Simon Roux, Computational tool choice impacts CRISPR spacer-protospacer detection, Bioinformatics, Volume 42, Issue 7, July 2026, btag394, https://doi.org/10.1093/bioinformatics/btag394
+
 
 # Benchmark Reproduction  (notebooks)
 In the preprint/paper we use the CLI tool or code/fucntions/etc to test relatively large datasets and various scnarios (fraction of real data, semi-synthetic, simulated, hard-limiting reporting etc). These are tracked using jupyter notebooks (and SLURM logs), in the `notebooks` folder. The general execution order:  
